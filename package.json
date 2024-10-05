@@ -1,11 +1,11 @@
 {
   "name": "@nyren/ts-setup",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "CLi tools setup project typescript",
   "bin": {
-    "nyrenx": "nyren.js"
+    "nyrenx": "lib/nyren.js"
   },
-  "main": "nyren.js",
+  "main": "lib/esm/nyren.js",
   "type": "module",
   "files": [
     "nyren.js",
@@ -14,8 +14,18 @@
     "esm.json",
     "repo-template"
   ],
+  "engines": {
+    "node": ">=16.0.0"
+  },
   "scripts": {
-    "test": "echo \"Not test\""
+    "cli": "bun src/nyren.ts",
+    "build:cjs": "tsc -p tsconfigs/cjs.json",
+    "build:esm": "tsc -p tsconfigs/esm.json",
+    "build:clean": "rm -rf lib/cjs/* lib/esm/* 2> /dev/null",
+    "build": "npm run build:clean; npm run build:cjs && npm run build:esm",
+    "lint": "prettier --check 'src/**/*.{js,ts}' 'lib/esm/**/*.{js,ts}' 'lib/cjs/**/*.{js,ts}' 'lib/types/**/*.{js,ts}'",
+    "format": "prettier --write 'src/**/*.{js,ts}' 'lib/esm/**/*.{js,ts}' 'lib/cjs/**/*.{js,ts}' 'lib/types/**/*.{js,ts}'",
+    "test": "jest --coverage"
   },
   "repository": {
     "type": "git",
@@ -50,9 +60,9 @@
     "typescript": "^5.6.2"
   },
   "dependencies": {
+    "@inquirer/prompts": "^6.0.1",
     "chalk": "^5.3.0",
     "commander": "^12.1.0",
-    "inquirer": "^11.1.0",
     "log-symbols": "^7.0.0",
     "ora": "^8.1.0"
   }
