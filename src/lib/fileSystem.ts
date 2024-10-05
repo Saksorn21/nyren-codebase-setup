@@ -6,7 +6,7 @@ import {
 const readFile = async (path: string) => await fsReadFile(path, 'utf-8')
 
 
-async function copyRepo(src: string, dest: string): Promises<boolean> {
+async function copyRepo(src: string, dest: string): Promise<boolean> {
   try {
      await fsCopyDirectory(src, dest, { 
        recursive: true 
