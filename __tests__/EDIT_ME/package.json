@@ -6,6 +6,8 @@
   "main": "lib/index.js",
   "module": "lib/esm/index.js",
   "types": "lib/index.d.ts",
+  "keywords": [],
+  "author": "Boat Saksorn  (Thailand)",
   "devDependencies": {
     "@nyren/ts-setup": "0.1.0",
     "@jest/globals": "^29.7.0",
@@ -18,13 +20,14 @@
     "typescript": "^5.6.2"
   },
   "scripts": {
-    "build": "tsc && tsc -p tsconfig.esm.json",
-    "lint": "prettier --print-width 100 --single-quote --check index.ts",
-    "format": "prettier --print-width 100 --single-quote --write index.ts",
-    "test": "node index.test.js"
+  "build:cjs": "tsc -p tsconfigs/cjs.json",
+  "build:esm": "tsc -p tsconfigs/esm.json",
+  "build:clean": "rm -rf lib/cjs/* lib/esm/* 2> /dev/null",
+  "build": "npm run build:clean; npm run build:cjs && npm run build:esm",
+  "lint": "prettier --check 'src/**/*.{js,ts}' 'lib/esm/**/*.{js,ts}' 'lib/cjs/**/*.{js,ts}' 'lib/types/**/*.{js,ts}'",
+  "format": "prettier --write 'src/**/*.{js,ts}' 'lib/esm/**/*.{js,ts}' 'lib/cjs/**/*.{js,ts}' 'lib/types/**/*.{js,ts}'",
+  "test": "jest --coverage"
   },
-  "keywords": [],
-  "author": "Boat Saksorn  (Thailand)",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Saksorn21/EDIT_ME.git"

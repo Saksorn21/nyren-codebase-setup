@@ -1,0 +1,25 @@
+{
+  "name": "EDIT_ME",
+  "private": true,
+  "version": "0.1.0",
+  "description": "EDIT_ME",
+  "main": "lib/index.js",
+  "type": "module",
+  "devDependencies": {
+    "@nyren/ts-setup": "0.1.0",
+    "jest": "^29.7.0",
+    "prettier": "^3.3.3",
+  },
+  "scripts": {
+  "lint": "prettier --check 'src/**/*.{js,ts}' 'lib/esm/**/*.{js,ts}' 'lib/cjs/**/*.{js,ts}' 'lib/types/**/*.{js,ts}'",
+  "format": "prettier --write 'src/**/*.{js,ts}' 'lib/esm/**/*.{js,ts}' 'lib/cjs/**/*.{js,ts}' 'lib/types/**/*.{js,ts}'",
+  "test": "jest --coverage"
+  },
+  "keywords": [],
+  "author": "Boat Saksorn  (Thailand)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Saksorn21/EDIT_ME.git"
+  },
+  "license": "MIT"
+}
