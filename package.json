@@ -1,0 +1,59 @@
+{
+  "name": "@nyren/ts-setup",
+  "version": "0.0.1",
+  "description": "CLi tools setup project typescript",
+  "bin": {
+    "nyrenx": "nyren.js"
+  },
+  "main": "nyren.js",
+  "type": "module",
+  "files": [
+    "nyren.js",
+    "tsconfig.best.json",
+    "cjs.json",
+    "esm.json",
+    "repo-template"
+  ],
+  "scripts": {
+    "test": "echo \"Not test\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Saksorn21/nyren-ts-setup.git"
+  },
+  "keywords": [
+    "Cli",
+    "cli",
+    "setup",
+    "project",
+    "tools",
+    "nyren",
+    "typescript",
+    "workflow",
+    "prettier",
+    "jest"
+  ],
+  "author": "Boat Saksorn (Thailand)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Saksorn21/nyren-ts-setup/issues"
+  },
+  "homepage": "https://github.com/Saksorn21/nyren-ts-setup#readme",
+  "devDependencies": {
+    "@jest/globals": "^29.7.0",
+    "@types/jest": "^29.5.13",
+    "@types/node": "^22.7.4",
+    "jest": "^29.7.0",
+    "prettier": "^3.3.3",
+    "ts-jest": "^29.2.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.6.2"
+  },
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "commander": "^12.1.0",
+    "inquirer": "^11.1.0",
+    "log-symbols": "^7.0.0",
+    "ora": "^8.1.0"
+  }
+}
