@@ -1,9 +1,12 @@
-import { readFile } from 'fileSystem'
+import { readFileSync } from './fileSystem'
 import { resolve } from 'path';
 
-export async function readPackageJson() {
-  const packageJsonPath = resolve(process.cwd(), 'package.json');
-  const data = await readFile(packageJsonPath,);
-  const packageJson = JSON.parse(data);
-          console.log(packageJson);
+export function readPackageJson(src?: string): Record<string, string | string[]> {
+  let packageJsonPath: string;
+  if (src) {
+    packageJsonPath = resolve(src, 'package.json');
+  }else{
+    packageJsonPath = resolve(process.cwd(), 'package.json');
+  }
+  return JSON.parse(readFileSync(packageJsonPath,'utf-8'))
 }

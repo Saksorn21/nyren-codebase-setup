@@ -3,22 +3,21 @@
   "version": "0.1.0",
   "description": "CLi tools setup project typescript",
   "bin": {
-    "nyrenx": "lib/nyren.js"
+    "nyrenx": "lib/cli/nyrenx.js"
   },
-  "main": "lib/esm/nyren.js",
+  "main": "lib/esm/main.js",
   "type": "module",
   "files": [
     "nyren.js",
     "tsconfig.best.json",
-    "cjs.json",
-    "esm.json",
+    "tsconfigs",
     "repo-template"
   ],
   "engines": {
     "node": ">=16.0.0"
   },
   "scripts": {
-    "cli": "bun src/nyren.ts",
+    "cli": "bun src/cli/nyrenx.ts ",
     "build:cjs": "tsc -p tsconfigs/cjs.json",
     "build:esm": "tsc -p tsconfigs/esm.json",
     "build:clean": "rm -rf lib/cjs/* lib/esm/* 2> /dev/null",

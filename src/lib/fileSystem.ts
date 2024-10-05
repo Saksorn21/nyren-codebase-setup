@@ -2,7 +2,7 @@ import {
   cp as fsCopyDirectory,
   readFile as fsReadFile,
 } from 'node:fs/promises'
-
+import { readFileSync } from 'node:fs';
 const readFile = async (path: string) => await fsReadFile(path, 'utf-8')
 
 
@@ -20,5 +20,5 @@ async function copyRepo(src: string, dest: string): Promise<boolean> {
  // console.log(`Copied directory from ${src} to ${dest}`);
 }
 
-export { copyRepo, readFile }
+export { copyRepo, readFile, readFileSync }
 //copyDirectory('source-folder', 'destination-folder');
