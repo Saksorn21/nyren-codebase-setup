@@ -1,8 +1,29 @@
 {
-  "extends": "../tsconfig.json",
   "compilerOptions": {
-    "module": "es2020",
-    "moduleResolution": "Node10"
-    "outDir": "lib/esm",
-  }
+    "target": "es2022",
+    "module": "es2022",
+    "declarationDir": "lib/types",
+    "moduleResolution": "Node10",
+    "lib": [
+      "es2022"
+    ],
+    "baseUrl": ".",
+    "strict": true,
+    "sourceMap": true,
+    "declaration": true,
+    "declarationMap": true,
+    "importHelpers": true,
+    "allowSyntheticDefaultImports": false,
+    "allowUnreachableCode": false,
+    "esModuleInterop": false,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitReturns": true,
+    "noUncheckedIndexedAccess": false,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "useDefineForClassFields": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": ["src","src/**/*.ts"],
+  "exclude": ["node_modules"]
 }

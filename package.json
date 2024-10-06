@@ -1,17 +1,16 @@
 {
   "name": "@nyren/codebase-setup",
   "version": "0.1.0",
-  "description": "CLi tools setup project ",
+  "description": "A CLI tool designed to streamline project setup for JavaScript and TypeScript, providing essential libraries and configurations for quick initialization and efficient workflows.",
   "bin": {
     "nyrenx-codeup": "lib/cli/nyrenx.js"
   },
-  "main": "lib/esm/main.js",
+  "main": "lib/main.js",
   "type": "module",
   "files": [
     "lib",
-    "nyren.js",
-    "tsconfig.best.json",
-    "tsconfigs",
+    "tsconfigs/cjs.json",
+    "tsconfigs/esm.json",
     "repo-template"
   ],
   "engines": {
@@ -19,10 +18,8 @@
   },
   "scripts": {
     "cli": "bun src/cli/nyrenx.ts ",
-    "build:cjs": "tsc -p tsconfigs/cjs.json",
-    "build:esm": "tsc -p tsconfigs/esm.json",
-    "build:clean": "rm -rf lib/cjs/* lib/esm/* 2> /dev/null",
-    "build": "npm run build:clean; npm run build:cjs && npm run build:esm",
+
+    "build": "tsc",
     "lint": "prettier --check 'src/**/*.{js,ts}' 'lib/esm/**/*.{js,ts}' 'lib/cjs/**/*.{js,ts}' 'lib/types/**/*.{js,ts}'",
     "format": "prettier --write 'src/**/*.{js,ts}' 'lib/esm/**/*.{js,ts}' 'lib/cjs/**/*.{js,ts}' 'lib/types/**/*.{js,ts}'",
     "test": "jest --coverage"
@@ -32,16 +29,20 @@
     "url": "git+https://github.com/Saksorn21/nyren-ts-setup.git"
   },
   "keywords": [
-    "Cli",
     "cli",
+    "command line",
     "setup",
-    "project",
+    "project management",
     "tools",
     "nyren",
     "typescript",
-    "workflow",
-    "prettier",
-    "jest"
+    "javascript",
+    "typescript setup",
+    "javascript setup",
+    "workflow automation",
+    "repository",
+    "configuration",
+    "template"
   ],
   "author": "Boat Saksorn (Thailand)",
   "license": "MIT",

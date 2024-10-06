@@ -1,11 +1,15 @@
 import { readPackageJson } from './lib/packageJson'
-import { copyRepo, createJsonFile, createDirectory, resolvePath } from './lib/fileSystem'
+import {
+  copyRepo,
+  createJsonFile,
+  createDirectory,
+  resolvePath,
+} from './lib/fileSystem'
 import { setPrettierJson, createFileMain } from './lib/setup-repo'
 import { setModule, build, input, confirm } from './lib/prompts'
 import { runCommand } from './lib/exec'
 import { help, tools } from './lib/help'
 import { oraPromise } from 'ora'
-import { resolve } from 'node:path'
 
 export interface OptsInits {
   projectName?: string
@@ -48,14 +52,17 @@ export async function createProject() {
   await help.warnOverWrite()
 
   if (await confirm('Do you want to continue?')) {
-    if (await copyRepoToDirectory((row.src) as string, (row.fullPath) as string)) {
-      const creatingPackage = await createPackageJson((row.fullPath) as string, template)
+    if (await copyRepoToDirectory(row.src as string, row.fullPath as string)) {
+      const creatingPackage = await createPackageJson(
+        row.fullPath as string,
+        template
+      )
       // creating .prettierrc.json
-      await createPrettierJson((row.fullPath) as string, (row.template) as string)
-      await createFilesMain((row.fullPath) as string, (row.template) as string)
-      
+      await createPrettierJson(row.fullPath as string, row.template as string)
+      await createFilesMain(row.fullPath as string, row.template as string)
+
       if (creatingPackage.success) {
-        await handleLibraryInstallation(isLibrary, (row.directoryName) as string)
+        await handleLibraryInstallation(isLibrary, row.directoryName as string)
         process.exit(1)
       } else {
         tools.log(
@@ -124,12 +131,11 @@ export async function processLoopPackage(
   row.src = src
   row.template = target
   row.directoryName = transformString(row.name.toString())
-  row.fullPath = resolvePath(process.cwd(),row.directoryName)
+  row.fullPath = resolvePath(process.cwd(), row.directoryName)
   return { row, templateData: repo }
 }
 
 async function copyRepoToDirectory(src: string, basePath: string) {
-  
   return copyRepo(src, basePath)
 }
 
@@ -138,10 +144,7 @@ async function createPackageJson(basePath: string, dataPackage: Row) {
     start: 'Creating the package.json file',
     success: 'Package.json creation completed successfully!',
     fail: 'Package.json creation failed!',
-    callAction: createJsonFile(
-     basePath,
-      dataPackage
-    ),
+    callAction: createJsonFile(basePath, dataPackage),
   })
 }
 
@@ -150,40 +153,43 @@ async function createPrettierJson(basePath: string, target: string) {
     start: 'Creating the .prettierrc.json file',
     success: '.prettierrc.json creation completed successfully!',
     fail: '.prettierrc.json creation failed!',
-    callAction: setPrettierJson(target, basePath)
+    callAction: setPrettierJson(target, basePath),
   })
 }
 
 async function createFilesMain(basePath: string, target: string) {
-  await createDirectory(basePath + '/.github');
+  await createDirectory(basePath + '/.github')
 
   await processSpinner({
     start: 'Creating the workflow folder',
     success: 'Workflow folder created successfully! (.github/workflow)',
     fail: 'Failed to create the workflow folder!',
     callAction: copyRepo('./repo-templates/.github', basePath + '/.github'),
-  });
+  })
 
-  await createDirectory(basePath + '/src');
+  await createDirectory(basePath + '/src')
 
   await processSpinner({
     start: 'Creating the src/index.js file',
     success: 'src/index.js file created successfully!',
     fail: 'Failed to create the src/index.js file!',
     callAction: createFileMain(target, 'src', basePath),
-  });
+  })
 
-  await createDirectory(basePath + '/__tests__');
+  await createDirectory(basePath + '/__tests__')
 
   await processSpinner({
     start: 'Creating the __tests__/index.test.js file',
     success: '__tests__/index.test.js file created successfully!',
     fail: 'Failed to create the __tests__/index.test.js file!',
     callAction: createFileMain(target, '__tests__', basePath),
-  });
+  })
 }
 
-async function handleLibraryInstallation(isLibrary: boolean, directoryName: string) {
+async function handleLibraryInstallation(
+  isLibrary: boolean,
+  directoryName: string
+) {
   const basecommand = `cd ./${directoryName} && npm install`
   if (isLibrary) {
     await help.libraryEx()
@@ -229,13 +235,12 @@ export async function processExce(
   tools.log(`\n${tools.success} ${tools.textGrey(output)}`)
 }
 
-
 function transformString(input: string): string {
-    // Check if the input starts with '@' and contains '/'
-    if (input.startsWith('@') && input.includes('/')) {
-        // Remove '@' and replace '/' with '-'
-        return input.replace(/^@/, '').replace('/', '-');
-    }
-    // If the input doesn't match the conditions, return the original input
-    return input;
+  // Check if the input starts with '@' and contains '/'
+  if (input.startsWith('@') && input.includes('/')) {
+    // Remove '@' and replace '/' with '-'
+    return input.replace(/^@/, '').replace('/', '-')
+  }
+  // If the input doesn't match the conditions, return the original input
+  return input
 }

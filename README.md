@@ -103,13 +103,14 @@ Both configurations extend from a base setup with the following settings:
     "declarationDir": "lib/types",
     "moduleResolution": "Node10",
     "lib": [
-      "es2020"
+      "es2022"
     ],
     "baseUrl": ".",
     "strict": true,
     "sourceMap": true,
     "declaration": true,
     "declarationMap": true,
+    "importHelpers": true,
     "allowSyntheticDefaultImports": false,
     "allowUnreachableCode": false,
     "esModuleInterop": false,

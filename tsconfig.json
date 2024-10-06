@@ -2,17 +2,18 @@
   "compilerOptions": {
     "target": "es2022",
     "module": "es2022",
-    "declarationDir": "lib/types",
+    "outDir": "lib",
     "moduleResolution": "Node10",
     "lib": [
-      "es2020"
+      "es2022"
     ],
     "baseUrl": ".",
     "strict": true,
-    "sourceMap": true,
-    "declaration": true,
-    "declarationMap": true,
-    "allowSyntheticDefaultImports": false,
+    "sourceMap": false,
+    "declaration": false,
+    "declarationMap": false,
+    "importHelpers": true,
+    "allowSyntheticDefaultImports": true,
     "allowUnreachableCode": false,
     "esModuleInterop": false,
     "noFallthroughCasesInSwitch": true,
