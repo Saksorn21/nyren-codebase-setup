@@ -1,5 +1,14 @@
 # Changelog
 
+## [v0.1.2] - 2024-10-07
+
+### Fixed
+- Added missing files necessary for publishing to npm.
+- Corrected the `package.json` `files` field to ensure the correct files are included in the npm package.
+
+### Changed
+- Updated the `main` export to expose utility functions for users who want to use the internal utils as a library.
+
 ## [v0.1.1] - 2024-10-07
 
 ### Fixed
