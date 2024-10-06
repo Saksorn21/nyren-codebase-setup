@@ -1,5 +1,11 @@
 # Changelog
 
+## [v0.1.1] - 2024-10-07
+
+### Fixed
+- Corrected build output path from `./lib/lib` to `./lib`.
+- Ensured build files are located in the root of the project.
+
 ## [0.1.0] - 2024-10-06
 
 ### Added
