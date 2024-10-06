@@ -1,9 +1,11 @@
 import { readPackageJson } from './lib/packageJson'
-import { copyRepo, createJsonFile } from './lib/fileSystem'
+import { copyRepo, createJsonFile, createDirectory, resolvePath } from './lib/fileSystem'
+import { setPrettierJson, createFileMain } from './lib/setup-repo'
 import { setModule, build, input, confirm } from './lib/prompts'
 import { runCommand } from './lib/exec'
 import { help, tools } from './lib/help'
 import { oraPromise } from 'ora'
+import { resolve } from 'node:path'
 
 export interface OptsInits {
   projectName?: string
@@ -46,21 +48,20 @@ export async function createProject() {
   await help.warnOverWrite()
 
   if (await confirm('Do you want to continue?')) {
-    if (await copyRepoToDirectory(row.src.toString(), row.name.toString())) {
-      const creating = await createPackageJson(row.name.toString(), template)
-
-      if (creating.success) {
-        tools.log(
-          tools.success,
-          tools.textGreen('Package.json creation completed successfully!')
-        )
+    if (await copyRepoToDirectory((row.src) as string, (row.fullPath) as string)) {
+      const creatingPackage = await createPackageJson((row.fullPath) as string, template)
+      // creating .prettierrc.json
+      await createPrettierJson((row.fullPath) as string, (row.template) as string)
+      await createFilesMain((row.fullPath) as string, (row.template) as string)
+      
+      if (creatingPackage.success) {
         await handleLibraryInstallation(isLibrary)
         process.exit(1)
       } else {
         tools.log(
           tools.error,
           tools.textRed(
-            `Create package.json failed: ${(creating.error as Error).message}`
+            `Create package.json failed: ${(creatingPackage.error as Error).message}`
           )
         )
         process.exit(1)
@@ -122,23 +123,52 @@ export async function processLoopPackage(
   }
   row.src = src
   row.template = target
+  row.directoryName = transformString(row.name.toString())
+  row.fullPath = resolvePath(process.cwd(),row.directoryName)
   return { row, templateData: repo }
 }
 
-async function copyRepoToDirectory(src: string, name: string) {
-  return copyRepo(src, process.cwd() + '/__tests__/' + name)
+async function copyRepoToDirectory(src: string, basePath: string) {
+  return copyRepo(src, basePath)
 }
 
-async function createPackageJson(name: string, dataPackage: Row) {
+async function createPackageJson(basePath: string, dataPackage: Row) {
   return processSpinner({
     start: 'Creating the package.json file',
-    success: 'Build process completed successfully!',
+    success: 'Package.json creation completed successfully!',
     fail: 'Package.json creation failed!',
     callAction: createJsonFile(
-      process.cwd() + '/__tests__/' + name,
+     basePath,
       dataPackage
     ),
   })
+}
+
+async function createPrettierJson(basePath: string, target: string) {
+  return processSpinner({
+    start: 'Creating the .prettierrc.json file',
+    success: '.prettierrc.json creation completed successfully!',
+    fail: '.prettierrc.json creation failed!',
+    callAction: setPrettierJson(target, basePath)
+  })
+}
+
+async function createFilesMain(basePath: string, target: string) {
+  await createDirectory(basePath + '/src')
+  
+  await processSpinner({
+    start: 'Creating the src/index.js file',
+    success: 'Build process completed successfully! (src/index.js)',
+    fail: 'src/index creation failed!',
+    callAction: createFileMain(target, 'src', basePath),
+  })
+  await createDirectory(basePath + '/__tests__')
+   await processSpinner({
+     start: 'Creating the __tests__/index.test file',
+     success: 'Build process completed successfully! (__tests__/index.test)',
+     fail: '__tests__/index.test creation failed!',
+     callAction: createFileMain(target, '__tests__', basePath),
+   })
 }
 
 async function handleLibraryInstallation(isLibrary: boolean) {
@@ -184,4 +214,15 @@ export async function processExce(
     process.exit(1)
   }
   tools.log(`\n${tools.success} ${tools.textGrey(output)}`)
+}
+
+
+function transformString(input: string): string {
+    // Check if the input starts with '@' and contains '/'
+    if (input.startsWith('@') && input.includes('/')) {
+        // Remove '@' and replace '/' with '-'
+        return input.replace(/^@/, '').replace('/', '-');
+    }
+    // If the input doesn't match the conditions, return the original input
+    return input;
 }

@@ -39,9 +39,9 @@ export async function setModule() {
     ],
   })
 }
-export async function input(target: string): Promise<string> {
+export async function input(title: string): Promise<string> {
   return await inputPrompt({
-    message: ` ${chalk.hex('#87d75f').bold(target)}:`,
+    message: ` ${chalk.hex('#87d75f').bold(title)}:`,
   })
 }
 export async function confirm(message: string): Promise<boolean> {
