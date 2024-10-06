@@ -1,13 +1,14 @@
 {
-  "name": "@nyren/ts-setup",
+  "name": "@nyren/codebase-setup",
   "version": "0.1.0",
-  "description": "CLi tools setup project typescript",
+  "description": "CLi tools setup project ",
   "bin": {
-    "nyrenx": "lib/cli/nyrenx.js"
+    "nyrenx-codeup": "lib/cli/nyrenx.js"
   },
   "main": "lib/esm/main.js",
   "type": "module",
   "files": [
+    "lib",
     "nyren.js",
     "tsconfig.best.json",
     "tsconfigs",
@@ -63,6 +64,6 @@
     "chalk": "^5.3.0",
     "commander": "^12.1.0",
     "log-symbols": "^7.0.0",
-    "ora": "^8.1.0"
+    "ora": "^8.1.0",
   }
 }

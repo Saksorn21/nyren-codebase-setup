@@ -1,30 +1,32 @@
-import { readPackageJson } from './lib/packageJson';
+import { readPackageJson } from './lib/packageJson'
 import { copyRepo, createJsonFile } from './lib/fileSystem'
-import {setModule, build, input, confirm} from './lib/prompts'
+import { setModule, build, input, confirm } from './lib/prompts'
 import { runCommand } from './lib/exec'
-import {oraPromise } from 'ora';
-import chalk from 'chalk';
-import logSymbols from 'log-symbols';
+import { help, tools } from './lib/help'
+import { oraPromise } from 'ora'
 
 export interface OptsInits {
-  name?: string;
-  template?: string;
-  path?: string;
-  }
+  projectName?: string
+  repoTemplate?: string
+  version?: string
+  path?: string
+}
 interface Row {
   // It's the same.
   // Record<string, string | string[]>
-  [name: string]: string| string[] 
+  [name: string]: string | string[]
 }
 interface SpinnerInput<T> {
-  start: string;
-  success: string;
-  fail: string;
+  start: string
+  success: string
+  fail?: string
   callAction: PromiseLike<T>
-
 }
 const keywords: Set<string> = new Set<string>([])
-const packageJson: Map<string, string | string[]> = new Map<string, string | string[]>([
+const packageJson: Map<string, string | string[]> = new Map<
+  string,
+  string | string[]
+>([
   ['name', 'my-project'],
   ['version', '1.0.0'],
   ['description', 'my-project'],
@@ -33,104 +35,153 @@ const packageJson: Map<string, string | string[]> = new Map<string, string | str
   ['author', ''],
   ['license', ''],
 ])
-export async function processLoopPackage(target: string): Promise<{row: Row, templateData: Row}> {
-  const module = await setModule()
-  const src = target === 'typescript' ? './repo-templates/ts': './repo-templates/js'
-   const repo = readPackageJson(src)
-   const row: Row = {}
-   for (const [key, value] of packageJson){
-     const answer =  await input(key)
-     repo.type = module
-     row.type = module
-     if (typeof repo[key] === 'string'){
-       row[key] = answer === '' ? repo[key] : answer || value
-       repo[key] = answer === '' ? repo[key] : answer || value
-     }
-     if (Array.isArray(repo[key])) {
-       answer.split(',').map((item) => {
-         keywords.add(item)
-       })
-       
-       repo[key] = answer === '' ? [] : [...keywords]
-       } 
 
-   }
+export async function createProject() {
+  const tarage = await setupTemplates()
+  const { row, template } = await processTemplate(tarage)
+
+  const isLibrary: boolean = await confirm(
+    'Would you like to add more libraries?'
+  )
+  await help.warnOverWrite()
+
+  if (await confirm('Do you want to continue?')) {
+    if (await copyRepoToDirectory(row.src.toString(), row.name.toString())) {
+      const creating = await createPackageJson(row.name.toString(), template)
+
+      if (creating.success) {
+        tools.log(
+          tools.success,
+          tools.textGreen('Package.json creation completed successfully!')
+        )
+        await handleLibraryInstallation(isLibrary)
+        process.exit(1)
+      } else {
+        tools.log(
+          tools.error,
+          tools.textRed(
+            `Create package.json failed: ${(creating.error as Error).message}`
+          )
+        )
+        process.exit(1)
+      }
+    } else {
+      tools.log(tools.error, tools.textRed('Failed to copy the repository'))
+      process.exit(1)
+    }
+  } else {
+    tools.log(tools.error, tools.textRed('Process canceled by the user'))
+    process.exit(1)
+  }
+}
+
+async function setupTemplates() {
+  return processSpinner({
+    start: 'Setting up repository templates',
+    success: 'Setup completed successfully!',
+    fail: 'Setup failed!',
+    callAction: build(),
+  })
+}
+
+async function processTemplate(tarage: string) {
+  const { row, templateData } = await processLoopPackage(tarage)
+
+  if (tarage !== 'typescript' && tarage !== 'javascript') {
+    tools.log(tools.textRed('Error: Please select a template'))
+    process.exit(1)
+  }
+
+  return { row, template: templateData }
+}
+
+export async function processLoopPackage(
+  target: string
+): Promise<{ row: Row; templateData: Row }> {
+  const module = await setModule()
+  const src =
+    target === 'typescript' ? './repo-templates/ts' : './repo-templates/js'
+  const repo = readPackageJson(src)
+  const row: Row = {}
+  await help.buildProject()
+  for (const [key, value] of packageJson) {
+    const answer = await input(key)
+    repo.type = module
+    row.type = module
+    if (typeof repo[key] === 'string') {
+      row[key] = answer === '' ? repo[key] : answer || value
+      repo[key] = answer === '' ? repo[key] : answer || value
+    }
+    if (Array.isArray(repo[key])) {
+      answer.split(',').map(item => {
+        keywords.add(item)
+      })
+
+      repo[key] = answer === '' ? [] : [...keywords]
+    }
+  }
   row.src = src
   row.template = target
   return { row, templateData: repo }
 }
 
-export async function createProject(opts: OptsInits) {
-  
-console.log(`options: ${JSON.stringify(opts)}`)
-  
-  const tarage = await processSpinner({ 
-    start: 'Setup repo-templates', // ข้อความตอนเริ่ม
-      success: 'Completed!', // ข้อความเมื่อสำเร็จ
-      fail: 'Failed!', // ข้อความเมื่อเกิดข้อผิดพลาด
-    callAction: build()
-  }) 
-  let template: Row = {}
-  const { row, templateData } = await processLoopPackage(tarage)
-      
-  if (tarage === 'typescript') {
-      template = templateData
-    }else if (tarage === 'javascript') {
-      template = templateData
-    }else{
-      console.log(
-        chalk.red.bold(
-          'Error: Please select a template'
-        )
-      )
-    process.exit(1)
-    }
- await helpWarn()
+async function copyRepoToDirectory(src: string, name: string) {
+  return copyRepo(src, process.cwd() + '/__tests__/' + name)
+}
 
-  if (await confirm('Do you want to continue?')){
-    
-   if(await copyRepo(row.src.toString(), process.cwd() + '/__tests__/' + row.name.toString())) {
+async function createPackageJson(name: string, dataPackage: Row) {
+  return processSpinner({
+    start: 'Creating the package.json file',
+    success: 'Build process completed successfully!',
+    fail: 'Package.json creation failed!',
+    callAction: createJsonFile(
+      process.cwd() + '/__tests__/' + name,
+      dataPackage
+    ),
+  })
+}
 
-     console.log(logSymbols.success, chalk.green.bold('Build completed!'))
-     const creating = await processSpinner({
-       start: 'Creating package.json',
-       success: 'Completed!',
-       fail: 'Failed!',
-       callAction: createJsonFile(process.cwd()+ '/__tests__/' + row.name.toString(), template)
-     })
-     if (creating.success){
-       console.log(logSymbols.success, chalk.green.bold('Create package.json completed!'))
-       process.exit(1)
-       }
-     console.log(logSymbols.error, chalk.red.bold(`Create package.json failed: ${((creating.error) as Error).message}`))
-     process.exit(1)
-    }
-    console.log(logSymbols.error, chalk.red.bold('faild'))
-    process.exit(1)
+async function handleLibraryInstallation(isLibrary: boolean) {
+  if (isLibrary) {
+    await help.libraryEx()
+    const lib = await input('libraries')
+    await processSpinner({
+      start: 'Installing library',
+      success: 'Library installation completed successfully!',
+      fail: 'Library installation failed!',
+      callAction: processExce('npm install', lib),
+    })
+  } else {
+    await processExce('npm install')
   }
-    console.log(logSymbols.error, chalk.red.bold('cancel'))
-  process.exit(1)
-  }
-async function helpWarn(): Promise<void> {
-   console.log(logSymbols.warning,`${chalk.hex('#ffaf00').bold('Will overwrite directory')}`)
-   console.log(logSymbols.warning,`${chalk.hex('#ffaf00').bold('Please read the documentation if you are not sure.')}`)
-   console.log(logSymbols.warning,`${chalk.hex('#ffaf00').bold('See')}: ${chalk.hex('#626262').underline('https://github.com/Saksorn21/nyren-ts-setup/blob/main/README.md')}`)
 }
 
 export async function processSpinner<T>(opts: SpinnerInput<T>): Promise<T> {
-   const { start, success, fail, callAction } = opts
-   const spinner = await oraPromise(() => callAction, { 
-    color: 'white',
-    text: chalk.hex('#949494').bold(start),
-    successText: chalk.hex('#87ffaf').bold(success), // ข้อความเมื่อสำเร็จ
-    failText: chalk.hex('#d7005f').bold(fail), // ข้อความเมื่อเกิดข้อผิดพลาด
-  })
-  return spinner
+  const { start, success, fail, callAction } = opts
+
+  try {
+    const result = await oraPromise(() => callAction, {
+      color: 'white',
+      text: tools.textGrey(start),
+      successText: tools.textGreen(success),
+      failText: tools.textRed(fail),
+    })
+    return result
+  } catch (error) {
+    throw error
+  }
 }
-
-export async function processExce(command: string, library: string) {
-   await runCommand(`${command} ${library}`)
+export async function processExce(
+  command: string,
+  library?: string
+): Promise<void> {
+  const { output, error } = await runCommand(`${command} ${library}`)
+  if (error) {
+    tools.log(
+      `\n${tools.error}`,
+      tools.textRed(`Execution failed: ${tools.textGrey(error)}`)
+    )
+    process.exit(1)
+  }
+  tools.log(`\n${tools.success} ${tools.textGrey(output)}`)
 }
-
-
-
