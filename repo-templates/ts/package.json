@@ -23,7 +23,6 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "@nyren/codebase-setup": "0.1.0",
     "@jest/globals": "^29.7.0",
     "@types/jest": "^29.5.13",
     "@types/node": "^22.7.4",
@@ -32,5 +31,9 @@
     "ts-jest": "^29.2.5",
     "ts-node": "^10.9.2",
     "typescript": "^5.6.2"
+  },
+  "dependencies": {
+    "@nyren/codebase-setup": "^0.1.0",
+    "tslib": "^2.7.0"
   }
 }

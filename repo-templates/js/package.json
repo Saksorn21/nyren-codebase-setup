@@ -18,8 +18,11 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "@nyren/codebase-setup": "0.1.0",
     "jest": "^29.7.0",
-    "prettier": "^3.3.3"
+    "prettier": "^3.3.3",
+    "nodemon": "^2.0.22"
+  },
+  "dependencies": {
+    "@nyren/codebase-setup": "^0.1.0"
   }
 }

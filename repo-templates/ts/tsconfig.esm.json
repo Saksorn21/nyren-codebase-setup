@@ -1,5 +1,5 @@
 {
-  "extends": "@nyren/ts-setup/tsconfigs/esm.json",
+  "extends": "@nyren/codebase-setup/tsconfigs/esm.json",
   "compilerOptions": {
     "outDir": "lib/esm"
   },

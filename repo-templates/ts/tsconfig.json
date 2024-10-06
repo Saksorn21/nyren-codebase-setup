@@ -1,5 +1,5 @@
 {
-  "extends": "@nyren/ts-setup/tsconfigs/cjs.json",
+  "extends": "@nyren/codebase-setup/tsconfigs/cjs.json",
   "compilerOptions": {
     "outDir": "lib/cjs"
   },

@@ -55,7 +55,7 @@ export async function createProject() {
       await createFilesMain((row.fullPath) as string, (row.template) as string)
       
       if (creatingPackage.success) {
-        await handleLibraryInstallation(isLibrary)
+        await handleLibraryInstallation(isLibrary, (row.directoryName) as string)
         process.exit(1)
       } else {
         tools.log(
@@ -129,6 +129,7 @@ export async function processLoopPackage(
 }
 
 async function copyRepoToDirectory(src: string, basePath: string) {
+  
   return copyRepo(src, basePath)
 }
 
@@ -154,24 +155,36 @@ async function createPrettierJson(basePath: string, target: string) {
 }
 
 async function createFilesMain(basePath: string, target: string) {
-  await createDirectory(basePath + '/src')
-  
+  await createDirectory(basePath + '/.github');
+
+  await processSpinner({
+    start: 'Creating the workflow folder',
+    success: 'Workflow folder created successfully! (.github/workflow)',
+    fail: 'Failed to create the workflow folder!',
+    callAction: copyRepo('./repo-templates/.github', basePath + '/.github'),
+  });
+
+  await createDirectory(basePath + '/src');
+
   await processSpinner({
     start: 'Creating the src/index.js file',
-    success: 'Build process completed successfully! (src/index.js)',
-    fail: 'src/index creation failed!',
+    success: 'src/index.js file created successfully!',
+    fail: 'Failed to create the src/index.js file!',
     callAction: createFileMain(target, 'src', basePath),
-  })
-  await createDirectory(basePath + '/__tests__')
-   await processSpinner({
-     start: 'Creating the __tests__/index.test file',
-     success: 'Build process completed successfully! (__tests__/index.test)',
-     fail: '__tests__/index.test creation failed!',
-     callAction: createFileMain(target, '__tests__', basePath),
-   })
+  });
+
+  await createDirectory(basePath + '/__tests__');
+
+  await processSpinner({
+    start: 'Creating the __tests__/index.test.js file',
+    success: '__tests__/index.test.js file created successfully!',
+    fail: 'Failed to create the __tests__/index.test.js file!',
+    callAction: createFileMain(target, '__tests__', basePath),
+  });
 }
 
-async function handleLibraryInstallation(isLibrary: boolean) {
+async function handleLibraryInstallation(isLibrary: boolean, directoryName: string) {
+  const basecommand = `cd ./${directoryName} && npm install`
   if (isLibrary) {
     await help.libraryEx()
     const lib = await input('libraries')
@@ -179,10 +192,10 @@ async function handleLibraryInstallation(isLibrary: boolean) {
       start: 'Installing library',
       success: 'Library installation completed successfully!',
       fail: 'Library installation failed!',
-      callAction: processExce('npm install', lib),
+      callAction: processExce(basecommand, lib),
     })
   } else {
-    await processExce('npm install')
+    await processExce(basecommand)
   }
 }
 

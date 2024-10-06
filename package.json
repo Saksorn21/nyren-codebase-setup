@@ -65,6 +65,6 @@
     "commander": "^12.1.0",
     "log-symbols": "^7.0.0",
     "ora": "^8.1.0",
-    "undefined": "^0.1.0"
+    "tslib": "^2.7.0"
   }
 }

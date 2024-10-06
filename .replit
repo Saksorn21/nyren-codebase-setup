@@ -1,4 +1,4 @@
-run = "npm run cli -- init -n nyren"
+run = "npm run cli -- init"
 modules = ["nodejs-22"]
 
 [nix]
