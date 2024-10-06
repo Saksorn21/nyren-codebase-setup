@@ -1,8 +1,0 @@
-run = "npm run cli -- init"
-modules = ["nodejs-22"]
-
-[nix]
-channel = "stable-24_05"
-
-[deployment]
-run = ["sh", "-c", "npm run cli"]
