@@ -1,14 +1,16 @@
 {
   "name": "@nyren/codebase-setup",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "A CLI tool designed to streamline project setup for JavaScript and TypeScript, providing essential libraries and configurations for quick initialization and efficient workflows.",
   "bin": {
     "nyrenx-codeup": "lib/cli/nyrenx.js"
   },
-  "main": "lib/main.js",
+  "main": "main.js",
   "type": "module",
   "files": [
     "lib",
+    "cli",
+    "main.js",
     "tsconfigs/cjs.json",
     "tsconfigs/esm.json",
     "repo-template"

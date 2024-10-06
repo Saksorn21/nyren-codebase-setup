@@ -17,12 +17,12 @@ export interface OptsInits {
   version?: string
   path?: string
 }
-interface Row {
+export interface Row {
   // It's the same.
   // Record<string, string | string[]>
   [name: string]: string | string[]
 }
-interface SpinnerInput<T> {
+export interface SpinnerInput<T> {
   start: string
   success: string
   fail?: string
@@ -42,7 +42,7 @@ const packageJson: Map<string, string | string[]> = new Map<
   ['license', ''],
 ])
 
-export async function createProject() {
+async function createProject() {
   const tarage = await setupTemplates()
   const { row, template } = await processTemplate(tarage)
 
@@ -103,7 +103,7 @@ async function processTemplate(tarage: string) {
   return { row, template: templateData }
 }
 
-export async function processLoopPackage(
+async function processLoopPackage(
   target: string
 ): Promise<{ row: Row; templateData: Row }> {
   const module = await setModule()
@@ -205,7 +205,7 @@ async function handleLibraryInstallation(
   }
 }
 
-export async function processSpinner<T>(opts: SpinnerInput<T>): Promise<T> {
+async function processSpinner<T>(opts: SpinnerInput<T>): Promise<T> {
   const { start, success, fail, callAction } = opts
 
   try {
@@ -220,7 +220,7 @@ export async function processSpinner<T>(opts: SpinnerInput<T>): Promise<T> {
     throw error
   }
 }
-export async function processExce(
+async function processExce(
   command: string,
   library?: string
 ): Promise<void> {
@@ -244,3 +244,7 @@ function transformString(input: string): string {
   // If the input doesn't match the conditions, return the original input
   return input
 }
+
+export { createProject, transformString, tools, processSpinner, processExce }
+
+export * from './lib/fileSystem'
