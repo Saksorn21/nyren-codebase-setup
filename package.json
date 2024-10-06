@@ -20,8 +20,8 @@
     "cli": "bun src/cli/nyrenx.ts ",
 
     "build": "tsc",
-    "lint": "prettier --check 'src/**/*.{js,ts}' 'lib/esm/**/*.{js,ts}' 'lib/cjs/**/*.{js,ts}' 'lib/types/**/*.{js,ts}'",
-    "format": "prettier --write 'src/**/*.{js,ts}' 'lib/esm/**/*.{js,ts}' 'lib/cjs/**/*.{js,ts}' 'lib/types/**/*.{js,ts}'",
+    "lint": "prettier --check 'src/**/*.{js,ts}' 'lib/**/*.{js,ts}'",
+    "format": "prettier --write 'src/**/*.{js,ts}' 'lib/**/*.{js,ts}'",
     "test": "jest --coverage"
   },
   "repository": {
