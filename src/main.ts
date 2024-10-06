@@ -1,7 +1,8 @@
 import { readPackageJson } from './lib/packageJson';
-import { copyRepo } from './lib/fileSystem'
+import { copyRepo, createJsonFile } from './lib/fileSystem'
 import {setModule, build, input, confirm} from './lib/prompts'
-import {oraPromise as ora } from 'ora';
+import { runCommand } from './lib/exec'
+import {oraPromise } from 'ora';
 import chalk from 'chalk';
 import logSymbols from 'log-symbols';
 
@@ -15,11 +16,12 @@ interface Row {
   // Record<string, string | string[]>
   [name: string]: string| string[] 
 }
-interface SpinnerInput {
-  title: string;
-  on: string;
-  end: string;
-  tiemout?: number;
+interface SpinnerInput<T> {
+  start: string;
+  success: string;
+  fail: string;
+  callAction: PromiseLike<T>
+
 }
 const keywords: Set<string> = new Set<string>([])
 const packageJson: Map<string, string | string[]> = new Map<string, string | string[]>([
@@ -62,10 +64,15 @@ export async function createProject(opts: OptsInits) {
   
 console.log(`options: ${JSON.stringify(opts)}`)
   
-  const tarage = await build()
+  const tarage = await processSpinner({ 
+    start: 'Setup repo-templates', // ข้อความตอนเริ่ม
+      success: 'Completed!', // ข้อความเมื่อสำเร็จ
+      fail: 'Failed!', // ข้อความเมื่อเกิดข้อผิดพลาด
+    callAction: build()
+  }) 
   let template: Row = {}
   const { row, templateData } = await processLoopPackage(tarage)
-
+      
   if (tarage === 'typescript') {
       template = templateData
     }else if (tarage === 'javascript') {
@@ -76,29 +83,33 @@ console.log(`options: ${JSON.stringify(opts)}`)
           'Error: Please select a template'
         )
       )
+    process.exit(1)
     }
-  processSpinner({
-    title: 'Creating project...',
-    on: 'Creating project with' + chalk.whiteBright.bold(chalk.underline(row.template)),
-    end: 'Project created',
-    tiemout: 1000
-  })
-await ora(helpWarn(), { text: 'Creating project...' })
+ await helpWarn()
+
   if (await confirm('Do you want to continue?')){
-    processSpinner({
-      title: 'Setup overwrite directory.',
-      on: 'Loading repo-template' + chalk.whiteBright.bold(chalk.underline(row.template)),
-      end: 'done',
-      tiemout: 1000
-    })
-   if(await copyRepo(row.src.toString(), process.cwd() + '/__tests__/' + row.name.toString())) {
-     
- 
-  }
     
+   if(await copyRepo(row.src.toString(), process.cwd() + '/__tests__/' + row.name.toString())) {
+
+     console.log(logSymbols.success, chalk.green.bold('Build completed!'))
+     const creating = await processSpinner({
+       start: 'Creating package.json',
+       success: 'Completed!',
+       fail: 'Failed!',
+       callAction: createJsonFile(process.cwd()+ '/__tests__/' + row.name.toString(), template)
+     })
+     if (creating.success){
+       console.log(logSymbols.success, chalk.green.bold('Create package.json completed!'))
+       process.exit(1)
+       }
+     console.log(logSymbols.error, chalk.red.bold(`Create package.json failed: ${((creating.error) as Error).message}`))
+     process.exit(1)
+    }
+    console.log(logSymbols.error, chalk.red.bold('faild'))
+    process.exit(1)
   }
     console.log(logSymbols.error, chalk.red.bold('cancel'))
-    //console.log(answer)
+  process.exit(1)
   }
 async function helpWarn(): Promise<void> {
    console.log(logSymbols.warning,`${chalk.hex('#ffaf00').bold('Will overwrite directory')}`)
@@ -106,19 +117,20 @@ async function helpWarn(): Promise<void> {
    console.log(logSymbols.warning,`${chalk.hex('#ffaf00').bold('See')}: ${chalk.hex('#626262').underline('https://github.com/Saksorn21/nyren-ts-setup/blob/main/README.md')}`)
 }
 
-export async function processSpinner(opts: SpinnerInput) {
-   const { title, on, end, tiemout } = opts
-   const spinner = await ora({text:title}).start();
-   setTimeout(() =>{
-     spinner.prefixText = chalk.dim('[info]');
-     
-     spinner.spinner = 'balloon';
-     spinner.color = 'gray';
-     spinner.text = on;
-     spinner.succeed(end);
- 
-       }, tiemout || 1000)
-   
+export async function processSpinner<T>(opts: SpinnerInput<T>): Promise<T> {
+   const { start, success, fail, callAction } = opts
+   const spinner = await oraPromise(() => callAction, { 
+    color: 'white',
+    text: chalk.hex('#949494').bold(start),
+    successText: chalk.hex('#87ffaf').bold(success), // ข้อความเมื่อสำเร็จ
+    failText: chalk.hex('#d7005f').bold(fail), // ข้อความเมื่อเกิดข้อผิดพลาด
+  })
+  return spinner
 }
+
+export async function processExce(command: string, library: string) {
+   await runCommand(`${command} ${library}`)
+}
+
 
 

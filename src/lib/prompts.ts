@@ -11,11 +11,11 @@ export async function build(){
     choices: [{
       name: `${chalk.hex('#87afff').bold('TypeScript')}`,
       value: 'typescript',
-      description: 'TypeScript template',
+      description: 'TypeScript template\n',
     },{
       name: `${chalk.hex('#d7af00').bold('JavaScript')}`,
       value: 'javascript',
-      description: 'JavaScript template',
+      description: 'JavaScript template\n',
     }]
   })
 }
@@ -40,7 +40,7 @@ export async function input(target: string): Promise<string> {
     message: ` ${chalk.hex('#87d75f').bold(target)}:`
   })
 }
-export async function confirm(message: string): Promise<string>{
+export async function confirm(message: string): Promise<boolean>{
   return await confirmPrompt({
     message: `${chalk.hex('#ff00af').bold(message)}`
   })

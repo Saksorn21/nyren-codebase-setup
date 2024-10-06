@@ -1,6 +1,10 @@
 import { exec } from 'node:child_process';
 import { promisify } from 'node:util';
 
+interface OutPutResult {
+  output: string, 
+  error?: string
+}
 const execAsync = promisify(exec);
 
 /**
@@ -8,25 +12,26 @@ const execAsync = promisify(exec);
  * This function uses `exec` from Node.js to run the command.
  * 
  * @param {string} command - The shell command to execute, e.g., 'npm i'.
- * @returns {Promise<void>} - Resolves when the command is executed, or rejects if there's an error.
+ * @returns {Promise<OutPutResult>} - Resolves when the command is executed, or rejects if there's an error.
  * 
  * Example:
  * ```ts
  * await runCommand('npm i');
  * ```
  */
-export async function runCommand(command: string): Promise<void> {
+export async function runCommand(command: string): Promise<OutPutResult> {
   try {
     // Rename stdout to 'output' for easier understanding
     const { stdout: output, stderr: errorOutput } = await execAsync(command);
 
     if (errorOutput) {
-      console.error(`Error Output: ${errorOutput}`);
+      return {output: '', error: errorOutput }
     }
-
-    console.log(`Output: ${output}`);
+    return { output }
+    
   } catch (error) {
     console.error(`Execution failed: ${(error as Error).message}`);
+    return { output: '', error: (error as Error).message }
   }
 }
 
