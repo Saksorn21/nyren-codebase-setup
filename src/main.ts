@@ -1,5 +1,6 @@
 import { readPackageJson } from './lib/packageJson.js'
 import { copyRepo, createJsonFile, createDirectory } from './lib/fileSystem.js'
+import { extractArchive } from './lib/zipUtil.js'
 import { getDirname, resolvePath } from './lib/pathHelper.js'
 import { setPrettierJson, createFileMain } from './lib/setup-repo.js'
 import { setModule, build, input, confirm } from './lib/prompts.js'
@@ -43,7 +44,7 @@ const packageJson: Map<string, string | string[]> = new Map<
 
 async function createProject() {
   const tarage = await setupTemplates()
-  const { row, template } = await processTemplate(tarage)
+  const { row, templateData } = await processTemplate(tarage)
 
   const isLibrary: boolean = await confirm(
     'Would you like to add more libraries?'
@@ -54,11 +55,11 @@ async function createProject() {
     if (await copyRepoToDirectory(row.src as string, row.fullPath as string)) {
       const creatingPackage = await createPackageJson(
         row.fullPath as string,
-        template
+        templateData
       )
       // creating .prettierrc.json
-      await createPrettierJson(row.fullPath as string, row.template as string)
-      await createFilesMain(row.fullPath as string, row.template as string)
+    //  await createPrettierJson(row.fullPath as string, 'pp' + row.template as string)
+    //  await createFilesMain(row.fullPath as string, row.template as string)
 
       if (creatingPackage.success) {
         await handleLibraryInstallation(isLibrary, row.directoryName as string)
@@ -99,7 +100,7 @@ async function processTemplate(tarage: string) {
     process.exit(1)
   }
 
-  return { row, template: templateData }
+  return { row, templateData }
 }
 
 async function processLoopPackage(
@@ -141,7 +142,15 @@ async function processLoopPackage(
 }
 
 async function copyRepoToDirectory(src: string, basePath: string) {
-  return copyRepo(src, basePath)
+  //copyRepo(src, basePath)
+  await createDirectory(basePath)
+ await processSpinner({
+      start: 'Cloning repository',
+      success: 'Cloning completed successfully!',
+      fail: 'Cloning failed!',
+      callAction: extractArchive(src + '.zip', basePath)
+  })
+  return  true
 }
 
 async function createPackageJson(basePath: string, dataPackage: Row) {
@@ -260,6 +269,7 @@ function formatDaraPackageJson(dataPackage: Row) {
     repository,
     ...therest
   } = dataPackage
+  console.log(dataPackage)
   return {
     name,
     version,

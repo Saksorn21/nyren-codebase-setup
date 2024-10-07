@@ -6,6 +6,7 @@
   "type": "module",
   "private": true,
   "scripts": {
+    "build": "npx esbuild ./src/index.js --bundle --outfile=index.js",
   "lint": "prettier --check 'src/**/*.{js}'",
   "format": "prettier --write 'src/**/*.{js}'",
   "test": "jest --coverage"
@@ -20,7 +21,8 @@
   "devDependencies": {
     "jest": "^29.7.0",
     "prettier": "^3.3.3",
-    "nodemon": "^3.1.7"
+    "nodemon": "^3.1.7",
+    "esbuild": "^0.24.0"
   },
   "dependencies": {
     "@nyren/codebase-setup": "^0.1.6"
