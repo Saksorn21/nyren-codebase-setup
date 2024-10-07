@@ -1,6 +1,6 @@
 
-import { readFile, createJsonFile, createFile, type ResultFs } from './fileSystem.js'
-import { resolve } from 'node:path'
+import { readFile, createJsonFile, createFile, resolvePath, type ResultFs } from './fileSystem.js'
+
 
 export async function setPrettierJson(target: string, src: string = process.cwd()): Promise<ResultFs> {
   
@@ -10,14 +10,14 @@ export async function setPrettierJson(target: string, src: string = process.cwd(
   if (parsedData.hasOwnProperty('parser')) {
     parsedData.parser = target;
   }
-const {success, error } = await createJsonFile(src, parsedData);
+const {success, error } = await createJsonFile(resolvePath(src, '.prettierrc.json'), parsedData);
   if (error) {
     return { success, error: error as Error }
   }
   return { success }
 }
 export async function createFileMain(target: string, path: string, src: string = process.cwd()) {
-  const basePath = resolve(src, `${path}/index${path !== 'src' ? '.test.' : '.'}${target === 'typescript' ? 'ts' : 'js'}`)
+  const basePath = resolvePath(src, `${path}/index${path !== 'src' ? '.test.' : '.'}${target === 'typescript' ? 'ts' : 'js'}`)
    const dataMain = `
    import { tools } from '@nyren/codebase-setup/tools';
    tools.log(tools.success, tools.textGreen('Hello, nyren!'));

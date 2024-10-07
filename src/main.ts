@@ -3,7 +3,7 @@ import {
   copyRepo,
   createJsonFile,
   createDirectory,
-  resolvePath,
+  resolvePath
 } from './lib/fileSystem.js'
 import { setPrettierJson, createFileMain } from './lib/setup-repo.js'
 import { setModule, build, input, confirm } from './lib/prompts.js'
@@ -114,8 +114,7 @@ async function processLoopPackage(
   await help.buildProject()
   for (const [key, value] of packageJson) {
     const answer = await input(key)
-    repo.type = module
-    row.type = module
+    
     if (typeof repo[key] === 'string') {
       row[key] = answer === '' ? repo[key] : answer || value
       repo[key] = answer === '' ? repo[key] : answer || value
@@ -127,7 +126,14 @@ async function processLoopPackage(
 
       repo[key] = answer === '' ? [] : [...keywords]
     }
+    if (key === 'license') {
+      repo[key] = answer === '' ? repo[key] : answer.toUpperCase()
+      row[key] = answer === '' ? repo[key] : answer.toUpperCase()
+    }
+    
   }
+  repo.type = module.toLowerCase()
+  row.type = module.toLowerCase()
   row.src = src
   row.template = target
   row.directoryName = transformString(row.name.toString())
@@ -144,7 +150,7 @@ async function createPackageJson(basePath: string, dataPackage: Row) {
     start: 'Creating the package.json file',
     success: 'Package.json creation completed successfully!',
     fail: 'Package.json creation failed!',
-    callAction: createJsonFile(basePath, dataPackage),
+    callAction: createJsonFile(resolvePath(basePath,'package.json'), formatDaraPackageJson(dataPackage)),
   })
 }
 
@@ -158,16 +164,16 @@ async function createPrettierJson(basePath: string, target: string) {
 }
 
 async function createFilesMain(basePath: string, target: string) {
-  await createDirectory(basePath + '/.github')
+  await createDirectory(resolvePath(basePath, '.github'))
 
   await processSpinner({
     start: 'Creating the workflow folder',
     success: 'Workflow folder created successfully! (.github/workflow)',
     fail: 'Failed to create the workflow folder!',
-    callAction: copyRepo('./repo-templates/.github', basePath + '/.github'),
+    callAction: copyRepo('./repo-templates/.github', resolvePath(basePath, '.github')),
   })
 
-  await createDirectory(basePath + '/src')
+  await createDirectory(resolvePath(basePath, 'src'))
 
   await processSpinner({
     start: 'Creating the src/index.js file',
@@ -176,7 +182,7 @@ async function createFilesMain(basePath: string, target: string) {
     callAction: createFileMain(target, 'src', basePath),
   })
 
-  await createDirectory(basePath + '/__tests__')
+  await createDirectory(resolvePath(basePath,'__tests__'))
 
   await processSpinner({
     start: 'Creating the __tests__/index.test.js file',
@@ -205,6 +211,21 @@ async function handleLibraryInstallation(
   }
 }
 
+async function processExce(command: string, library?: string): Promise<void> {
+  const commandToExecute = library ? `${command} ${library}` : command;
+
+  const { output, error } = await runCommand(commandToExecute);
+
+  if (error) {
+    tools.log(
+      `\n${tools.error}`,
+      tools.textRed(`Execution failed: ${tools.textGrey(error)}`)
+    );
+    process.exit(1);
+  }
+  tools.log(`\n${tools.success} ${tools.textGrey(output)}`);
+}
+
 async function processSpinner<T>(opts: SpinnerInput<T>): Promise<T> {
   const { start, success, fail, callAction } = opts
 
@@ -220,19 +241,21 @@ async function processSpinner<T>(opts: SpinnerInput<T>): Promise<T> {
     throw error
   }
 }
-async function processExce(
-  command: string,
-  library?: string
-): Promise<void> {
-  const { output, error } = await runCommand(`${command} ${library}`)
-  if (error) {
-    tools.log(
-      `\n${tools.error}`,
-      tools.textRed(`Execution failed: ${tools.textGrey(error)}`)
-    )
-    process.exit(1)
+
+function formatDaraPackageJson(dataPackage: Row) {
+   const { name, version, description, main, type, keywords, author, license, repository, ...therest } = dataPackage;
+  return { 
+    name, 
+    version,
+    description,
+    license,
+    author,
+    repository,
+    keywords,
+    type,
+    main,
+    ...therest
   }
-  tools.log(`\n${tools.success} ${tools.textGrey(output)}`)
 }
 
 function transformString(input: string): string {

@@ -6,7 +6,7 @@ import {
 } from 'node:fs/promises'
 import { readFileSync } from 'node:fs'
 import { homedir } from 'node:os'
-import { resolve, join } from 'node:path'
+import { join } from 'node:path'
 export interface ResultFs { 
   success: boolean; 
   error?: Error
@@ -28,9 +28,9 @@ async function createJsonFile(
   data: object
 ): Promise<ResultFs> {
   try {
-    const src = resolve(filePath, 'package.json')
+
     const jsonData = JSON.stringify(data, null, 2) 
-    await fsWriteFile(src, jsonData, 'utf-8') 
+    await fsWriteFile(filePath, jsonData, 'utf-8') 
 
     return { success: true }
   } catch (err) {
