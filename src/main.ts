@@ -1,14 +1,14 @@
-import { readPackageJson } from './lib/packageJson'
+import { readPackageJson } from './lib/packageJson.js'
 import {
   copyRepo,
   createJsonFile,
   createDirectory,
   resolvePath,
-} from './lib/fileSystem'
-import { setPrettierJson, createFileMain } from './lib/setup-repo'
-import { setModule, build, input, confirm } from './lib/prompts'
-import { runCommand } from './lib/exec'
-import { help, tools } from './lib/help'
+} from './lib/fileSystem.js'
+import { setPrettierJson, createFileMain } from './lib/setup-repo.js'
+import { setModule, build, input, confirm } from './lib/prompts.js'
+import { runCommand } from './lib/exec.js'
+import { help, tools } from './lib/help.js'
 import { oraPromise } from 'ora'
 
 export interface OptsInits {
@@ -247,4 +247,4 @@ function transformString(input: string): string {
 
 export { createProject, transformString, tools, processSpinner, processExce }
 
-export * from './lib/fileSystem'
+export * from './lib/fileSystem.js'

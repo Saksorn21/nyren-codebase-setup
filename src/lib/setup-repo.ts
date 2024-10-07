@@ -1,5 +1,5 @@
 
-import { readFile, createJsonFile, createFile, type ResultFs } from './fileSystem'
+import { readFile, createJsonFile, createFile, type ResultFs } from './fileSystem.js'
 import { resolve } from 'node:path'
 
 export async function setPrettierJson(target: string, src: string = process.cwd()): Promise<ResultFs> {

@@ -1,5 +1,12 @@
 # Changelog
 
+## [v0.1.5] - 2024-10-07
+
+### Changed
+- Updated `tsconfig.json` to use `"module": "Node16"` and `"moduleResolution": "Node16"` to ensure compatibility with Node.js ES Modules.
+- Added TypeScript `.d.ts` files during the build process to provide TypeScript typings for API utilities.
+- Updated `tsconfig.json` in the `repo-templates` folder with the same `"module": "Node16"` and `"moduleResolution": "Node16"` settings for consistency.
+
 ## [v0.1.4] - 2024-10-07
 
 #### Fixed

@@ -1,5 +1,5 @@
-import { readFileSync } from './fileSystem'
-import { resolve } from 'path'
+import { readFileSync } from './fileSystem.js'
+import { resolve } from 'node:path'
 
 export function readPackageJson(
   src?: string

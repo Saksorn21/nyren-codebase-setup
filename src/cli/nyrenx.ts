@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 import { Command } from 'commander'
 const program = new Command()
-import { readPackageJson } from '../lib/packageJson'
-import { createProject } from '../main'
+import { readPackageJson } from '../lib/packageJson.js'
+import { createProject } from '../main.js'
 const loadPackage = readPackageJson('./')
 program
   .name('nyrenx-codeup')
