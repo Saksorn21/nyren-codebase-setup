@@ -3,18 +3,13 @@
   "version": "0.1.6",
   "description": "A CLI tool designed to streamline project setup for JavaScript and TypeScript, providing essential libraries and configurations for quick initialization and efficient workflows.",
   "bin": {
-    "nyrenx-codeup": "cli/nyrenx.js"
+    "nyrenx-codeup": "./dist/cli/nyrenx.js"
   },
-  "main": "main.js",
+  "main": "./dist/main.js",
   "type": "module",
-  "types": "main.d.ts",
+  "types": "./dist/main.d.ts",
   "files": [
-    "lib",
-    "cli",
-    "main.js",
-    "main.js.map",
-    "main.d.ts",
-    "main.d.ts.map",
+    "dist",
     "tsconfigs/cjs.json",
     "tsconfigs/esm.json",
     "repo-templates"
