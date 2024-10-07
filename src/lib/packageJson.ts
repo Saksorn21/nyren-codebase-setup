@@ -1,9 +1,8 @@
-
 import { readFileSync } from './fileSystem.js'
 
-import { getDirname, resolvePath } from './pathHelper.js';
+import { getDirname, resolvePath } from './pathHelper.js'
 
-const __dirname = getDirname(import.meta.url);
+const __dirname = getDirname(import.meta.url)
 
 export function readPackageJson(
   src?: string
@@ -12,7 +11,6 @@ export function readPackageJson(
   if (src) {
     packageJsonPath = resolvePath(src, 'package.json')
   } else {
-    
     packageJsonPath = resolvePath(__dirname, '../..', 'package.json')
   }
   return JSON.parse(readFileSync(packageJsonPath, 'utf-8'))

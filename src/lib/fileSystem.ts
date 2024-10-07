@@ -6,19 +6,19 @@ import {
 } from 'node:fs/promises'
 import { readFileSync } from 'node:fs'
 
-export interface ResultFs { 
-  success: boolean; 
+export interface ResultFs {
+  success: boolean
   error?: Error
 }
 const readFile = async (path: string) => await fsReadFile(path, 'utf-8')
-const createFile = async (src: string, data: string) => await fsWriteFile(src, data, 'utf-8')
+const createFile = async (src: string, data: string) =>
+  await fsWriteFile(src, data, 'utf-8')
 
 async function createDirectory(path: string): Promise<ResultFs> {
   try {
-    await fsMkdir(path, { recursive: true });
+    await fsMkdir(path, { recursive: true })
     return { success: true }
   } catch (error) {
-    
     return { success: false, error: error as Error }
   }
 }
@@ -27,9 +27,8 @@ async function createJsonFile(
   data: object
 ): Promise<ResultFs> {
   try {
-
-    const jsonData = JSON.stringify(data, null, 2) 
-    await fsWriteFile(filePath, jsonData, 'utf-8') 
+    const jsonData = JSON.stringify(data, null, 2)
+    await fsWriteFile(filePath, jsonData, 'utf-8')
 
     return { success: true }
   } catch (err) {
@@ -46,9 +45,13 @@ async function copyRepo(src: string, dest: string): Promise<boolean> {
   } catch (error: unknown) {
     return false
   }
-
-
 }
 
-export { copyRepo, readFile, readFileSync, createJsonFile, createFile, createDirectory }
-
+export {
+  copyRepo,
+  readFile,
+  readFileSync,
+  createJsonFile,
+  createFile,
+  createDirectory,
+}

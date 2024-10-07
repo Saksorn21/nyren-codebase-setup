@@ -1,10 +1,10 @@
 import { homedir } from 'node:os'
-import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url'
+import { dirname, join } from 'node:path'
 
 function getDirname(metaUrl: string): string {
-    const __filename = fileURLToPath(metaUrl);
-    return dirname(__filename);
+  const __filename = fileURLToPath(metaUrl)
+  return dirname(__filename)
 }
 
 /**

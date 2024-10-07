@@ -1,6 +1,6 @@
 {
   "name": "@nyren/codebase-setup",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "A CLI tool designed to streamline project setup for JavaScript and TypeScript, providing essential libraries and configurations for quick initialization and efficient workflows.",
   "bin": {
     "nyrenx-codeup": "./dist/cli/nyrenx.js"
@@ -20,8 +20,8 @@
   "scripts": {
     "cli": "bun src/cli/nyrenx.ts ",
     "build": "tsc",
-    "lint": "prettier --check 'src/**/*.{js,ts}' 'lib/**/*.{js,ts}' 'cli/**/*.{js,ts}' '*.{js,ts}'",
-    "format": "prettier --write 'src/**/*.{js,ts}' 'lib/**/*.{js,ts}' 'cli/**/*.{js,ts}' '*.{js,ts}'",
+    "lint": "prettier --check 'src/**/*.{js,ts}' 'dist/**/*.{js,ts}'",
+    "format": "prettier --write 'src/**/*.{js,ts}' 'dist/**/*.{js,ts}'",
     "test": "jest --coverage"
   },
   "repository": {

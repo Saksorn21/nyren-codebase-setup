@@ -1,10 +1,6 @@
 import { readPackageJson } from './lib/packageJson.js'
-import {
-  copyRepo,
-  createJsonFile,
-  createDirectory
-} from './lib/fileSystem.js'
-import { getDirname, resolvePath } from './lib/pathHelper.js';
+import { copyRepo, createJsonFile, createDirectory } from './lib/fileSystem.js'
+import { getDirname, resolvePath } from './lib/pathHelper.js'
 import { setPrettierJson, createFileMain } from './lib/setup-repo.js'
 import { setModule, build, input, confirm } from './lib/prompts.js'
 import { runCommand } from './lib/exec.js'
@@ -30,7 +26,7 @@ export interface SpinnerInput<T> {
   callAction: PromiseLike<T>
 }
 
-const __dirname = getDirname(import.meta.url);
+const __dirname = getDirname(import.meta.url)
 const keywords: Set<string> = new Set<string>([])
 const packageJson: Map<string, string | string[]> = new Map<
   string,
@@ -112,13 +108,13 @@ async function processLoopPackage(
   const module = await setModule()
   const repoPath =
     target === 'typescript' ? 'repo-templates/ts' : 'repo-templates/js'
-  const src = resolvePath(__dirname,'../', repoPath)
+  const src = resolvePath(__dirname, '../', repoPath)
   const repo = readPackageJson(src)
   const row: Row = {}
   await help.buildProject()
   for (const [key, value] of packageJson) {
     const answer = await input(key)
-    
+
     if (typeof repo[key] === 'string') {
       row[key] = answer === '' ? repo[key] : answer || value
       repo[key] = answer === '' ? repo[key] : answer || value
@@ -134,7 +130,6 @@ async function processLoopPackage(
       repo[key] = answer === '' ? repo[key] : answer.toUpperCase()
       row[key] = answer === '' ? repo[key] : answer.toUpperCase()
     }
-    
   }
   repo.type = module.toLowerCase()
   row.type = module.toLowerCase()
@@ -154,7 +149,10 @@ async function createPackageJson(basePath: string, dataPackage: Row) {
     start: 'Creating the package.json file',
     success: 'Package.json creation completed successfully!',
     fail: 'Package.json creation failed!',
-    callAction: createJsonFile(resolvePath(basePath,'package.json'), formatDaraPackageJson(dataPackage)),
+    callAction: createJsonFile(
+      resolvePath(basePath, 'package.json'),
+      formatDaraPackageJson(dataPackage)
+    ),
   })
 }
 
@@ -174,7 +172,10 @@ async function createFilesMain(basePath: string, target: string) {
     start: 'Creating the workflow folder',
     success: 'Workflow folder created successfully! (.github/workflow)',
     fail: 'Failed to create the workflow folder!',
-    callAction: copyRepo(resolvePath(__dirname, 'repo-templates/.github'), resolvePath(basePath, '.github')),
+    callAction: copyRepo(
+      resolvePath(__dirname, 'repo-templates/.github'),
+      resolvePath(basePath, '.github')
+    ),
   })
 
   await createDirectory(resolvePath(basePath, 'src'))
@@ -186,7 +187,7 @@ async function createFilesMain(basePath: string, target: string) {
     callAction: createFileMain(target, 'src', basePath),
   })
 
-  await createDirectory(resolvePath(basePath,'__tests__'))
+  await createDirectory(resolvePath(basePath, '__tests__'))
 
   await processSpinner({
     start: 'Creating the __tests__/index.test.js file',
@@ -216,18 +217,18 @@ async function handleLibraryInstallation(
 }
 
 async function processExce(command: string, library?: string): Promise<void> {
-  const commandToExecute = library ? `${command} ${library}` : command;
+  const commandToExecute = library ? `${command} ${library}` : command
 
-  const { output, error } = await runCommand(commandToExecute);
+  const { output, error } = await runCommand(commandToExecute)
 
   if (error) {
     tools.log(
       `\n${tools.error}`,
       tools.textRed(`Execution failed: ${tools.textGrey(error)}`)
-    );
-    process.exit(1);
+    )
+    process.exit(1)
   }
-  tools.log(`\n${tools.success} ${tools.textGrey(output)}`);
+  tools.log(`\n${tools.success} ${tools.textGrey(output)}`)
 }
 
 async function processSpinner<T>(opts: SpinnerInput<T>): Promise<T> {
@@ -247,9 +248,20 @@ async function processSpinner<T>(opts: SpinnerInput<T>): Promise<T> {
 }
 
 function formatDaraPackageJson(dataPackage: Row) {
-   const { name, version, description, main, type, keywords, author, license, repository, ...therest } = dataPackage;
-  return { 
-    name, 
+  const {
+    name,
+    version,
+    description,
+    main,
+    type,
+    keywords,
+    author,
+    license,
+    repository,
+    ...therest
+  } = dataPackage
+  return {
+    name,
     version,
     description,
     license,
@@ -258,7 +270,7 @@ function formatDaraPackageJson(dataPackage: Row) {
     keywords,
     type,
     main,
-    ...therest
+    ...therest,
   }
 }
 
