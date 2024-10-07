@@ -1,10 +1,10 @@
 {
   "name": "EDIT_ME",
-  "private": true,
   "version": "0.1.0",
   "description": "EDIT_ME",
   "main": "src/index.js",
   "type": "module",
+  "private": true,
   "scripts": {
   "lint": "prettier --check 'src/**/*.{js}'",
   "format": "prettier --write 'src/**/*.{js}'",
@@ -23,6 +23,6 @@
     "nodemon": "^2.0.22"
   },
   "dependencies": {
-    "@nyren/codebase-setup": "*"
+    "@nyren/codebase-setup": "^0.1.6"
   }
 }

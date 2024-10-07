@@ -1,5 +1,12 @@
 # Changelog
 
+## [v0.1.6] - 2024-10-07
+
+### Fixed
+- Fixed a bug that caused `.prettierrc.json` to not be created properly during setup.
+- Formatted the `package.json` file to ensure proper structure and readability.
+- Various other minor bug fixes and improvements to enhance overall functionality.
+
 ## [v0.1.5] - 2024-10-07
 
 ### Changed

@@ -1,13 +1,23 @@
 {
   "name": "EDIT_ME",
-  "private": true,
   "version": "0.1.0",
   "description": "EDIT_ME",
-  "main": "lib/index.js",
-  "module": "lib/esm/index.js",
-  "types": "lib/index.d.ts",
   "keywords": [],
   "author": "Boat Saksorn  (Thailand)",
+  "main": "lib/index.js",
+  "exports": {
+    ".": {
+      "require": {
+        "types": "./lib/types/index.d.ts",
+        "default": "./lib/cjs/index.js"
+      },
+      "import": {
+        "types": "./lib/types/index.d.ts",
+        "default": "./lib/esm/index.js"
+      }
+    }
+  },
+  "private": true,
   "scripts": {
   "build:cjs": "tsc -p tsconfigs/cjs.json",
   "build:esm": "tsc -p tsconfigs/esm.json",
@@ -23,7 +33,6 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "@nyren/codebase-setup": "*",
     "@jest/globals": "^29.7.0",
     "@types/jest": "^29.5.13",
     "@types/node": "^22.7.4",
@@ -34,6 +43,7 @@
     "typescript": "^5.6.2"
   },
   "dependencies": {
+    "@nyren/codebase-setup": "^0.1.6",
     "tslib": "^2.7.0"
   }
 }
