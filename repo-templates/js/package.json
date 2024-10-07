@@ -20,7 +20,7 @@
   "devDependencies": {
     "jest": "^29.7.0",
     "prettier": "^3.3.3",
-    "nodemon": "^2.0.22"
+    "nodemon": "^3.1.7"
   },
   "dependencies": {
     "@nyren/codebase-setup": "^0.1.6"
