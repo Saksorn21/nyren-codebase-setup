@@ -1,5 +1,11 @@
 # Changelog
 
+## [v0.1.4] - 2024-10-07
+
+#### Fixed
+- Fixed an issue where the CLI command didn't work because the `bin` path in the `package.json` file was incorrect.
+- Updated the `bin` field in `package.json` to correctly point to `cli/nyrenx.js`.
+
 ## [v0.1.3] - 2024-10-07
 
 ### Fixed
