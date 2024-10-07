@@ -2,14 +2,15 @@ import { readPackageJson } from './lib/packageJson.js'
 import {
   copyRepo,
   createJsonFile,
-  createDirectory,
-  resolvePath
+  createDirectory
 } from './lib/fileSystem.js'
+import { getDirname, resolvePath } from './lib/pathHelper.js';
 import { setPrettierJson, createFileMain } from './lib/setup-repo.js'
 import { setModule, build, input, confirm } from './lib/prompts.js'
 import { runCommand } from './lib/exec.js'
 import { help, tools } from './lib/help.js'
 import { oraPromise } from 'ora'
+import process from 'node:process'
 
 export interface OptsInits {
   projectName?: string
@@ -28,6 +29,8 @@ export interface SpinnerInput<T> {
   fail?: string
   callAction: PromiseLike<T>
 }
+
+const __dirname = getDirname(import.meta.url);
 const keywords: Set<string> = new Set<string>([])
 const packageJson: Map<string, string | string[]> = new Map<
   string,
@@ -107,8 +110,9 @@ async function processLoopPackage(
   target: string
 ): Promise<{ row: Row; templateData: Row }> {
   const module = await setModule()
-  const src =
-    target === 'typescript' ? './repo-templates/ts' : './repo-templates/js'
+  const repoPath =
+    target === 'typescript' ? 'repo-templates/ts' : 'repo-templates/js'
+  const src = resolvePath(__dirname,'../', repoPath)
   const repo = readPackageJson(src)
   const row: Row = {}
   await help.buildProject()
@@ -170,7 +174,7 @@ async function createFilesMain(basePath: string, target: string) {
     start: 'Creating the workflow folder',
     success: 'Workflow folder created successfully! (.github/workflow)',
     fail: 'Failed to create the workflow folder!',
-    callAction: copyRepo('./repo-templates/.github', resolvePath(basePath, '.github')),
+    callAction: copyRepo(resolvePath(__dirname, 'repo-templates/.github'), resolvePath(basePath, '.github')),
   })
 
   await createDirectory(resolvePath(basePath, 'src'))

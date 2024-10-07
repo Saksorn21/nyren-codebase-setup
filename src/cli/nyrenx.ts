@@ -3,7 +3,7 @@ import { Command } from 'commander'
 const program = new Command()
 import { readPackageJson } from '../lib/packageJson.js'
 import { createProject } from '../main.js'
-const loadPackage = readPackageJson('./')
+const loadPackage = readPackageJson()
 program
   .name('nyrenx-codeup')
   .description(loadPackage.description as string)

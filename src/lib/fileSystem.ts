@@ -5,8 +5,7 @@ import {
   mkdir as fsMkdir,
 } from 'node:fs/promises'
 import { readFileSync } from 'node:fs'
-import { homedir } from 'node:os'
-import { join } from 'node:path'
+
 export interface ResultFs { 
   success: boolean; 
   error?: Error
@@ -50,23 +49,6 @@ async function copyRepo(src: string, dest: string): Promise<boolean> {
 
 
 }
-/**
- * Resolves and normalizes a file path.
- * If the path starts with `~`, it is replaced with the user's home directory.
- *
- * @param {...string[]} paths - The parts of the file path.
- * @returns {string} The resolved file path.
- */
-function resolvePath(...paths: string[]): string {
-  let fullPath = join(...paths)
 
-  // If path starts with ~, replace it with home directory
-  if (fullPath.startsWith('~')) {
-    fullPath = join(homedir(), fullPath.slice(1)) // Remove ~ and join with home directory
-  }
-
-  return fullPath
-}
-
-export { copyRepo, readFile, readFileSync, createJsonFile, createFile, createDirectory, resolvePath }
+export { copyRepo, readFile, readFileSync, createJsonFile, createFile, createDirectory }
 
