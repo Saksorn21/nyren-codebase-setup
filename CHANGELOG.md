@@ -1,5 +1,11 @@
 # Changelog
 
+## [v0.1.3] - 2024-10-07
+
+### Fixed
+- Added missing `repo-templates` folder to the npm package for proper distribution.
+- Corrected the `package.json` `files` field to ensure the `repo-templates` directory is included during the npm publish process.
+
 ## [v0.1.2] - 2024-10-07
 
 ### Fixed
