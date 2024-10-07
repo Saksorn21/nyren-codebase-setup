@@ -1,5 +1,18 @@
 # Changelog
 
+### [v0.1.7] - 2024-10-07
+
+#### Changed
+- Updated the handling of file paths by replacing `__dirname` with `import.meta.url` to ensure compatibility with ES modules. This change allows seamless usage in environments where `__dirname` is not available.
+- Restructured project files by moving the build output to the `./dist` directory.
+  
+#### Fixed
+- Enabled CLI tools to be executed from anywhere on the machine, ensuring global access and usage.
+
+---
+
+This version note emphasizes both the path handling improvements and the CLI tools accessibility. Let me know if this works or needs any tweaks!
+
 ## [v0.1.6] - 2024-10-07
 
 ### Fixed
