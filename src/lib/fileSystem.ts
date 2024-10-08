@@ -1,11 +1,10 @@
 import {
-  cp as fsCopyDirectory,
   readFile as fsReadFile,
   writeFile as fsWriteFile,
   mkdir as fsMkdir,
 } from 'node:fs/promises'
 import { readFileSync } from 'node:fs'
-import { dirname } from 'node:path';
+import { dirname } from 'node:path'
 export interface ResultFs {
   success: boolean
   error?: Error
@@ -26,11 +25,10 @@ async function createJsonFile(
   filePath: string,
   data: object
 ): Promise<ResultFs> {
-  
   try {
     const jsonData = JSON.stringify(data, null, 2)
-      
-    await fsWriteFile(filePath , jsonData, { encoding: 'utf-8', flag: 'w' });
+
+    await fsWriteFile(filePath, jsonData, { encoding: 'utf-8', flag: 'w' })
 
     return { success: true }
   } catch (err) {
@@ -38,22 +36,4 @@ async function createJsonFile(
   }
 }
 
-async function copyRepo(src: string, dest: string): Promise<boolean> {
-  try {
-    await fsCopyDirectory(src, dest, {
-      recursive: true,
-    })
-    return true
-  } catch (error: unknown) {
-    return false
-  }
-}
-
-export {
-  copyRepo,
-  readFile,
-  readFileSync,
-  createJsonFile,
-  createFile,
-  createDirectory,
-}
+export { readFile, readFileSync, createJsonFile, createFile, createDirectory }

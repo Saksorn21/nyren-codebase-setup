@@ -1,6 +1,6 @@
 import chalk from 'chalk'
 import logSymbols from 'log-symbols'
-export interface HelpFn<T1, T2 , T3 = 'string'> {
+export interface HelpFn<T1, T2, T3 = 'string'> {
   [name: string]: (arge?: T2, arge2?: T3) => Promise<T1> | string
 }
 
@@ -43,12 +43,19 @@ help.libraryEx = async () => {
     `${textDeepBlue(`To install a library as a devDependency, use the ${textWhit.underline('"-D"')} flag followed by the library name.`)}`
   )
 }
-help.buildProject = async () =>  log(
+help.buildProject = async () =>
+  log(
     info,
     `${textDeepBlue("There is a default value. If you don't want to change it, just press Enter.")}`
   )
 
-help.notification = async (target?: string, module?: string): Promise<void> => log(info,textSlateBlue3(`You will start the project using the language: ${tools.textOrange('[')}${textWhit(target)}${textOrange(']')}, with the module: ${textOrange('[')}${textWhit(module)}${textOrange(']')}.`))
+help.notification = async (target?: string, module?: string): Promise<void> =>
+  log(
+    info,
+    textSlateBlue3(
+      `You will start the project using the language: ${tools.textOrange('[')}${textWhit(target)}${textOrange(']')}, with the module: ${textOrange('[')}${textWhit(module)}${textOrange(']')}.`
+    )
+  )
 const tools = {
   info,
   success,

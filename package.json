@@ -5,9 +5,7 @@
   "bin": {
     "nyrenx-codeup": "./dist/cli/nyrenx.js"
   },
-  "main": "./dist/main.js",
   "type": "module",
-  "types": "./dist/main.d.ts",
   "files": [
     "dist",
     "tsconfigs/cjs.json",
@@ -24,8 +22,7 @@
     "cli": "bun src/cli/nyrenx.ts ",
     "build": "tsc",
     "lint": "prettier --check 'src/**/*.{js,ts}' 'dist/**/*.{js,ts}'",
-    "format": "prettier --write 'src/**/*.{js,ts}' 'dist/**/*.{js,ts}'",
-    "test": "jest --coverage"
+    "format": "prettier --write 'src/**/*.{js,ts}' 'dist/**/*.{js,ts}'"
   },
   "repository": {
     "type": "git",
@@ -54,16 +51,11 @@
   },
   "homepage": "https://github.com/Saksorn21/nyren-ts-setup#readme",
   "devDependencies": {
-    "@jest/globals": "^29.7.0",
     "@types/archiver": "^6.0.2",
-    "@types/jest": "^29.5.13",
     "@types/node": "^22.7.4",
     "@types/unzipper": "^0.10.10",
     "archiver": "^7.0.1",
-    "jest": "^29.7.0",
     "prettier": "^3.3.3",
-    "ts-jest": "^29.2.5",
-    "ts-node": "^10.9.2",
     "typescript": "^5.6.2"
   },
   "dependencies": {
