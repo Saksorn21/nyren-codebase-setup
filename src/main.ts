@@ -42,12 +42,13 @@ const packageJson: Map<string, string | string[]> = new Map<
 ])
 
 async function createProject() {
-  const tarage = await setupTemplates()
-  const { row, template } = await processTemplate(tarage)
+  const target = await setupTemplates()
+  const { row, template } = await processTemplate(target)
 
   const isLibrary: boolean = await confirm(
     'Would you like to add more libraries?'
   )
+  await help.notification(row.template , row.type)
   await help.warnOverWrite()
 
   if (await confirm('Do you want to continue?')) {
@@ -57,13 +58,10 @@ async function createProject() {
       // หลังจากคลาย zip สำเร็จ สร้างหรือแก้ไข package.json
       const creatingPackage = await createPackageJson(row.fullPath as string, template);
 
-      // ตรวจสอบว่าการสร้าง package.json สำเร็จ
       if (creatingPackage.success) {
-
-        // ดำเนินการติดตั้ง libraries ต่อ
+        
         await handleLibraryInstallation(isLibrary, row.directoryName as string)
-
-        // ออกจากกระบวนการเมื่อทำสำเร็จ
+        tools.log(tools.success, tools.textGreen('Successfully created the project.'))
         process.exit(1)
       } else {
         tools.log(
@@ -78,6 +76,7 @@ async function createProject() {
       tools.log(tools.error, tools.textRed(`Failed to copy the repository: ${tools.textWhit((copied.error as Error).message)}`))
       process.exit(1)
     }
+    
   } else {
     tools.log(tools.error, tools.textRed('Process canceled by the user'))
     process.exit(1)
@@ -107,13 +106,13 @@ async function processTemplate(tarage: string) {
 async function processLoopPackage(
   target: string
 ): Promise<{ row: Row; templateData: Row }> {
-  const module = await setModule()
+  const module = await setUpModule()
   const repoPath =
     target === 'typescript' ? 
     'repo-templates/ts' : 
     'repo-templates/js'
   const src = resolvePath(__dirname, '../', repoPath)
-  const repo = readPackageJson(repoPath + '.json')
+  const repo = readPackageJson(src + '.json')
   const row: Row = {}
   await help.buildProject()
   for (const [key, value] of packageJson) {
@@ -141,6 +140,7 @@ async function processLoopPackage(
   row.template = target
   row.directoryName = transformString(row.name.toString())
   row.fullPath = resolvePath(process.cwd(), row.directoryName)
+  tools.log(tools.success, tools.textGreen(`Successfully setting the project: ${tools.textWhit(row.directoryName)} to ${tools.textWhit(row.fullPath)}`))
   return { row, templateData: repo }
 }
 
@@ -152,6 +152,14 @@ async function copyRepoToDirectory(src: string, basePath: string): Promise<Resul
       fail: 'Cloning failed!',
       callAction: extractArchive(src + '.zip', basePath)
   })
+}
+async function setUpModule(): Promise<string> {
+   return processSpinner({
+     start: 'Setting module',
+     success: 'Module setup completed successfully!',
+     fail: 'Module setup failed!',
+     callAction: setModule()
+   })
 }
 
 async function createPackageJson(basePath: string, dataPackage: Row): Promise<ResultFs> {
@@ -180,7 +188,11 @@ async function handleLibraryInstallation(
       callAction: processExce(basecommand, lib),
     })
   } else {
-    await processExce(basecommand)
+    await processSpinner({
+      start: 'npm install',
+      success: 'npm installation completed successfully!',
+      callAction: processExce(basecommand),
+    })
   }
 }
 
@@ -205,6 +217,7 @@ async function processSpinner<T>(opts: SpinnerInput<T>): Promise<T> {
   try {
     const result = await oraPromise(callAction, {
       color: 'white',
+      prefixText: `${tools.textWhit('[')}${tools.textSlateBlue3('nyrenx')}${tools.textWhit(']')}`,
       text: tools.textGrey(start),
       successText: tools.textGreen(success),
       failText: tools.textRed(fail),
