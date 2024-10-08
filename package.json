@@ -12,7 +12,10 @@
     "dist",
     "tsconfigs/cjs.json",
     "tsconfigs/esm.json",
-    "repo-templates"
+    "repo-templates/js.zip",
+    "repo-templates/ts.zip",
+    "repo-templates/js.json",
+    "repo-templates/ts.json"
   ],
   "engines": {
     "node": ">=16.0.0"
