@@ -26,9 +26,11 @@ async function createJsonFile(
   filePath: string,
   data: object
 ): Promise<ResultFs> {
+  
   try {
     const jsonData = JSON.stringify(data, null, 2)
-    await fsWriteFile(filePath, jsonData, 'utf-8')
+    
+    await fsWriteFile(filePath , jsonData, { encoding: 'utf-8', flag: 'w' })
 
     return { success: true }
   } catch (err) {

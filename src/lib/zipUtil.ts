@@ -12,7 +12,7 @@ async function extractArchive(sourcePath: string, destPath: string) {
 
     // สร้างไดเรกทอรีปลายทาง
 
-
+await createDirectory(destPath)
     // รัน pipeline เพื่อคลายไฟล์
     await pipelinePromise(
       createReadStream(sourcePath),

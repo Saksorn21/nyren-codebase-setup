@@ -44,7 +44,7 @@ const packageJson: Map<string, string | string[]> = new Map<
 
 async function createProject() {
   const tarage = await setupTemplates()
-  const { row, templateData } = await processTemplate(tarage)
+  const { row, template } = await processTemplate(tarage)
 
   const isLibrary: boolean = await confirm(
     'Would you like to add more libraries?'
@@ -52,17 +52,22 @@ async function createProject() {
   await help.warnOverWrite()
 
   if (await confirm('Do you want to continue?')) {
-    if (await copyRepoToDirectory(row.src as string, row.fullPath as string)) {
-      const creatingPackage = await createPackageJson(
-        row.fullPath as string,
-        templateData
-      )
-      // creating .prettierrc.json
-    //  await createPrettierJson(row.fullPath as string, 'pp' + row.template as string)
-    //  await createFilesMain(row.fullPath as string, row.template as string)
+    // เริ่มสร้าง directory ก่อน
+    
+    // คลายไฟล์ zip ก่อน
+    const copied = await copyRepoToDirectory(row.src as string, row.fullPath as string);
 
+    if (copied) {
+      // หลังจากคลาย zip สำเร็จ สร้างหรือแก้ไข package.json
+      const creatingPackage = await createPackageJson(row.fullPath as string, template);
+
+      // ตรวจสอบว่าการสร้าง package.json สำเร็จ
       if (creatingPackage.success) {
+
+        // ดำเนินการติดตั้ง libraries ต่อ
         await handleLibraryInstallation(isLibrary, row.directoryName as string)
+
+        // ออกจากกระบวนการเมื่อทำสำเร็จ
         process.exit(1)
       } else {
         tools.log(
@@ -100,7 +105,7 @@ async function processTemplate(tarage: string) {
     process.exit(1)
   }
 
-  return { row, templateData }
+  return { row, template: templateData }
 }
 
 async function processLoopPackage(
@@ -141,16 +146,15 @@ async function processLoopPackage(
   return { row, templateData: repo }
 }
 
-async function copyRepoToDirectory(src: string, basePath: string) {
-  //copyRepo(src, basePath)
-  await createDirectory(basePath)
- await processSpinner({
+async function copyRepoToDirectory(src: string, basePath: string): Promise<boolean> {
+  //copyRepo(src, basePath) 
+  console.log('copyRepoToDirectory', src, basePath)
+  return processSpinner({
       start: 'Cloning repository',
       success: 'Cloning completed successfully!',
       fail: 'Cloning failed!',
       callAction: extractArchive(src + '.zip', basePath)
   })
-  return  true
 }
 
 async function createPackageJson(basePath: string, dataPackage: Row) {
@@ -244,7 +248,7 @@ async function processSpinner<T>(opts: SpinnerInput<T>): Promise<T> {
   const { start, success, fail, callAction } = opts
 
   try {
-    const result = await oraPromise(() => callAction, {
+    const result = await oraPromise(callAction, {
       color: 'white',
       text: tools.textGrey(start),
       successText: tools.textGreen(success),
@@ -269,7 +273,7 @@ function formatDaraPackageJson(dataPackage: Row) {
     repository,
     ...therest
   } = dataPackage
-  console.log(dataPackage)
+
   return {
     name,
     version,
