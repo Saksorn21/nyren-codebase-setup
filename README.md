@@ -99,9 +99,9 @@ Both configurations extend from a base setup with the following settings:
 {
   "compilerOptions": {
     "target": "es2022",
-    "module": "es2022",
+    "module": "Node16",
     "declarationDir": "lib/types",
-    "moduleResolution": "Node10",
+    "moduleResolution": "Node16",
     "lib": [
       "es2022"
     ],

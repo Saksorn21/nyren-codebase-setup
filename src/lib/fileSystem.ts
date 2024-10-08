@@ -5,7 +5,7 @@ import {
   mkdir as fsMkdir,
 } from 'node:fs/promises'
 import { readFileSync } from 'node:fs'
-
+import { dirname } from 'node:path';
 export interface ResultFs {
   success: boolean
   error?: Error
@@ -16,7 +16,7 @@ const createFile = async (src: string, data: string) =>
 
 async function createDirectory(path: string): Promise<ResultFs> {
   try {
-    await fsMkdir(path, { recursive: true })
+    await fsMkdir(dirname(path), { recursive: true })
     return { success: true }
   } catch (error) {
     return { success: false, error: error as Error }
@@ -29,8 +29,8 @@ async function createJsonFile(
   
   try {
     const jsonData = JSON.stringify(data, null, 2)
-    
-    await fsWriteFile(filePath , jsonData, { encoding: 'utf-8', flag: 'w' })
+      
+    await fsWriteFile(filePath , jsonData, { encoding: 'utf-8', flag: 'w' });
 
     return { success: true }
   } catch (err) {

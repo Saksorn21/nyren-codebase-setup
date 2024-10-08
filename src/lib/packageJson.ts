@@ -9,7 +9,7 @@ export function readPackageJson(
 ): Record<string, string | string[]> {
   let packageJsonPath: string
   if (src) {
-    packageJsonPath = resolvePath(src, 'package.json')
+    packageJsonPath = src
   } else {
     packageJsonPath = resolvePath(__dirname, '../..', 'package.json')
   }

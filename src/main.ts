@@ -1,12 +1,11 @@
 import { readPackageJson } from './lib/packageJson.js'
-import { copyRepo, createJsonFile, createDirectory } from './lib/fileSystem.js'
+import { createJsonFile, type ResultFs } from './lib/fileSystem.js'
 import { extractArchive } from './lib/zipUtil.js'
 import { getDirname, resolvePath } from './lib/pathHelper.js'
-import { setPrettierJson, createFileMain } from './lib/setup-repo.js'
 import { setModule, build, input, confirm } from './lib/prompts.js'
 import { runCommand } from './lib/exec.js'
 import { help, tools } from './lib/help.js'
-import { oraPromise } from 'ora'
+import { oraPromise, type Ora } from 'ora'
 import process from 'node:process'
 
 export interface OptsInits {
@@ -24,7 +23,7 @@ export interface SpinnerInput<T> {
   start: string
   success: string
   fail?: string
-  callAction: PromiseLike<T>
+  callAction: PromiseLike<T> |((spinner: Ora) => PromiseLike<T>)
 }
 
 const __dirname = getDirname(import.meta.url)
@@ -52,12 +51,9 @@ async function createProject() {
   await help.warnOverWrite()
 
   if (await confirm('Do you want to continue?')) {
-    // เริ่มสร้าง directory ก่อน
-    
-    // คลายไฟล์ zip ก่อน
     const copied = await copyRepoToDirectory(row.src as string, row.fullPath as string);
 
-    if (copied) {
+    if (copied.success) {
       // หลังจากคลาย zip สำเร็จ สร้างหรือแก้ไข package.json
       const creatingPackage = await createPackageJson(row.fullPath as string, template);
 
@@ -73,13 +69,13 @@ async function createProject() {
         tools.log(
           tools.error,
           tools.textRed(
-            `Create package.json failed: ${(creatingPackage.error as Error).message}`
+            `Create package.json failed: ${tools.textWhit((creatingPackage.error as Error).message)}`
           )
         )
         process.exit(1)
       }
     } else {
-      tools.log(tools.error, tools.textRed('Failed to copy the repository'))
+      tools.log(tools.error, tools.textRed(`Failed to copy the repository: ${tools.textWhit((copied.error as Error).message)}`))
       process.exit(1)
     }
   } else {
@@ -113,9 +109,11 @@ async function processLoopPackage(
 ): Promise<{ row: Row; templateData: Row }> {
   const module = await setModule()
   const repoPath =
-    target === 'typescript' ? 'repo-templates/ts' : 'repo-templates/js'
+    target === 'typescript' ? 
+    'repo-templates/ts' : 
+    'repo-templates/js'
   const src = resolvePath(__dirname, '../', repoPath)
-  const repo = readPackageJson(src)
+  const repo = readPackageJson(repoPath + '.json')
   const row: Row = {}
   await help.buildProject()
   for (const [key, value] of packageJson) {
@@ -146,9 +144,8 @@ async function processLoopPackage(
   return { row, templateData: repo }
 }
 
-async function copyRepoToDirectory(src: string, basePath: string): Promise<boolean> {
-  //copyRepo(src, basePath) 
-  console.log('copyRepoToDirectory', src, basePath)
+async function copyRepoToDirectory(src: string, basePath: string): Promise<ResultFs>{
+  
   return processSpinner({
       start: 'Cloning repository',
       success: 'Cloning completed successfully!',
@@ -157,63 +154,21 @@ async function copyRepoToDirectory(src: string, basePath: string): Promise<boole
   })
 }
 
-async function createPackageJson(basePath: string, dataPackage: Row) {
+async function createPackageJson(basePath: string, dataPackage: Row): Promise<ResultFs> {
   return processSpinner({
     start: 'Creating the package.json file',
     success: 'Package.json creation completed successfully!',
     fail: 'Package.json creation failed!',
-    callAction: createJsonFile(
-      resolvePath(basePath, 'package.json'),
+    callAction: createJsonFile(resolvePath(basePath, 'package.json'),
       formatDaraPackageJson(dataPackage)
     ),
-  })
-}
-
-async function createPrettierJson(basePath: string, target: string) {
-  return processSpinner({
-    start: 'Creating the .prettierrc.json file',
-    success: '.prettierrc.json creation completed successfully!',
-    fail: '.prettierrc.json creation failed!',
-    callAction: setPrettierJson(target, basePath),
-  })
-}
-
-async function createFilesMain(basePath: string, target: string) {
-  await createDirectory(resolvePath(basePath, '.github'))
-
-  await processSpinner({
-    start: 'Creating the workflow folder',
-    success: 'Workflow folder created successfully! (.github/workflow)',
-    fail: 'Failed to create the workflow folder!',
-    callAction: copyRepo(
-      resolvePath(__dirname, 'repo-templates/.github'),
-      resolvePath(basePath, '.github')
-    ),
-  })
-
-  await createDirectory(resolvePath(basePath, 'src'))
-
-  await processSpinner({
-    start: 'Creating the src/index.js file',
-    success: 'src/index.js file created successfully!',
-    fail: 'Failed to create the src/index.js file!',
-    callAction: createFileMain(target, 'src', basePath),
-  })
-
-  await createDirectory(resolvePath(basePath, '__tests__'))
-
-  await processSpinner({
-    start: 'Creating the __tests__/index.test.js file',
-    success: '__tests__/index.test.js file created successfully!',
-    fail: 'Failed to create the __tests__/index.test.js file!',
-    callAction: createFileMain(target, '__tests__', basePath),
   })
 }
 
 async function handleLibraryInstallation(
   isLibrary: boolean,
   directoryName: string
-) {
+): Promise<void> {
   const basecommand = `cd ./${directoryName} && npm install`
   if (isLibrary) {
     await help.libraryEx()
