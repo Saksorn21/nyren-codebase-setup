@@ -48,7 +48,7 @@ async function createProject() {
   const isLibrary: boolean = await confirm(
     'Would you like to add more libraries?'
   )
-  await help.notification(row.template, row.type)
+  await help.notification(row.template as string, row.type as string)
   await help.warnOverWrite()
 
   if (await confirm('Do you want to continue?')) {

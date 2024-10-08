@@ -1,4 +1,4 @@
-import { tools } from './lib/help.js'
+import { tools } from './help.js'
 import { createWriteStream, existsSync, readdirSync } from 'node:fs'
 import archiver from 'archiver'
 

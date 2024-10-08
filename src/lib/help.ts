@@ -1,6 +1,6 @@
 import chalk from 'chalk'
 import logSymbols from 'log-symbols'
-export interface HelpFn<T1, T2, T3 = 'string'> {
+export interface HelpFn<T1, T2 = string, T3 = string> {
   [name: string]: (arge?: T2, arge2?: T3) => Promise<T1> | string
 }
 
