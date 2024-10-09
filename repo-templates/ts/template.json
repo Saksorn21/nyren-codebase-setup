@@ -7,7 +7,7 @@
    {"path": "__tests__/index.test.ts",
      "content": "console.log('Hello, nyren')"
     },
-    { "path": "jest.config.ts", "content": "export default { \n  preset: \"ts-jest\", \n  testEnvironment: \"node\", \n  collectCoverage: true, \n  coverageDirectory: coverage, \n  coverageProvider: \"v8\", \n  testTimeout: 30000, \n  roots: [\"<rootDir>/__tests__/\"], \n  moduleFileExtensions: [\"ts\", \"js\"], \n  transform: {\n    '^.+\\.ts$': [\n      'ts-jest', \n{ \n        tsconfig: \"./__tests__/tsconfig.test.json\" \n      }]    \n }  \n};" },
+    { "path": "jest.config.ts", "content": "export default { \n  preset: \"ts-jest\", \n  testEnvironment: \"node\", \n  collectCoverage: true, \n  coverageDirectory: \"coverage\", \n  coverageProvider: \"v8\", \n  testTimeout: 30000, \n  roots: [\"<rootDir>/__tests__/\"], \n  moduleFileExtensions: [\"ts\", \"js\"], \n  transform: {\n    '^.+\\.ts$': [\n      'ts-jest', \n{ \n        tsconfig: \"./__tests__/tsconfig.test.json\" \n      }]    \n }  \n};" },
    { "path": ".prettierrc.json", 
      "content": "{ \"singleQuote\": true, \"trailingComma\": \"es5\", \"tabWidth\": 2, \"parser\": \"typescript\", \"printWidth\": 80, \"semi\": false, \"bracketSpacing\": true, \"arrowParens\": \"avoid\" }" }, 
   { "path": "tsconfig.json", "content": "{ \"extends\": \"@nyren/codebase-setup/tsconfigs/cjs.json\", \"compilerOptions\": { \"outDir\": \"lib/cjs\" }, \"include\": [\"index.ts\", \"src\"], \"exclude\": [\"node_modules\", \"lib\"] }" },
