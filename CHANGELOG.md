@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.2.0] - 2024-10-08
+## [0.2.0] - 2024-10-09
 
 ### Major Changes
 - **Restructured `repo-templates`:** Enhanced organization of the template files.
