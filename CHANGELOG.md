@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.2.1] - 2024-10-09
+
+### Fixed
+- **Function Name Correction:**
+  - Renamed `formatDaraPackage` to `formatDataPrackage` to fix a typo.
+  
+- **Export Cleanup:**
+  - Removed unnecessary exports in `help.js` to streamline the file and reduce unused exports.
+
+This update focuses on small but important fixes to improve code clarity and organization.
+
 ## [0.2.0] - 2024-10-09
 
 ### Major Changes
