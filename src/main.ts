@@ -188,7 +188,7 @@ async function createPackageJson(
     fail: 'Package.json creation failed!',
     callAction: createJsonFile(
       resolvePath(basePath, 'package.json'),
-      formatDaraPackageJson(dataPackage)
+      formatDataPackageJson(dataPackage)
     ),
   })
 }
@@ -248,7 +248,7 @@ async function processSpinner<T>(opts: SpinnerInput<T>): Promise<T> {
   }
 }
 
-function formatDaraPackageJson(dataPackage: Row) {
+function formatDataPackageJson(dataPackage: Row) {
   const {
     name,
     version,

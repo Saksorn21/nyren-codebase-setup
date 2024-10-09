@@ -3,9 +3,9 @@ import {
   input as inputPrompt,
   confirm as confirmPrompt,
 } from '@inquirer/prompts'
-
 import chalk from 'chalk'
-export async function build() {
+
+async function build() {
   return await select({
     message: chalk.hex('#8787ff').bold('Select a template'),
     choices: [
@@ -22,7 +22,7 @@ export async function build() {
     ],
   })
 }
-export async function setModule() {
+async function setModule() {
   return await select({
     message: chalk.hex('#d7af87').bold('Select a module'),
     choices: [
@@ -39,13 +39,15 @@ export async function setModule() {
     ],
   })
 }
-export async function input(title: string): Promise<string> {
+async function input(title: string): Promise<string> {
   return await inputPrompt({
     message: ` ${chalk.hex('#87d75f').bold(title)}:`,
   })
 }
-export async function confirm(message: string): Promise<boolean> {
+async function confirm(message: string): Promise<boolean> {
   return await confirmPrompt({
     message: `${chalk.hex('#ff00af').bold(message)}`,
   })
 }
+
+export { build, setModule, input, confirm, }

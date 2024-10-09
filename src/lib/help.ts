@@ -72,16 +72,5 @@ const tools = {
 }
 export {
   help,
-  info,
-  warning,
-  error,
-  success,
-  textOrange,
-  textDeepBlue,
-  textWhit,
-  textGrey,
-  textRed,
-  textGreen,
-  log,
   tools,
 }
