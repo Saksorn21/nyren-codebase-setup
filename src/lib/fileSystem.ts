@@ -1,11 +1,10 @@
 import {
-  cp as fsCopyDirectory,
   readFile as fsReadFile,
   writeFile as fsWriteFile,
   mkdir as fsMkdir,
 } from 'node:fs/promises'
 import { readFileSync } from 'node:fs'
-
+import { dirname } from 'node:path'
 export interface ResultFs {
   success: boolean
   error?: Error
@@ -16,7 +15,7 @@ const createFile = async (src: string, data: string) =>
 
 async function createDirectory(path: string): Promise<ResultFs> {
   try {
-    await fsMkdir(path, { recursive: true })
+    await fsMkdir(dirname(path), { recursive: true })
     return { success: true }
   } catch (error) {
     return { success: false, error: error as Error }
@@ -28,7 +27,8 @@ async function createJsonFile(
 ): Promise<ResultFs> {
   try {
     const jsonData = JSON.stringify(data, null, 2)
-    await fsWriteFile(filePath, jsonData, 'utf-8')
+
+    await fsWriteFile(filePath, jsonData, { encoding: 'utf-8', flag: 'w' })
 
     return { success: true }
   } catch (err) {
@@ -36,22 +36,4 @@ async function createJsonFile(
   }
 }
 
-async function copyRepo(src: string, dest: string): Promise<boolean> {
-  try {
-    await fsCopyDirectory(src, dest, {
-      recursive: true,
-    })
-    return true
-  } catch (error: unknown) {
-    return false
-  }
-}
-
-export {
-  copyRepo,
-  readFile,
-  readFileSync,
-  createJsonFile,
-  createFile,
-  createDirectory,
-}
+export { readFile, readFileSync, createJsonFile, createFile, createDirectory }

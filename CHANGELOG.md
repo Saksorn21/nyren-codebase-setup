@@ -1,12 +1,33 @@
 # Changelog
 
-### [v0.1.7] - 2024-10-07
+## [0.2.0] - 2024-10-08
 
-#### Changed
+### Major Changes
+- **Restructured `repo-templates`:** Enhanced organization of the template files.
+- **Project Architecture Update:**
+  - Transitioned to a fully functional CLI tool; no API available.
+  - Modified file structure:
+    - **Before Build:** `src/cli`
+    - **After Build:** `dist/cli` (previously `root/cli`), resolving inconsistencies.
+- **Dependencies:**
+  - Added `archiver` to `devDependencies` for file compression.
+  - Added `unzipper` to `dependencies` for CLI operations.
+- **Removed Unused Functions:**
+  - Deleted `copyRepo`, `createPrettierJson`, `createFilesMain`, `setPrettierJson`, `createFileMain`.
+  - Deleted the unused `setup-repo` file.
+- **New Functionality:** Added `zipUtil` and `extractArchive` function to improve archive handling.
+
+### Performance Improvements
+- Reduce the work process steps.
+- Expect minor increases in performance and reduction in project size due to compressed `repo-templates`.
+
+## [v0.1.7] - 2024-10-07
+
+### Changed
 - Updated the handling of file paths by replacing `__dirname` with `import.meta.url` to ensure compatibility with ES modules. This change allows seamless usage in environments where `__dirname` is not available.
 - Restructured project files by moving the build output to the `./dist` directory.
   
-#### Fixed
+### Fixed
 - Enabled CLI tools to be executed from anywhere on the machine, ensuring global access and usage.
 
 ---
@@ -29,7 +50,7 @@ This version note emphasizes both the path handling improvements and the CLI too
 
 ## [v0.1.4] - 2024-10-07
 
-#### Fixed
+### Fixed
 - Fixed an issue where the CLI command didn't work because the `bin` path in the `package.json` file was incorrect.
 - Updated the `bin` field in `package.json` to correctly point to `cli/nyrenx.js`.
 

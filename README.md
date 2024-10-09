@@ -9,6 +9,8 @@ A CLI tool that simplifies setting up codebases for JavaScript or TypeScript pro
 - **Simple project structure**: Sets up a basic but powerful project structure, allowing you to get started quickly.
 - **Configurable options**: Offers flexibility to modify the setup process according to your preferences.
 
+> **Note**: This project does not provide any API for direct usage. It is solely a CLI tool designed for project setup.
+
 ## Installation
 
 You can install the CLI globally via npm:
@@ -35,7 +37,7 @@ The CLI will guide you through a series of prompts, where you can choose the pro
 
 ## Commands
 
-- init: Initializes a new project with the selected language and configuration
+- `init`: Initializes a new project with the selected language and configuration.
 
 ## Dev Dependencies
 
@@ -46,7 +48,6 @@ When you choose TypeScript, the following `devDependencies` will be added automa
 ```json
 {
   "dependencies": {
-    "@nyren/codebase-setup": "^0.1.0",
     "tslib": "^2.7.0"
   },
   "devDependencies": {
@@ -72,14 +73,11 @@ If you choose JavaScript, the following minimal `devDependencies` will be instal
     "jest": "^29.7.0",
     "prettier": "^3.3.3",
     "nodemon": "^2.0.22"
-  },
-  "dependencies": {
-    "@nyren/codebase-setup": "^0.1.0"
   }
 }
 ```
 
-Each setup ensures that you have all the necessary tools to start developing with either JavaScript or TypeScript.
+Both setups ensure you have the necessary tools to start developing with either JavaScript or TypeScript.
 
 ## TypeScript Configuration
 
@@ -99,9 +97,9 @@ Both configurations extend from a base setup with the following settings:
 {
   "compilerOptions": {
     "target": "es2022",
-    "module": "es2022",
+    "module": "Node16",
     "declarationDir": "lib/types",
-    "moduleResolution": "Node10",
+    "moduleResolution": "Node16",
     "lib": [
       "es2022"
     ],
@@ -131,7 +129,7 @@ Both configurations extend from a base setup with the following settings:
 
 1. Choose the language for your project (JavaScript or TypeScript).
 2. Automatically install essential libraries for the selected language.
-3. Enjoy your new project, fully set up with necessary tools!
+3. Enjoy your new project, fully set up with the necessary tools!
 
 ## Options
 
@@ -150,4 +148,3 @@ The following options are available during project setup:
 ## License
 
 MIT License. See [LICENSE](./LICENSE) for more details.
-

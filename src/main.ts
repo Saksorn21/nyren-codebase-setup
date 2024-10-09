@@ -1,11 +1,11 @@
 import { readPackageJson } from './lib/packageJson.js'
-import { copyRepo, createJsonFile, createDirectory } from './lib/fileSystem.js'
+import { createJsonFile, type ResultFs } from './lib/fileSystem.js'
+import { extractArchive } from './lib/zipUtil.js'
 import { getDirname, resolvePath } from './lib/pathHelper.js'
-import { setPrettierJson, createFileMain } from './lib/setup-repo.js'
 import { setModule, build, input, confirm } from './lib/prompts.js'
 import { runCommand } from './lib/exec.js'
 import { help, tools } from './lib/help.js'
-import { oraPromise } from 'ora'
+import { oraPromise, type Ora } from 'ora'
 import process from 'node:process'
 
 export interface OptsInits {
@@ -23,7 +23,7 @@ export interface SpinnerInput<T> {
   start: string
   success: string
   fail?: string
-  callAction: PromiseLike<T>
+  callAction: PromiseLike<T> | ((spinner: Ora) => PromiseLike<T>)
 }
 
 const __dirname = getDirname(import.meta.url)
@@ -42,38 +42,50 @@ const packageJson: Map<string, string | string[]> = new Map<
 ])
 
 async function createProject() {
-  const tarage = await setupTemplates()
-  const { row, template } = await processTemplate(tarage)
+  const target = await setupTemplates()
+  const { row, template } = await processTemplate(target)
 
   const isLibrary: boolean = await confirm(
     'Would you like to add more libraries?'
   )
+  await help.notification(row.template as string, row.type as string)
   await help.warnOverWrite()
 
   if (await confirm('Do you want to continue?')) {
-    if (await copyRepoToDirectory(row.src as string, row.fullPath as string)) {
+    const copied = await copyRepoToDirectory(
+      row.src as string,
+      row.fullPath as string
+    )
+
+    if (copied.success) {
       const creatingPackage = await createPackageJson(
         row.fullPath as string,
         template
       )
-      // creating .prettierrc.json
-      await createPrettierJson(row.fullPath as string, row.template as string)
-      await createFilesMain(row.fullPath as string, row.template as string)
 
       if (creatingPackage.success) {
         await handleLibraryInstallation(isLibrary, row.directoryName as string)
+        tools.log(
+          tools.success,
+          tools.textGreen('Successfully created the project.')
+        )
         process.exit(1)
       } else {
         tools.log(
           tools.error,
           tools.textRed(
-            `Create package.json failed: ${(creatingPackage.error as Error).message}`
+            `Create package.json failed: ${tools.textWhit((creatingPackage.error as Error).message)}`
           )
         )
         process.exit(1)
       }
     } else {
-      tools.log(tools.error, tools.textRed('Failed to copy the repository'))
+      tools.log(
+        tools.error,
+        tools.textRed(
+          `Failed to copy the repository: ${tools.textWhit((copied.error as Error).message)}`
+        )
+      )
       process.exit(1)
     }
   } else {
@@ -105,11 +117,11 @@ async function processTemplate(tarage: string) {
 async function processLoopPackage(
   target: string
 ): Promise<{ row: Row; templateData: Row }> {
-  const module = await setModule()
+  const module = await setUpModule()
   const repoPath =
     target === 'typescript' ? 'repo-templates/ts' : 'repo-templates/js'
   const src = resolvePath(__dirname, '../', repoPath)
-  const repo = readPackageJson(src)
+  const repo = readPackageJson(src + '.json')
   const row: Row = {}
   await help.buildProject()
   for (const [key, value] of packageJson) {
@@ -137,14 +149,39 @@ async function processLoopPackage(
   row.template = target
   row.directoryName = transformString(row.name.toString())
   row.fullPath = resolvePath(process.cwd(), row.directoryName)
+  tools.log(
+    tools.success,
+    tools.textGreen(
+      `Successfully setting the project: ${tools.textWhit(row.directoryName)} to ${tools.textWhit(row.fullPath)}`
+    )
+  )
   return { row, templateData: repo }
 }
 
-async function copyRepoToDirectory(src: string, basePath: string) {
-  return copyRepo(src, basePath)
+async function copyRepoToDirectory(
+  src: string,
+  basePath: string
+): Promise<ResultFs> {
+  return processSpinner({
+    start: 'Cloning repository',
+    success: 'Cloning completed successfully!',
+    fail: 'Cloning failed!',
+    callAction: extractArchive(src + '.zip', basePath),
+  })
+}
+async function setUpModule(): Promise<string> {
+  return processSpinner({
+    start: 'Setting module',
+    success: 'Module setup completed successfully!',
+    fail: 'Module setup failed!',
+    callAction: setModule(),
+  })
 }
 
-async function createPackageJson(basePath: string, dataPackage: Row) {
+async function createPackageJson(
+  basePath: string,
+  dataPackage: Row
+): Promise<ResultFs> {
   return processSpinner({
     start: 'Creating the package.json file',
     success: 'Package.json creation completed successfully!',
@@ -156,51 +193,10 @@ async function createPackageJson(basePath: string, dataPackage: Row) {
   })
 }
 
-async function createPrettierJson(basePath: string, target: string) {
-  return processSpinner({
-    start: 'Creating the .prettierrc.json file',
-    success: '.prettierrc.json creation completed successfully!',
-    fail: '.prettierrc.json creation failed!',
-    callAction: setPrettierJson(target, basePath),
-  })
-}
-
-async function createFilesMain(basePath: string, target: string) {
-  await createDirectory(resolvePath(basePath, '.github'))
-
-  await processSpinner({
-    start: 'Creating the workflow folder',
-    success: 'Workflow folder created successfully! (.github/workflow)',
-    fail: 'Failed to create the workflow folder!',
-    callAction: copyRepo(
-      resolvePath(__dirname, 'repo-templates/.github'),
-      resolvePath(basePath, '.github')
-    ),
-  })
-
-  await createDirectory(resolvePath(basePath, 'src'))
-
-  await processSpinner({
-    start: 'Creating the src/index.js file',
-    success: 'src/index.js file created successfully!',
-    fail: 'Failed to create the src/index.js file!',
-    callAction: createFileMain(target, 'src', basePath),
-  })
-
-  await createDirectory(resolvePath(basePath, '__tests__'))
-
-  await processSpinner({
-    start: 'Creating the __tests__/index.test.js file',
-    success: '__tests__/index.test.js file created successfully!',
-    fail: 'Failed to create the __tests__/index.test.js file!',
-    callAction: createFileMain(target, '__tests__', basePath),
-  })
-}
-
 async function handleLibraryInstallation(
   isLibrary: boolean,
   directoryName: string
-) {
+): Promise<void> {
   const basecommand = `cd ./${directoryName} && npm install`
   if (isLibrary) {
     await help.libraryEx()
@@ -212,7 +208,11 @@ async function handleLibraryInstallation(
       callAction: processExce(basecommand, lib),
     })
   } else {
-    await processExce(basecommand)
+    await processSpinner({
+      start: 'npm install',
+      success: 'npm installation completed successfully!',
+      callAction: processExce(basecommand),
+    })
   }
 }
 
@@ -235,8 +235,9 @@ async function processSpinner<T>(opts: SpinnerInput<T>): Promise<T> {
   const { start, success, fail, callAction } = opts
 
   try {
-    const result = await oraPromise(() => callAction, {
+    const result = await oraPromise(callAction, {
       color: 'white',
+      prefixText: `${tools.textWhit('[')}${tools.textSlateBlue3('nyrenx')}${tools.textWhit(']')}`,
       text: tools.textGrey(start),
       successText: tools.textGreen(success),
       failText: tools.textRed(fail),
@@ -260,6 +261,7 @@ function formatDaraPackageJson(dataPackage: Row) {
     repository,
     ...therest
   } = dataPackage
+
   return {
     name,
     version,
@@ -284,6 +286,4 @@ function transformString(input: string): string {
   return input
 }
 
-export { createProject, transformString, tools, processSpinner, processExce }
-
-export * from './lib/fileSystem.js'
+export { createProject }
