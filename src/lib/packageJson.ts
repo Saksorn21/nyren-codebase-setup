@@ -1,4 +1,4 @@
-import { readFileSync } from './fileSystem.js'
+import { rfSync } from './fileSystem.js'
 
 import { getDirname, resolvePath } from './pathHelper.js'
 
@@ -13,5 +13,5 @@ export function readPackageJson(
   } else {
     packageJsonPath = resolvePath(__dirname, '../..', 'package.json')
   }
-  return JSON.parse(readFileSync(packageJsonPath, 'utf-8'))
+  return JSON.parse(rfSync(packageJsonPath, 'utf-8'))
 }

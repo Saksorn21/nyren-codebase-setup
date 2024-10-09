@@ -2,13 +2,16 @@ import {
   writeFile as fsWriteFile,
   mkdir as fsMkdir,
 } from 'node:fs/promises'
-import { readFileSync } from 'node:fs'
+import { 
+  readFile as rf,
+  readFileSync as rfSync } from 'node:fs'
 import { dirname } from 'node:path'
 export interface ResultFs {
   success: boolean
   error?: Error
 }
-
+const readFile = (path: string) => new Promise((res,rej): void => rf(path, { encoding: 'utf8', flag: 'r' } ,(err,data): void => err ? rej(err) : res(data)))
+//const readFile = async (path: string) => await fsReadFile(path, 'utf-8')
 const createFile = async (src: string, data: string) =>
   await fsWriteFile(src, data, { encoding: 'utf-8', flag: 'w' })
 
@@ -35,4 +38,4 @@ async function createJsonFile(
   }
 }
 
-export { readFileSync, createJsonFile, createFile, createDirectory }
+export { readFile, rfSync, createJsonFile, createFile, createDirectory }

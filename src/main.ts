@@ -121,7 +121,7 @@ async function processLoopPackage(
   const repoPath =
     target === 'typescript' ? 'repo-templates/ts' : 'repo-templates/js'
   const src = resolvePath(__dirname, '../', repoPath)
-  const repo = readPackageJson(src + '.json')
+  const repo = readPackageJson(resolvePath())
   const row: Row = {}
   await help.buildProject()
   for (const [key, value] of packageJson) {

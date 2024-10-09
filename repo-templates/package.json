@@ -1,0 +1,32 @@
+{
+  "name": "@nyren/codebase-templates",
+  "version": "0.1.0",
+  "description": "repo-templates by.@nyren/codebase-setup",
+  "main": "index.js",
+  "files": [
+    "js.zip",
+    "ts.zip"
+  ],
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Saksorn21/nyren-codebase-setup.git"
+  },
+  "keywords": [
+    "tempalates",
+    "nyren",
+    "codebase",
+    "setup",
+    "repository",
+    "nyrenx-codeup",
+    "nyrenx"
+  ],
+  "author": "Boat saksorn (Thailand)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Saksorn21/nyren-codebase-setup/issues"
+  },
+  "homepage": "https://github.com/Saksorn21/nyren-codebase-setup#readme"
+}
