@@ -1,6 +1,6 @@
 {
   "name": "@nyren/repo-templates",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "repo-templates by.@nyren/codebase-setup",
   "files": [
     "js-template.json",
@@ -13,11 +13,13 @@
   "keywords": [
     "tempalates",
     "nyren",
+    "nyrenx-codeup",
+    "nyrenx",
     "codebase",
     "setup",
     "repository",
-    "nyrenx-codeup",
-    "nyrenx"
+    "typescript",
+    "javascript"
   ],
   "author": "Boat saksorn (Thailand)",
   "license": "MIT",
