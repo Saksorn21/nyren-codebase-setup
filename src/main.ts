@@ -1,6 +1,4 @@
 import { createJsonFile, type ResultFs } from './lib/fileSystem.js'
-import { extractArchive } from './lib/zipUtil.js'
-import { getDirname, resolvePath } from './lib/pathHelper.js'
 import { setModule, build, input, confirm } from './lib/prompts.js'
 import {
   templateProcessor,
@@ -30,8 +28,6 @@ export interface SpinnerInput<T> {
   fail?: string
   callAction: PromiseLike<T> | ((spinner: Ora) => PromiseLike<T>)
 }
-
-const __dirname = getDirname(import.meta.url)
 const keywords: Set<string> = new Set<string>([])
 const packageJson: Map<string, string | string[]> = new Map<
   string,
@@ -50,16 +46,8 @@ async function createProject() {
   const row = await processPackageJson(target)
   const { templateCode } = row
   //console.log( row)
-  const files: string[] = templateCode.baseFilesName
-  for (const file of files) {
-    await processSpinner(
-      await presetSpinnerTemplate(
-        buildTemplateFiles(row.templateCode as object),
-        file
-      )
-    )
-  }
-  process.exit(0)
+  
+  
   const isLibrary: boolean = await confirm(
     'Would you like to add more libraries?'
   )
@@ -67,33 +55,10 @@ async function createProject() {
   await help.warnOverWrite()
 
   if (await confirm('Do you want to continue?')) {
-    const copied = await copyRepoToDirectory(
-      row.src as string,
-      row.fullPath as string
-    )
+    const copied = await processBuildTemplateFiles(templateCode, templateCode.baseFilesName)
 
     if (copied.success) {
-      const creatingPackage = await createPackageJson(
-        row.fullPath as string,
-        dataPackageJson
-      )
-
-      if (creatingPackage.success) {
-        await handleLibraryInstallation(isLibrary, row.directoryName as string)
-        tools.log(
-          tools.success,
-          tools.textGreen('Successfully created the project.')
-        )
-        process.exit(1)
-      } else {
-        tools.log(
-          tools.error,
-          tools.textRed(
-            `Create package.json failed: ${tools.textWhit((creatingPackage.error as Error).message)}`
-          )
-        )
-        process.exit(1)
-      }
+      await handleLibraryInstallation(isLibrary, row.directoryName as string)
     } else {
       tools.log(
         tools.error,
@@ -153,50 +118,40 @@ async function processPackageJson(target: string): Promise<ParseObj<any>> {
   row.type = module.toLowerCase()
   row.template = target
   row.directoryName = transformString(contentPackage.name.toString())
-  row.userDiretory = templateCode.userDiretory
-  templateCode.baseFilesName.push('package.json')
+  row.userDiretory = remaining.userDiretory
+    remaining.baseFilesName.push('package.json')
   row.templateCode = { ...remaining, 'package.json': contentPackage }
   tools.log(
     tools.success,
     tools.textGreen(
-      `Successfully setting the project: ${tools.textWhit(row.directoryName)} to ${tools.textWhit(row.userDiretory)}`
+      `Successfully setting the project: ${tools.textWhit(row.directoryName)} to ${tools.textWhit(row.userDiretory)}\n`
     )
   )
   return row
 }
-
-async function copyRepoToDirectory(
-  src: string,
-  basePath: string
-): Promise<ResultFs> {
-  return processSpinner({
-    start: 'Cloning repository',
-    success: 'Cloning completed successfully!',
-    fail: 'Cloning failed!',
-    callAction: extractArchive(src + '.zip', basePath),
-  })
+async function processBuildTemplateFiles (templateCode: ParseObj<string>, baseFilesName: string[]): Promise<ResultFs> {
+  try {
+  
+   for (const file of baseFilesName) {
+     await processSpinner(
+       await presetSpinnerTemplate(
+         buildTemplateFiles(templateCode),
+         file
+       )
+     )
+   }
+    return { success: true }
+    } catch (error: unknown) {
+     return { success: false, error: error as Error }
+    }
 }
+
 async function setUpModule(): Promise<string> {
   return processSpinner({
     start: 'Setting module',
     success: 'Module setup completed successfully!',
     fail: 'Module setup failed!',
     callAction: setModule(),
-  })
-}
-
-async function createPackageJson(
-  basePath: string,
-  dataPackage: Row
-): Promise<ResultFs> {
-  return processSpinner({
-    start: 'Creating the package.json file',
-    success: 'Package.json creation completed successfully!',
-    fail: 'Package.json creation failed!',
-    callAction: createJsonFile(
-      resolvePath(basePath, 'package.json'),
-      formatDataPackageJson(dataPackage)
-    ),
   })
 }
 
