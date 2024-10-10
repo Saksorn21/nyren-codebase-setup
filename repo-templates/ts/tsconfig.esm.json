@@ -1,8 +1,0 @@
-{
-  "extends": "@nyren/codebase-setup/tsconfigs/esm.json",
-  "compilerOptions": {
-    "outDir": "lib/esm"
-  },
-  "include": ["index.ts", "src"],
-  "exclude": ["node_modules", "lib"]
-}

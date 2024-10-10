@@ -1,15 +1,11 @@
 {
-  "name": "@nyren/codebase-templates",
+  "name": "@nyren/repo-templates",
   "version": "0.1.0",
   "description": "repo-templates by.@nyren/codebase-setup",
-  "main": "index.js",
   "files": [
-    "js.zip",
-    "ts.zip"
+    "js-template.json",
+    "ts-template.json"
   ],
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Saksorn21/nyren-codebase-setup.git"
