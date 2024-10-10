@@ -29,12 +29,12 @@ async function setModule() {
       {
         name: `${chalk.hex('#d7af00').bold('CommonJs')}`,
         value: 'commonjs',
-        description: ' "type": "commonJs" - CommonJs',
+        description: ' "type": "commonJs" - CommonJs\n',
       },
       {
         name: `${chalk.hex('#d75f00').bold('Module')}`,
         value: 'module',
-        description: ' "type": "module" - Esmodule',
+        description: ' "type": "module" - Esmodule\n',
       },
     ],
   })

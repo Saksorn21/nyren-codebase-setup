@@ -3,6 +3,7 @@ import { createJsonFile, type ResultFs } from './lib/fileSystem.js'
 import { extractArchive } from './lib/zipUtil.js'
 import { getDirname, resolvePath } from './lib/pathHelper.js'
 import { setModule, build, input, confirm } from './lib/prompts.js'
+import { templateProcessor, buildTemplateFiles, presetSpinnerTemplate } from './lib/templateUtils.js'
 import { runCommand } from './lib/exec.js'
 import { help, tools } from './lib/help.js'
 import { oraPromise, type Ora } from 'ora'
@@ -17,7 +18,7 @@ export interface OptsInits {
 export interface Row {
   // It's the same.
   // Record<string, string | string[]>
-  [name: string]: string | string[]
+  [name: string]: string | string[] | object
 }
 export interface SpinnerInput<T> {
   start: string
@@ -32,7 +33,6 @@ const packageJson: Map<string, string | string[]> = new Map<
   string,
   string | string[]
 >([
-  ['name', 'my-project'],
   ['version', '1.0.0'],
   ['description', 'my-project'],
   ['main', 'index.js'],
@@ -43,8 +43,9 @@ const packageJson: Map<string, string | string[]> = new Map<
 
 async function createProject() {
   const target = await setupTemplates()
-  const { row, template } = await processTemplate(target)
-
+  const { row, dataPackageJson } = await processPackageJson(target)
+console.log(dataPackageJson, row)
+  process.exit(0)
   const isLibrary: boolean = await confirm(
     'Would you like to add more libraries?'
   )
@@ -60,7 +61,7 @@ async function createProject() {
     if (copied.success) {
       const creatingPackage = await createPackageJson(
         row.fullPath as string,
-        template
+        dataPackageJson
       )
 
       if (creatingPackage.success) {
@@ -103,59 +104,50 @@ async function setupTemplates() {
   })
 }
 
-async function processTemplate(tarage: string) {
-  const { row, templateData } = await processLoopPackage(tarage)
 
-  if (tarage !== 'typescript' && tarage !== 'javascript') {
-    tools.log(tools.textRed('Error: Please select a template'))
-    process.exit(1)
-  }
-
-  return { row, template: templateData }
-}
-
-async function processLoopPackage(
+async function processPackageJson(
   target: string
-): Promise<{ row: Row; templateData: Row }> {
+): Promise<{ row: Row; dataPackageJson: Row }> {
   const module = await setUpModule()
-  const repoPath =
-    target === 'typescript' ? 'repo-templates/ts' : 'repo-templates/js'
-  const src = resolvePath(__dirname, '../', repoPath)
-  const repo = readPackageJson(resolvePath())
-  const row: Row = {}
   await help.buildProject()
+  const answerProjectName = await input('name')
+  const paressedProjectName = answerProjectName === '' ? 'my-project': answerProjectName
+  const templateCode = await templateProcessor(target, transformString(paressedProjectName))
+  const dataPackageJson = templateCode.contentPackage
+  const row: Row = {}
   for (const [key, value] of packageJson) {
     const answer = await input(key)
-
-    if (typeof repo[key] === 'string') {
-      row[key] = answer === '' ? repo[key] : answer || value
-      repo[key] = answer === '' ? repo[key] : answer || value
+   dataPackageJson.name = paressedProjectName
+    if (typeof dataPackageJson[key] === 'string') {
+      
+        dataPackageJson[key] = answer === '' ? dataPackageJson[key] : answer || value
     }
-    if (Array.isArray(repo[key])) {
+    if (Array.isArray(dataPackageJson[key])) {
       answer.split(',').map(item => {
         keywords.add(item)
       })
 
-      repo[key] = answer === '' ? [] : [...keywords]
+        dataPackageJson[key] = answer === '' ? [] : [...keywords]
     }
     if (key === 'license') {
-      repo[key] = answer === '' ? repo[key] : answer.toUpperCase()
-      row[key] = answer === '' ? repo[key] : answer.toUpperCase()
+        dataPackageJson[key] = answer === '' ? dataPackageJson[key] : answer.toUpperCase()
+      
     }
   }
-  repo.type = module.toLowerCase()
+    dataPackageJson.type = module.toLowerCase()
   row.type = module.toLowerCase()
-  row.src = src
   row.template = target
-  row.directoryName = transformString(row.name.toString())
-  row.fullPath = resolvePath(process.cwd(), row.directoryName)
+  row.directoryName = transformString(dataPackageJson.name.toString())
+  delete templateCode.contentPackage
+  
+  row.templateCode = { ...templateCode, "package.json": dataPackageJson}
   tools.log(
     tools.success,
     tools.textGreen(
       `Successfully setting the project: ${tools.textWhit(row.directoryName)} to ${tools.textWhit(row.fullPath)}`
     )
   )
-  return { row, templateData: repo }
+  return { row, dataPackageJson }
 }
 
 async function copyRepoToDirectory(
@@ -286,4 +278,4 @@ function transformString(input: string): string {
   return input
 }
 
-export { createProject }
+export { createProject, processSpinner }

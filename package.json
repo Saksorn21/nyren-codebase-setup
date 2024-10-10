@@ -22,12 +22,9 @@
     "dist/lib/pathHelper.js",
     "dist/lib/packageJson.js",
     "dist/lib/fileSystem.js",
+    "dist/lib/templateUtils.js",
     "tsconfigs/cjs.json",
-    "tsconfigs/esm.json",
-    "repo-templates/js.zip",
-    "repo-templates/ts.zip",
-    "repo-templates/js.json",
-    "repo-templates/ts.json"
+    "tsconfigs/esm.json"
   ],
   "engines": {
     "node": ">=16.0.0"
