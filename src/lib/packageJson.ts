@@ -15,3 +15,31 @@ export function readPackageJson(
   }
   return JSON.parse(rfSync(packageJsonPath, 'utf-8'))
 }
+
+export function formatDataPackageJson(dataPackage: Record<string, string>) {
+  const {
+    name,
+    version,
+    description,
+    main,
+    type,
+    keywords,
+    author,
+    license,
+    repository,
+    ...therest
+  } = dataPackage
+
+  return {
+    name,
+    version,
+    description,
+    license,
+    author,
+    repository,
+    keywords,
+    type,
+    main,
+    ...therest,
+  }
+}

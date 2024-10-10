@@ -1,9 +1,13 @@
-import { readPackageJson } from './lib/packageJson.js'
 import { createJsonFile, type ResultFs } from './lib/fileSystem.js'
 import { extractArchive } from './lib/zipUtil.js'
 import { getDirname, resolvePath } from './lib/pathHelper.js'
 import { setModule, build, input, confirm } from './lib/prompts.js'
-import { templateProcessor, buildTemplateFiles, presetSpinnerTemplate } from './lib/templateUtils.js'
+import {
+  templateProcessor,
+  buildTemplateFiles,
+  presetSpinnerTemplate,
+  type ParseObj,
+} from './lib/templateUtils.js'
 import { runCommand } from './lib/exec.js'
 import { help, tools } from './lib/help.js'
 import { oraPromise, type Ora } from 'ora'
@@ -43,8 +47,18 @@ const packageJson: Map<string, string | string[]> = new Map<
 
 async function createProject() {
   const target = await setupTemplates()
-  const { row, dataPackageJson } = await processPackageJson(target)
-console.log(dataPackageJson, row)
+  const row = await processPackageJson(target)
+  const { templateCode } = row
+  //console.log( row)
+  const files: string[] = templateCode.baseFilesName
+  for (const file of files) {
+    await processSpinner(
+      await presetSpinnerTemplate(
+        buildTemplateFiles(row.templateCode as object),
+        file
+      )
+    )
+  }
   process.exit(0)
   const isLibrary: boolean = await confirm(
     'Would you like to add more libraries?'
@@ -104,50 +118,51 @@ async function setupTemplates() {
   })
 }
 
-
-async function processPackageJson(
-  target: string
-): Promise<{ row: Row; dataPackageJson: Row }> {
+async function processPackageJson(target: string): Promise<ParseObj<any>> {
   const module = await setUpModule()
   await help.buildProject()
   const answerProjectName = await input('name')
-  const paressedProjectName = answerProjectName === '' ? 'my-project': answerProjectName
-  const templateCode = await templateProcessor(target, transformString(paressedProjectName))
-  const dataPackageJson = templateCode.contentPackage
+  const paressedProjectName =
+    answerProjectName === '' ? 'my-project' : answerProjectName
+  const templateCode = await templateProcessor(
+    target,
+    transformString(paressedProjectName)
+  )
+  const {contentPackage, ...remaining} = templateCode
   const row: Row = {}
   for (const [key, value] of packageJson) {
     const answer = await input(key)
-   dataPackageJson.name = paressedProjectName
-    if (typeof dataPackageJson[key] === 'string') {
-      
-        dataPackageJson[key] = answer === '' ? dataPackageJson[key] : answer || value
+        contentPackage.name = paressedProjectName
+    if (typeof contentPackage[key] === 'string') {
+          contentPackage[key] =
+        answer === '' ? contentPackage[key] : answer || value
     }
-    if (Array.isArray(dataPackageJson[key])) {
+    if (Array.isArray(contentPackage[key])) {
       answer.split(',').map(item => {
         keywords.add(item)
       })
 
-        dataPackageJson[key] = answer === '' ? [] : [...keywords]
+          contentPackage[key] = answer === '' ? [] : [...keywords]
     }
     if (key === 'license') {
-        dataPackageJson[key] = answer === '' ? dataPackageJson[key] : answer.toUpperCase()
-      
+          contentPackage[key] =
+        answer === '' ? contentPackage[key] : answer.toUpperCase()
     }
   }
-    dataPackageJson.type = module.toLowerCase()
+      contentPackage.type = module.toLowerCase()
   row.type = module.toLowerCase()
   row.template = target
-  row.directoryName = transformString(dataPackageJson.name.toString())
-  delete templateCode.contentPackage
-  
-  row.templateCode = { ...templateCode, "package.json": dataPackageJson}
+  row.directoryName = transformString(contentPackage.name.toString())
+  row.userDiretory = templateCode.userDiretory
+  templateCode.baseFilesName.push('package.json')
+  row.templateCode = { ...remaining, 'package.json': contentPackage }
   tools.log(
     tools.success,
     tools.textGreen(
-      `Successfully setting the project: ${tools.textWhit(row.directoryName)} to ${tools.textWhit(row.fullPath)}`
+      `Successfully setting the project: ${tools.textWhit(row.directoryName)} to ${tools.textWhit(row.userDiretory)}`
     )
   )
-  return { row, dataPackageJson }
+  return row
 }
 
 async function copyRepoToDirectory(
@@ -237,34 +252,6 @@ async function processSpinner<T>(opts: SpinnerInput<T>): Promise<T> {
     return result
   } catch (error) {
     throw error
-  }
-}
-
-function formatDataPackageJson(dataPackage: Row) {
-  const {
-    name,
-    version,
-    description,
-    main,
-    type,
-    keywords,
-    author,
-    license,
-    repository,
-    ...therest
-  } = dataPackage
-
-  return {
-    name,
-    version,
-    description,
-    license,
-    author,
-    repository,
-    keywords,
-    type,
-    main,
-    ...therest,
   }
 }
 

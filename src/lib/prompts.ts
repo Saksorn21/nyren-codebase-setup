@@ -50,4 +50,4 @@ async function confirm(message: string): Promise<boolean> {
   })
 }
 
-export { build, setModule, input, confirm, }
+export { build, setModule, input, confirm }

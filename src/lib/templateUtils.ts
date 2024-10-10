@@ -1,76 +1,94 @@
-import { readFile, createJsonFile, createFile, createDirectory } from './fileSystem.js'
-import { getDirname, resolvePath } from './pathHelper.js'
-import { processSpinner } from '../main.js'
-interface ParseObj<T> {
-  [name: string]: T | Record<string, T>
+import {
+  createJsonFile,
+  createFile,
+  createDirectory,
+} from './fileSystem.js'
+import { resolvePath } from './pathHelper.js'
+import { tools } from './help.js'
+export interface ParseObj<T> {
+  [name: string]: T | T[]
 }
-const __dirname = getDirname(import.meta.url)
-async function presetSpinnerTemplate(callFn: Function, diretoryName: string) {
-   return {
-     start: `Creating the ${diretoryName}`,
-       success: `${diretoryName} creation completed successfully`,
-       fail: `${diretoryName} creation failed!`,
-    callAction: callFn(),
+
+async function presetSpinnerTemplate(
+  callFn: Promise<void>,
+  diretoryName: string
+) {
+  return {
+    start: `Creating the ${diretoryName}`,
+    success: `${diretoryName} creation completed successfully`,
+    fail: `${diretoryName} creation failed!`,
+    callAction: callFn,
   }
 }
 
- async function fetchTemplateCode(templateName: string): Promise<ParseObj<any>>{
-   try {
-     const url = `https://unpkg.com/@nyren/repo-templates/${templateName}-template.json`;
-     const response: ParseObj<any> = await fetch(url);
-     const templateCode: ParseObj<any> = await response.json()
-     return templateCode;
-
-   } catch (e) {
-     return {}
-   }
-};
+async function fetchTemplateCode(templateName: string): Promise<ParseObj<any>> {
+  try {
+    const url = `https://unpkg.com/@nyren/repo-templates/${templateName}-template.json`
+    const response: ParseObj<any> = await fetch(url)
+    const templateCode: ParseObj<any> = await response.json()
+    return templateCode
+  } catch (e) {
+    tools.log(
+      tools.error,
+       tools.textRed(`Failed to unable to connect the template: ${tools.textWhit((e as Error).message)}`))
+    return {}
+  }
+}
 async function parseTemplate(target: string): Promise<ParseObj<any>> {
-   const language = target === 'typescript' ? 'ts' : 'js'
-   
+  const language = target === 'typescript' ? 'ts' : 'js'
+
   return fetchTemplateCode(language)
 }
 
-async function buildTemplateFiles(userDiretory: string, baseDiretory: string, content: string | string[] | ParseObj<any> ): Promise<void>{
-  
-  const fullPathUser = resolvePath(userDiretory, baseDiretory)
-   await createDirectory(fullPathUser)
-
-    await createFile(fullPathUser, content as string)
-
+async function buildTemplateFiles(templateCode: ParseObj<any>): Promise<void> {
+  const { userDiretory, baseFilesName, ...templatesCode } = templateCode
+  await createDirectory(userDiretory)
+  for (const [key, value] of Object.entries(templatesCode)) {
+    for (const file of baseFilesName) {
+      if (file.includes(key)) {
+        const fullPathUser = resolvePath(userDiretory, key)
+        await createDirectory(fullPathUser)
+        if (key.endsWith('.json'))
+          await createJsonFile(fullPathUser, value)
+        else await createFile(fullPathUser, value as string)
+      }
+    }
+  }
 }
-async function templateProcessor(target: string,userDiretoryName: string): Promise<ParseObj<any>> {
+async function templateProcessor(
+  target: string,
+  userDiretoryName: string
+): Promise<ParseObj<any>> {
   const processor = await parseTemplate(target)
   const userdir = resolvePath(process.cwd(), userDiretoryName)
-  
-  let raw: ParseObj<any> = {}
+
+  let raw: ParseObj<string> = {}
   raw.userDiretory = userdir
   const filsStorage: Set<string> = new Set([])
   for (const file of processor.files) {
     const baseDiretory = file.path
     const content = file.content
-    
-      filsStorage.add(file.path)
-    
+
+    filsStorage.add(file.path)
+
     //TODO: Take the "package.json" file and customize it later.
     filsStorage.delete('package.json')
     raw.baseFilesName = [...filsStorage]
-      
-    if (!baseDiretory.endsWith('.json')){
+
+    if (!baseDiretory.endsWith('.json')) {
       // General files
-        raw[baseDiretory] = content
-    }else{
+      raw[baseDiretory] = content
+    } else {
       // json files
-      const parsedContent = JSON.parse(content as string) 
-        if (baseDiretory === 'package.json') raw.contentPackage = parsedContent
-          //TODO: The rest of the json files
-        else raw[baseDiretory] = parsedContent
-     } 
+      const parsedContent = JSON.parse(content as string)
+      if (baseDiretory === 'package.json') raw.contentPackage = parsedContent
+      //TODO: The rest of the json files
+      else raw[baseDiretory] = parsedContent
+    }
   }
-  
-  
+
   return raw
 }
 
-(async () => await templateProcessor('typescript', 'my-project'))
+;async () => await templateProcessor('typescript', 'my-project')
 export { templateProcessor, buildTemplateFiles, presetSpinnerTemplate }

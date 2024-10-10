@@ -70,7 +70,4 @@ const tools = {
   textSlateBlue3,
   log,
 }
-export {
-  help,
-  tools,
-}
+export { help, tools }
