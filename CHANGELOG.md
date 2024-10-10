@@ -1,5 +1,17 @@
 # Changelog
 
+### Changelog
+
+## [0.2.2] - 2024-10-09
+
+### Fixed
+- **Template Configuration Issue:**
+  - Fixed a configuration error in the TypeScript template where the settings for `tsconfig` were not correctly applied.
+  
+### Added
+- **Added `@nyren/codebase-setup` to devDependencies:**
+  - Installed `@nyren/codebase-setup` (v0.2.2) in `devDependencies` to ensure proper setup of `tsconfig` in TypeScript projects.
+
 ## [0.2.1] - 2024-10-09
 
 ### Fixed

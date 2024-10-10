@@ -51,6 +51,7 @@ When you choose TypeScript, the following `devDependencies` will be added automa
     "tslib": "^2.7.0"
   },
   "devDependencies": {
+    "@nyren/codebase-setup": "^0.2.2",
     "@jest/globals": "^29.7.0",
     "@types/jest": "^29.5.13",
     "@types/node": "^22.7.4",
