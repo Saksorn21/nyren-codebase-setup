@@ -56,6 +56,15 @@ help.notification = async (target?: string, module?: string): Promise<void> =>
       `You will start the project using the language: ${tools.textOrange('[')}${textWhit(target)}${textOrange(']')}, with the module: ${textOrange('[')}${textWhit(module)}${textOrange(']')}.`
     )
   )
+function transformString(input: string): string {
+  // Check if the input starts with '@' and contains '/'
+  if (input.startsWith('@') && input.includes('/')) {
+    // Remove '@' and replace '/' with '-'
+    return input.replace(/^@/, '').replace('/', '-')
+  }
+  // If the input doesn't match the conditions, return the original input
+  return input
+}
 const tools = {
   info,
   success,
@@ -70,4 +79,4 @@ const tools = {
   textSlateBlue3,
   log,
 }
-export { help, tools }
+export { help, tools, transformString }

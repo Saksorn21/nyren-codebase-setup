@@ -7,6 +7,7 @@ import {
   type ParseObj,
 } from './lib/templateUtils.js'
 import { runCommand } from './lib/exec.js'
+import { processPackageJson } from './lib/processPackageJson.js'
 import { help, tools } from './lib/help.js'
 import { oraPromise, type Ora } from 'ora'
 import process from 'node:process'
@@ -28,22 +29,11 @@ export interface SpinnerInput<T> {
   fail?: string
   callAction: PromiseLike<T> | ((spinner: Ora) => PromiseLike<T>)
 }
-const keywords: Set<string> = new Set<string>([])
-const packageJson: Map<string, string | string[]> = new Map<
-  string,
-  string | string[]
->([
-  ['version', '1.0.0'],
-  ['description', 'my-project'],
-  ['main', 'index.js'],
-  ['keywords', []],
-  ['author', ''],
-  ['license', ''],
-])
+
 
 async function createProject() {
   const target = await setupTemplates()
-  const row = await processPackageJson(target)
+  const row = await processPackageJson(target, setUpModule)
   const { templateCode } = row
   //console.log( row)
   
@@ -82,53 +72,15 @@ async function setupTemplates() {
     callAction: build(),
   })
 }
-
-async function processPackageJson(target: string): Promise<ParseObj<any>> {
-  const module = await setUpModule()
-  await help.buildProject()
-  const answerProjectName = await input('name')
-  const paressedProjectName =
-    answerProjectName === '' ? 'my-project' : answerProjectName
-  const templateCode = await templateProcessor(
-    target,
-    transformString(paressedProjectName)
-  )
-  const {contentPackage, ...remaining} = templateCode
-  const row: Row = {}
-  for (const [key, value] of packageJson) {
-    const answer = await input(key)
-        contentPackage.name = paressedProjectName
-    if (typeof contentPackage[key] === 'string') {
-          contentPackage[key] =
-        answer === '' ? contentPackage[key] : answer || value
-    }
-    if (Array.isArray(contentPackage[key])) {
-      answer.split(',').map(item => {
-        keywords.add(item)
-      })
-
-          contentPackage[key] = answer === '' ? [] : [...keywords]
-    }
-    if (key === 'license') {
-          contentPackage[key] =
-        answer === '' ? contentPackage[key] : answer.toUpperCase()
-    }
-  }
-      contentPackage.type = module.toLowerCase()
-  row.type = module.toLowerCase()
-  row.template = target
-  row.directoryName = transformString(contentPackage.name.toString())
-  row.userDiretory = remaining.userDiretory
-    remaining.baseFilesName.push('package.json')
-  row.templateCode = { ...remaining, 'package.json': contentPackage }
-  tools.log(
-    tools.success,
-    tools.textGreen(
-      `Successfully setting the project: ${tools.textWhit(row.directoryName)} to ${tools.textWhit(row.userDiretory)}\n`
-    )
-  )
-  return row
+async function setUpModule(): Promise<string> {
+  return processSpinner({
+    start: 'Setting module',
+    success: 'Module setup completed successfully!',
+    fail: 'Module setup failed!',
+    callAction: setModule(),
+  })
 }
+
 async function processBuildTemplateFiles (templateCode: ParseObj<string>, baseFilesName: string[]): Promise<ResultFs> {
   try {
   
@@ -144,15 +96,6 @@ async function processBuildTemplateFiles (templateCode: ParseObj<string>, baseFi
     } catch (error: unknown) {
      return { success: false, error: error as Error }
     }
-}
-
-async function setUpModule(): Promise<string> {
-  return processSpinner({
-    start: 'Setting module',
-    success: 'Module setup completed successfully!',
-    fail: 'Module setup failed!',
-    callAction: setModule(),
-  })
 }
 
 async function handleLibraryInstallation(
@@ -208,16 +151,6 @@ async function processSpinner<T>(opts: SpinnerInput<T>): Promise<T> {
   } catch (error) {
     throw error
   }
-}
-
-function transformString(input: string): string {
-  // Check if the input starts with '@' and contains '/'
-  if (input.startsWith('@') && input.includes('/')) {
-    // Remove '@' and replace '/' with '-'
-    return input.replace(/^@/, '').replace('/', '-')
-  }
-  // If the input doesn't match the conditions, return the original input
-  return input
 }
 
 export { createProject, processSpinner }
