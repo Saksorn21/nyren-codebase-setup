@@ -10,10 +10,6 @@ This package is not intended for direct installation. Instead, it is designed to
 curl https://unpkg.com/@nyren/repo-templates@latest/templates.json -o templates.json
 ```
 
-## Usage
-
-Once the template JSON is fetched, you can parse and use it to set up file structures in your project. The templates include basic configurations for JavaScript and TypeScript projects, such as `tsconfig.json`, `.prettierrc.json`, and others.
-
 ### Example Usage
 
 Here is a simple example where you can use template code from the @nyren/codebase-setup v0.3.0 and above library.
@@ -31,6 +27,7 @@ Currently, this package includes templates for:
 
 - JavaScript projects
 - TypeScript projects
+- Go projects
 
 The templates contain configuration files such as:
 
