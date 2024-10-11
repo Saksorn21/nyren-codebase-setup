@@ -1,7 +1,6 @@
-import { createJsonFile, type ResultFs } from './lib/fileSystem.js'
+import { type ResultFs } from './lib/fileSystem.js'
 import { setModule, build, input, confirm } from './lib/prompts.js'
 import {
-  templateProcessor,
   buildTemplateFiles,
   presetSpinnerTemplate,
   type ParseObj,

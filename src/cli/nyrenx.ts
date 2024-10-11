@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { Command } from 'commander'
 const program = new Command()
-import { readPackageJson } from '../lib/packageJson.js'
+import { readPackageJson } from '../lib/packageJsonUtils.js'
 import { createProject } from '../main.js'
 
 const loadPackage = readPackageJson()

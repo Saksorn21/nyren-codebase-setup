@@ -4,16 +4,20 @@ import { transformString } from './help.js'
 import {
   templateProcessor
 } from './templateUtils.js'
+import { rfSync } from './fileSystem.js'
+
+import { getDirname, resolvePath } from './pathHelper.js'
 export interface Row {
   // It's the same.
   // Record<string, string | string[]>
   [name: string]: string | string[] | object
 }
-
+const __dirname = getDirname(import.meta.url)
 const packageJson: Map<string, string | string[]> = new Map<
   string,
   string | string[]
 >([
+  ['name', 'my-project'],
   ['version', '1.0.0'],
   ['description', 'my-project'],
   ['main', 'index.js'],
@@ -22,10 +26,6 @@ const packageJson: Map<string, string | string[]> = new Map<
   ['license', ''],
 ])
 
-export async function getProjectName(): Promise<string> {
-  const answer = await input('name')
-  return answer === '' ? 'my-project' : answer
-}
 
 
 export async function processPackageJsonFields(contentPackage: any) {
@@ -36,20 +36,19 @@ export async function processPackageJsonFields(contentPackage: any) {
     updatePackageField(contentPackage, key, answer, value, keywords)
   }
 }
-export async function processTemplate(target: string, projectName: string) {
-  return await templateProcessor(target, transformString(projectName))
+export async function processTemplate(target: string) {
+  return await templateProcessor(target)
 }
 
-export function finalizeProject(contentPackage: any, remaining: any, target: string, module: string, projectName: string): Row {
+export function finalizeProject(contentPackage: any, remaining: any, target: string, module: string): Row {
+  
   contentPackage.type = module.toLowerCase()
-console.log(remaining)
   const row: Row = {
-    projectName,
+    projectName: contentPackage.name.toString(),
     type: module.toLowerCase(),
     template: target,
     directoryName: transformString(contentPackage.name.toString()),
-    userDiretory: remaining.userDiretory,
-    templateCode: { ...remaining, 'package.json': contentPackage }
+    templateCode: { userDiretory: resolvePath(process.cwd(), transformString(contentPackage.name.toString())), 'package.json': contentPackage, ...remaining }
   }
 
   remaining.baseFilesName.push('package.json')
@@ -57,7 +56,7 @@ console.log(remaining)
   tools.log(
     tools.success,
     tools.textGreen(
-      `Successfully setting the project: ${tools.textWhit(row.directoryName)} to ${tools.textWhit(row.userDiretory)}\n`
+      `Successfully setting the project: ${tools.textWhit(row.projectName)} to ${tools.textWhit((row.templateCode as any).userDiretory)}\n`
     )
   )
 
@@ -76,4 +75,45 @@ function updatePackageField(
     contentPackage[key] = answer === '' ? contentPackage[key] : answer.toUpperCase()
   }
 }
+
+export function readPackageJson(
+  src?: string
+): Record<string, string | string[]> {
+  let packageJsonPath: string
+  if (src) {
+    packageJsonPath = src
+  } else {
+    packageJsonPath = resolvePath(__dirname, '../..', 'package.json')
+  }
+  return JSON.parse(rfSync(packageJsonPath, 'utf-8'))
+}
+
+export function formatDataPackageJson(dataPackage: Record<string, string>) {
+  const {
+    name,
+    version,
+    description,
+    main,
+    type,
+    keywords,
+    author,
+    license,
+    repository,
+    ...therest
+  } = dataPackage
+
+  return {
+    name,
+    version,
+    description,
+    license,
+    author,
+    repository,
+    keywords,
+    type,
+    main,
+    ...therest,
+  }
+}
+
 

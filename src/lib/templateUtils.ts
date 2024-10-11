@@ -56,14 +56,11 @@ async function buildTemplateFiles(templateCode: ParseObj<any>): Promise<void> {
   }
 }
 async function templateProcessor(
-  target: string,
-  userDiretoryName: string
+  target: string
 ): Promise<ParseObj<any>> {
   const processor = await parseTemplate(target)
-  const userdir = resolvePath(process.cwd(), userDiretoryName)
 
   let raw: ParseObj<string> = {}
-  raw.userDiretory = userdir
   const filsStorage: Set<string> = new Set([])
   for (const file of processor.files) {
     const baseDiretory = file.path
@@ -90,5 +87,5 @@ async function templateProcessor(
   return raw
 }
 
-;async () => await templateProcessor('typescript', 'my-project')
+
 export { templateProcessor, buildTemplateFiles, presetSpinnerTemplate }
