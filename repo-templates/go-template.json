@@ -1,0 +1,44 @@
+{
+  "files": [
+    {
+      "path": "main.go",
+      "content": "package main\n\nimport (\n    \"fmt\"\n    \"log\"\n    \"net/http\"\n\n    \"github.com/gorilla/mux\"\n)\n\nfunc main() {\n    r := mux.NewRouter()\n    r.HandleFunc(\"/\", func(w http.ResponseWriter, r *http.Request) {\n        fmt.Fprintf(w, \"Hello, World!\")\n    })\n    log.Println(\"Starting server on :8080\")\n    log.Fatal(http.ListenAndServe(\":8080\", r))\n}\n"
+    },
+    {
+      "path": "go.mod",
+      "content": "module example.com/myapp\n\ngo 1.20\n\nrequire github.com/gorilla/mux v1.8.0\n"
+    },
+    {
+      "path": "go.sum",
+      "content": "github.com/gorilla/mux v1.8.0 h1:qc6nZEFGQJXZczV93OqRX53FqCLCvGfj49/2TzxwLD0=\ngithub.com/gorilla/mux v1.8.0/go.mod h1:ThA2sJqPcoWAc9UUMn3cGJpFGPyDgF1tyzr+7rA+uvk=\n"
+    },
+    {
+      "path": "README.md",
+      "content": "# My Go Application\n\nThis is a basic Go application using Gorilla Mux for routing."
+    },
+    {
+      "path": "cmd/myapp/main.go",
+      "content": "package main\n\nimport (\n    \"fmt\"\n)\n\nfunc main() {\n    fmt.Println(\"Running my app!\")\n}\n"
+    },
+    {
+      "path": "pkg/utils/utils.go",
+      "content": "package utils\n\nfunc Hello() string {\n    return \"Hello from utils!\"\n}\n"
+    },
+    {
+      "path": "internal/app/app.go",
+      "content": "package app\n\nfunc Run() {\n    // Application logic here\n}\n"
+    },
+    {
+      "path": ".gitignore",
+      "content": "/bin/\n/vendor/\n"
+    },
+    {
+      "path": "Makefile",
+      "content": "build:\n\tgo build -o bin/myapp ./cmd/myapp\n\nrun:\n\tgo run ./main.go\n\nclean:\n\trm -rf bin/\n"
+    },
+    {
+      "path": "Dockerfile",
+      "content": "FROM golang:1.20-alpine\nWORKDIR /app\nCOPY . .\nRUN go mod download\nRUN go build -o /myapp\nCMD [\"/myapp\"]\n"
+    }
+  ]
+}
