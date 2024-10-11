@@ -5,7 +5,7 @@ import {
 import { help } from './help.js'
 export async function processPackageJson(target: string, callFn: Function): Promise<ParseObj<any>> {
   const module = await callFn()
-  await help.buildProject()
+  help.buildProject()
 
   const templateCode = await processTemplate(target)
 

@@ -1,7 +1,7 @@
 import { writeFile as fsWriteFile, mkdir as fsMkdir } from 'node:fs/promises'
 import { readFile as rf, readFileSync as rfSync } from 'node:fs'
 import { dirname, basename } from 'node:path'
-import { formatDataPackageJson } from './packageJson.js'
+import { formatDataPackageJson } from './packageJsonUtils.js'
 export interface ResultFs {
   success: boolean
   error?: Error

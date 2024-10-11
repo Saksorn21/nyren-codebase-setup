@@ -1,13 +1,13 @@
 import { type ResultFs } from './lib/fileSystem.js'
 import { setModule, build, input, confirm } from './lib/prompts.js'
+import { presetSpinnerCreateFiles } from './lib/utils.js'
 import {
   buildTemplateFiles,
-  presetSpinnerTemplate,
   type ParseObj,
 } from './lib/templateUtils.js'
 import { runCommand } from './lib/exec.js'
 import { processPackageJson } from './lib/processPackageJson.js'
-import { help, tools } from './lib/help.js'
+import { help, tools, prefixCli } from './lib/help.js'
 import { oraPromise, type Ora } from 'ora'
 import process from 'node:process'
 
@@ -40,8 +40,8 @@ async function createProject() {
   const isLibrary: boolean = await confirm(
     'Would you like to add more libraries?'
   )
-  await help.notification(row.template as string, row.type as string)
-  await help.warnOverWrite()
+  help.notification(row.template as string, row.type as string)
+   help.warnOverWrite()
 
   if (await confirm('Do you want to continue?')) {
     const copied = await processBuildTemplateFiles(templateCode, templateCode.baseFilesName)
@@ -85,7 +85,7 @@ async function processBuildTemplateFiles (templateCode: ParseObj<string>, baseFi
   
    for (const file of baseFilesName) {
      await processSpinner(
-       await presetSpinnerTemplate(
+       presetSpinnerCreateFiles(
          buildTemplateFiles(templateCode),
          file
        )
@@ -103,8 +103,8 @@ async function handleLibraryInstallation(
 ): Promise<void> {
   const basecommand = `cd ./${directoryName} && npm install`
   if (isLibrary) {
-    await help.libraryEx()
-    const lib = await input('libraries')
+     help.libraryEx()
+    const lib = await input('libraries', '')
     await processSpinner({
       start: 'Installing library',
       success: 'Library installation completed successfully!',
@@ -141,7 +141,7 @@ async function processSpinner<T>(opts: SpinnerInput<T>): Promise<T> {
   try {
     const result = await oraPromise(callAction, {
       color: 'white',
-      prefixText: `${tools.textWhit('[')}${tools.textSlateBlue3('nyrenx')}${tools.textWhit(']')}`,
+      prefixText: prefixCli,
       text: tools.textGrey(start),
       successText: tools.textGreen(success),
       failText: tools.textRed(fail),

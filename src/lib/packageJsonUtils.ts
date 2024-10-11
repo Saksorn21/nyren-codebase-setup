@@ -1,6 +1,6 @@
 import { input } from './prompts.js'
 import { tools } from './help.js'
-import { transformString } from './help.js'
+import { transformString, help } from './help.js'
 import {
   templateProcessor
 } from './templateUtils.js'
@@ -23,7 +23,7 @@ const packageJson: Map<string, string | string[]> = new Map<
   ['main', 'index.js'],
   ['keywords', []],
   ['author', ''],
-  ['license', ''],
+  ['license', 'ISC'],
 ])
 
 
@@ -32,7 +32,7 @@ export async function processPackageJsonFields(contentPackage: any) {
   const keywords = new Set<string>()
 
   for (const [key, value] of packageJson) {
-    const answer = await input(key)
+    const answer = await input(key,value as string)
     updatePackageField(contentPackage, key, answer, value, keywords)
   }
 }
@@ -52,13 +52,8 @@ export function finalizeProject(contentPackage: any, remaining: any, target: str
   }
 
   remaining.baseFilesName.push('package.json')
-
-  tools.log(
-    tools.success,
-    tools.textGreen(
-      `Successfully setting the project: ${tools.textWhit(row.projectName)} to ${tools.textWhit((row.templateCode as any).userDiretory)}\n`
-    )
-  )
+  
+  help.warnSettingCompleted(row.projetName as string, ((row.templateCode)as any).userDiretory)
 
   return row
 }

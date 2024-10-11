@@ -11,15 +11,20 @@ async function build() {
     choices: [
       {
         name: `${chalk.hex('#87afff').bold('TypeScript')}`,
-        value: 'typescript',
+        value: 'ts',
         description: 'TypeScript template\n',
       },
       {
         name: `${chalk.hex('#d7af00').bold('JavaScript')}`,
-        value: 'javascript',
+        value: 'js',
         description: 'JavaScript template\n',
+      },      {
+        name: `${chalk.rgb(0,125,156).bold('Go')}`,
+        value: 'go',
+        description: 'Go template\n',
       },
     ],
+    
   })
 }
 async function setModule() {
@@ -39,10 +44,18 @@ async function setModule() {
     ],
   })
 }
-async function input(title: string): Promise<string> {
-  return await inputPrompt({
-    message: ` ${chalk.hex('#87d75f').bold(title)}:`,
-  })
+async function input(title: string, defaultValue: string | string[] ): Promise<string> {
+  const msg = {message: ` ${chalk.hex('#87d75f').bold(title)}:`}
+  let preset
+  if (typeof defaultValue === 'string' && defaultValue !== '' ) {
+    preset = {...msg, default: defaultValue}
+  }else if (Array.isArray(defaultValue) && defaultValue.length >= 0) {
+    preset = {...msg}
+   }else {
+    preset = {...msg}
+   }
+  return await inputPrompt(preset)
+
 }
 async function confirm(message: string): Promise<boolean> {
   return await confirmPrompt({

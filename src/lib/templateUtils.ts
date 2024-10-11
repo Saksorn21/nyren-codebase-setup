@@ -4,36 +4,14 @@ import {
   createDirectory,
 } from './fileSystem.js'
 import { resolvePath } from './pathHelper.js'
-import { tools } from './help.js'
+
+import { fetchToJson } from './utils.js'
 export interface ParseObj<T> {
   [name: string]: T | T[]
 }
+const fetchTemplateCode = async (templateName: string) => await fetchToJson(`https://unpkg.com/@nyren/repo-templates/${templateName}-template.json`)
 
-async function presetSpinnerTemplate(
-  callFn: Promise<void>,
-  diretoryName: string
-) {
-  return {
-    start: `Creating the ${diretoryName}`,
-    success: `${diretoryName} creation completed successfully`,
-    fail: `${diretoryName} creation failed!`,
-    callAction: callFn,
-  }
-}
 
-async function fetchTemplateCode(templateName: string): Promise<ParseObj<any>> {
-  try {
-    const url = `https://unpkg.com/@nyren/repo-templates/${templateName}-template.json`
-    const response: ParseObj<any> = await fetch(url)
-    const templateCode: ParseObj<any> = await response.json()
-    return templateCode
-  } catch (e) {
-    tools.log(
-      tools.error,
-       tools.textRed(`Failed to unable to connect the template: ${tools.textWhit((e as Error).message)}`))
-    return {}
-  }
-}
 async function parseTemplate(target: string): Promise<ParseObj<any>> {
   const language = target === 'typescript' ? 'ts' : 'js'
 
@@ -88,4 +66,4 @@ async function templateProcessor(
 }
 
 
-export { templateProcessor, buildTemplateFiles, presetSpinnerTemplate }
+export { templateProcessor, buildTemplateFiles }
