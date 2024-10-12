@@ -6,6 +6,7 @@ import {
   type ParseObj,
 } from './lib/templateUtils.js'
 import { runCommand } from './lib/exec.js'
+import { matchLibrary } from './lib/processLibraries.js'
 import { processPackageJson } from './lib/processPackageJson.js'
 import { help, tools, prefixCli } from './lib/help.js'
 import { oraPromise, type Ora } from 'ora'
@@ -29,14 +30,37 @@ export interface SpinnerInput<T> {
   callAction: PromiseLike<T> | ((spinner: Ora) => PromiseLike<T>)
 }
 
+async function dataCenterFactory(packageJson: any,library: any) {
+  let result: any = {}
+  let contentFile: any = {}
+     const contentPackageJson = packageJson['package.json']
+  const devDependencies = contentPackageJson.devDependencies
+  for (const [key, value] of Object.entries(packageJson)){
+    contentFile[key] = value
+    
+    for (const [key, value] of Object.entries(library)){
+      const { pkgname, version, configfile } = value
+      
+      if (key.includes(pkgname)){
+        result[key] = {pkgname,version,configfile, content: contentFile[configfile]}
+          devDependencies[pkgname] = version
+      }
+      
+    }
+  }
+  console.log(packageJson['package.json']);
+  console.log('result',result);
+}
 
 async function createProject() {
   const target = await setupTemplates()
   const row = await processPackageJson(target, setUpModule)
   const { templateCode } = row
   //console.log( row)
+  const libs = await matchLibrary(target)
+  const center = await dataCenterFactory(templateCode,libs)
   
-  
+  process.exit(0)
   const isLibrary: boolean = await confirm(
     'Would you like to add more libraries?'
   )

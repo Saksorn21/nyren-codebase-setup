@@ -32,12 +32,12 @@ async function build() {
     choices: [
       {
         name: `${chalk.hex('#87afff').bold('TypeScript')}`,
-        value: 'ts',
+        value: 'typescript',
         description: 'TypeScript template\n',
       },
       {
         name: `${chalk.hex('#d7af00').bold('JavaScript')}`,
-        value: 'js',
+        value: 'javascript',
         description: 'JavaScript template\n',
       },
       {

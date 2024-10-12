@@ -24,7 +24,7 @@ export async function libsProcessor(target: string) {
   } else {
     console.error(`Target '${target}' not found in contentsLibraries.json`);
   }
-  console.log(raw);
+  
   return raw
 }
 

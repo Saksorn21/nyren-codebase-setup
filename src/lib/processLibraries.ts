@@ -8,7 +8,7 @@
   import { checkBoxForLibraries } from './prompts.js'
   import { fetchToJson } from './utils.js' 
 
-async function matchLibrary(target: string) {
+export async function matchLibrary(target: string) {
   const storesLibrary = await libsProcessor(target)
    const userLibrary = await checkBoxForLibraries(Object.keys(storesLibrary))
   let raw: ParseObj<any> = {}
@@ -18,13 +18,11 @@ async function matchLibrary(target: string) {
       raw[pkg] = {pkgname, version, configfile}
       if (storesLibrary[pkg].sublib) {
         for (const subPkg of storesLibrary[pkg].sublib) {
-          raw[subPkg.pkgname] = subPkg;
+          raw[subPkg.pkgname] = subPkg
         }
       }
     }
   }
-  console.log('match', raw)
+  
   return raw
 }
-(async()=> await matchLibrary('typescript')
-)()
