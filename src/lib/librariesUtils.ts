@@ -9,7 +9,7 @@ import { checkBoxForLibraries } from './prompts.js'
 import { fetchToJson } from './utils.js'
 
 
-async function libsProcessor(target: string) {
+export async function libsProcessor(target: string) {
   const contentsLibs: ParseObj<any> = await fetchTemplateCode('contentsLibraries.json');
   let raw: ParseObj<any> = {};
   // ตรวจสอบว่า target อยู่ในไฟล์ contentsLibraries.json หรือไม่
@@ -19,11 +19,7 @@ async function libsProcessor(target: string) {
       // เพิ่มแพ็กเกจลงใน raw
       raw[pkg.pkgname] = pkg;
       // ถ้ามีแพ็กเกจย่อย ให้เพิ่มลงใน raw เช่นกัน
-      if (pkg.sublib) {
-        for (const subPkg of pkg.sublib) {
-          raw[subPkg.pkgname] = subPkg;
-        }
-      }
+      
     }
   } else {
     console.error(`Target '${target}' not found in contentsLibraries.json`);
@@ -34,7 +30,3 @@ async function libsProcessor(target: string) {
 
 
 
-(async()=> {
- const libs = await libsProcessor('typescript')
-  const cha = await checkBoxForLibraries(Object.keys(libs))
-})()
