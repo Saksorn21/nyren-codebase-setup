@@ -20,7 +20,6 @@ async function build() {
         description: 'JavaScript template\n',
       },
     ],
-    
   })
 }
 async function setModule() {
@@ -40,18 +39,20 @@ async function setModule() {
     ],
   })
 }
-async function input(title: string, defaultValue: string | string[] ): Promise<string> {
-  const msg = {message: ` ${chalk.hex('#87d75f').bold(title)}:`}
+async function input(
+  title: string,
+  defaultValue: string | string[]
+): Promise<string> {
+  const msg = { message: ` ${chalk.hex('#87d75f').bold(title)}:` }
   let preset
-  if (typeof defaultValue === 'string' && defaultValue !== '' ) {
-    preset = {...msg, default: defaultValue}
-  }else if (Array.isArray(defaultValue) && defaultValue.length >= 0) {
-    preset = {...msg}
-   }else {
-    preset = {...msg}
-   }
+  if (typeof defaultValue === 'string' && defaultValue !== '') {
+    preset = { ...msg, default: defaultValue }
+  } else if (Array.isArray(defaultValue) && defaultValue.length >= 0) {
+    preset = { ...msg }
+  } else {
+    preset = { ...msg }
+  }
   return await inputPrompt(preset)
-
 }
 async function confirm(message: string): Promise<boolean> {
   return await confirmPrompt({

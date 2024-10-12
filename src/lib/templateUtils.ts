@@ -1,19 +1,17 @@
-import {
-  createJsonFile,
-  createFile,
-  createDirectory,
-} from './fileSystem.js'
+import { createJsonFile, createFile, createDirectory } from './fileSystem.js'
 import { resolvePath } from './pathHelper.js'
 
 import { fetchToJson } from './utils.js'
 export interface ParseObj<T> {
   [name: string]: T | T[]
 }
-const fetchTemplateCode = async (templateName: string) => await fetchToJson(`https://unpkg.com/@nyren/repo-templates/${templateName}-template.json`)
+const fetchTemplateCode = async (templateName: string) =>
+  await fetchToJson(
+    `https://unpkg.com/@nyren/repo-templates/${templateName}-template.json`
+  )
 
-
-const parseTemplate = async (target: string): Promise<ParseObj<any>> => fetchTemplateCode(target)
-
+const parseTemplate = async (target: string): Promise<ParseObj<any>> =>
+  fetchTemplateCode(target)
 
 async function buildTemplateFiles(templateCode: ParseObj<any>): Promise<void> {
   const { userDiretory, baseFilesName, ...templatesCode } = templateCode
@@ -23,16 +21,13 @@ async function buildTemplateFiles(templateCode: ParseObj<any>): Promise<void> {
       if (file.includes(key)) {
         const fullPathUser = resolvePath(userDiretory, key)
         await createDirectory(fullPathUser)
-        if (key.endsWith('.json'))
-          await createJsonFile(fullPathUser, value)
+        if (key.endsWith('.json')) await createJsonFile(fullPathUser, value)
         else await createFile(fullPathUser, value as string)
       }
     }
   }
 }
-async function templateProcessor(
-  target: string
-): Promise<ParseObj<any>> {
+async function templateProcessor(target: string): Promise<ParseObj<any>> {
   const processor = await parseTemplate(target)
 
   let raw: ParseObj<string> = {}
@@ -61,6 +56,5 @@ async function templateProcessor(
 
   return raw
 }
-
 
 export { templateProcessor, buildTemplateFiles }

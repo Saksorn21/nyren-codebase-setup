@@ -2,7 +2,7 @@
 import { Command } from 'commander'
 const program = new Command()
 import { readPackageJson } from '../lib/packageJsonUtils.js'
-import { createProject } from '../main.js'
+import { createProject, processSpinner } from '../main.js'
 import { checkForUpdate } from '../lib/checkVersion.js'
 import { runCommand } from '../lib/exec.js'
 const loadPackage = readPackageJson()
@@ -18,14 +18,19 @@ program
   .action(async () => {
     await createProject()
     await checkForUpdate()
-    
   })
 program
   .command('update')
   .description('Update the project to the latest version')
   .action(async () => {
-  const command = await checkForUpdate()
-    await runCommand(command)
+    const command = await checkForUpdate()
+    command === '' && process.exit(1)
+    await processSpinner({
+      start: 'Updating project...',
+      success: 'Project updated successfully',
+      fail: 'Failed to update project',
+      callAction: runCommand(command),
+    })
   })
 
-program.parse()
+program.parseAsync()

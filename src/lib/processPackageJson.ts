@@ -1,9 +1,14 @@
-import { processPackageJsonFields, finalizeProject, processTemplate } from './packageJsonUtils.js'
 import {
-  type ParseObj
-} from './templateUtils.js'
+  processPackageJsonFields,
+  finalizeProject,
+  processTemplate,
+} from './packageJsonUtils.js'
+import { type ParseObj } from './templateUtils.js'
 import { help } from './help.js'
-export async function processPackageJson(target: string, callFn: Function): Promise<ParseObj<any>> {
+export async function processPackageJson(
+  target: string,
+  callFn: Function
+): Promise<ParseObj<any>> {
   const module = await callFn()
   help.buildProject()
 

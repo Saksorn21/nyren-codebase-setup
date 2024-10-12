@@ -1,10 +1,7 @@
 import { type ResultFs } from './lib/fileSystem.js'
 import { setModule, build, input, confirm } from './lib/prompts.js'
 import { presetSpinnerCreateFiles } from './lib/utils.js'
-import {
-  buildTemplateFiles,
-  type ParseObj,
-} from './lib/templateUtils.js'
+import { buildTemplateFiles, type ParseObj } from './lib/templateUtils.js'
 import { runCommand } from './lib/exec.js'
 import { processPackageJson } from './lib/processPackageJson.js'
 import { help, tools, prefixCli } from './lib/help.js'
@@ -29,22 +26,23 @@ export interface SpinnerInput<T> {
   callAction: PromiseLike<T> | ((spinner: Ora) => PromiseLike<T>)
 }
 
-
 async function createProject() {
   const target = await setupTemplates()
   const row = await processPackageJson(target, setUpModule)
   const { templateCode } = row
   //console.log( row)
-  
-  
+
   const isLibrary: boolean = await confirm(
     'Would you like to add more libraries?'
   )
   help.notification(row.template as string, row.type as string)
-   help.warnOverWrite()
+  help.warnOverWrite()
 
   if (await confirm('Do you want to continue?')) {
-    const copied = await processBuildTemplateFiles(templateCode, templateCode.baseFilesName)
+    const copied = await processBuildTemplateFiles(
+      templateCode,
+      templateCode.baseFilesName
+    )
 
     if (copied.success) {
       await handleLibraryInstallation(isLibrary, row.directoryName as string)
@@ -80,21 +78,20 @@ async function setUpModule(): Promise<string> {
   })
 }
 
-async function processBuildTemplateFiles (templateCode: ParseObj<string>, baseFilesName: string[]): Promise<ResultFs> {
+async function processBuildTemplateFiles(
+  templateCode: ParseObj<string>,
+  baseFilesName: string[]
+): Promise<ResultFs> {
   try {
-  
-   for (const file of baseFilesName) {
-     await processSpinner(
-       presetSpinnerCreateFiles(
-         buildTemplateFiles(templateCode),
-         file
-       )
-     )
-   }
-    return { success: true }
-    } catch (error: unknown) {
-     return { success: false, error: error as Error }
+    for (const file of baseFilesName) {
+      await processSpinner(
+        presetSpinnerCreateFiles(buildTemplateFiles(templateCode), file)
+      )
     }
+    return { success: true }
+  } catch (error: unknown) {
+    return { success: false, error: error as Error }
+  }
 }
 
 async function handleLibraryInstallation(
@@ -103,7 +100,7 @@ async function handleLibraryInstallation(
 ): Promise<void> {
   const basecommand = `cd ./${directoryName} && npm install`
   if (isLibrary) {
-     help.libraryEx()
+    help.libraryEx()
     const lib = await input('libraries', '')
     await processSpinner({
       start: 'Installing library',
@@ -126,13 +123,11 @@ async function processExce(command: string, library?: string): Promise<void> {
   const { output, error } = await runCommand(commandToExecute)
 
   if (error) {
-    tools.log(
-      `\n${tools.error}`,
-      tools.textRed(`Execution failed: ${tools.textGrey(error)}`)
-    )
-    
+    const msgError = `\n${tools.error} ${tools.textRed(`Execution failed: ${tools.textGrey(error)}`)}`
+
+    throw msgError
   }
-  tools.log(`\n${tools.success} ${tools.textGrey(output)}`)
+  tools.log(`${tools.textGrey(output)}\n`)
 }
 
 async function processSpinner<T>(opts: SpinnerInput<T>): Promise<T> {
