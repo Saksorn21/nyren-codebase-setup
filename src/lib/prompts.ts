@@ -16,7 +16,7 @@ async function build() {
       },
       {
         name: `${chalk.hex('#d7af00').bold('JavaScript')}`,
-        value: 'javasrcipt',
+        value: 'javascript',
         description: 'JavaScript template\n',
       },
     ],

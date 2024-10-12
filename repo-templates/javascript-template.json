@@ -1,19 +1,28 @@
 {
   "files": [
-    { "path": 
+    { 
+      "path": 
       "src/index.js",
-    "content": "console.log('Hello, nyren')"
+      "content": "console.log('Hello, nyren')"
     },
-   {"path": "__tests__/index.test.js",
+   {
+     "path": "__tests__/index.test.js",
      "content": "console.log('Hello, nyren')"
     },
-    { "path": "jest.config.js", "content": "export default { \n  preset: \"jest\", \n  testEnvironment: \"node\", \n  collectCoverage: true, \n  coverageDirectory: \"coverage\", \n  coverageProvider: \"v8\", \n  testTimeout: 30000, \n  roots: [\"<rootDir>/__tests__/\"], \n  \n};" },
-   { "path": ".prettierrc.json", 
-     "content": "{ \"singleQuote\": true, \"trailingComma\": \"es5\", \"tabWidth\": 2, \"parser\": \"javascript\", \"printWidth\": 80, \"semi\": false, \"bracketSpacing\": true, \"arrowParens\": \"avoid\" }" }, 
- { "path": "package.json", "content": "{ \"name\": \"EDIT_ME\", \"version\": \"0.1.0\", \"description\": \"EDIT_ME\", \"keywords\": [], \"author\": \"Boat Saksorn (Thailand)\", \"main\": \"src/index.js\", \"private\": true, \"scripts\": { \"build\": \"npx esbuild ./src/index.js --bundle --outfile=index.js\", \"lint\": \"prettier --check 'src/**/*.{js,ts}' '*.{js,ts}'\", \"format\": \"prettier --write 'src/**/*.{js,ts}' '*.{js,ts}'\", \"test\": \"jest --coverage\" }, \"repository\": { \"type\": \"git\", \"url\": \"git+https://github.com/Saksorn21/EDIT_ME.git\" }, \"license\": \"MIT\", \"devDependencies\": { } }"
- },
- { "path": ".github/workflows/publish.yml",
-   "content": "name: Publish on npm\n\non:\n  release:\n    types: [created]\n\njobs:\n  build:\n    runs-on: ubuntu-latest\n    permissions:\n      contents: read\n      id-token: write\n    steps:\n      - uses: actions/checkout@v4\n      - uses: actions/setup-node@v4\n        with:\n          node-version: 20\n          registry-url: 'https://registry.npmjs.org'\n          cache: npm\n      - name: Install dependencies\n        run: npm ci\n      - name: Build project\n        run: npm run build\n      - name: Format code\n        run: npm run format\n      - name: Publish to npm\n        run: npm publish --access public\n        env:\n          NODE_AUTH_TOKEN: ${{ secrets.PUBLIC_TOKEN_NPM }}\n"
+    { 
+      "path": "jest.config.js", 
+      "content": "export default { \n  preset: \"jest\", \n  testEnvironment: \"node\", \n  collectCoverage: true, \n  coverageDirectory: \"coverage\", \n  coverageProvider: \"v8\", \n  testTimeout: 30000, \n  roots: [\"<rootDir>/__tests__/\"], \n  \n};" 
+    },
+    { 
+       "path": ".prettierrc.json", 
+       "content": "{ \"singleQuote\": true, \"trailingComma\": \"es5\", \"tabWidth\": 2, \"parser\": \"javascript\", \"printWidth\": 80, \"semi\": false, \"bracketSpacing\": true, \"arrowParens\": \"avoid\" }"       }, 
+    { 
+      "path": "package.json", 
+      "content": "{ \"name\": \"EDIT_ME\", \"version\": \"0.1.0\", \"description\": \"EDIT_ME\", \"keywords\": [], \"author\": \"Boat Saksorn (Thailand)\", \"main\": \"src/index.js\", \"private\": true, \"scripts\": { \"build\": \"npx esbuild ./src/index.js --bundle --outfile=index.js\", \"lint\": \"prettier --check 'src/**/*.{js,ts}' '*.{js,ts}'\", \"format\": \"prettier --write 'src/**/*.{js,ts}' '*.{js,ts}'\", \"test\": \"jest --coverage\" }, \"repository\": { \"type\": \"git\", \"url\": \"git+https://github.com/Saksorn21/EDIT_ME.git\" }, \"license\": \"MIT\", \"devDependencies\": {  \"jest\": \"^29.7.0\", \"prettier\": \"^3.3.3\", \"nodemon\": \"^3.1.7\", \"esbuild\": \"^0.24.0\"} }"
+    },
+    { 
+      "path": ".github/workflows/publish.yml",
+      "content": "name: Publish on npm\n\non:\n  release:\n    types: [created]\n\njobs:\n  build:\n    runs-on: ubuntu-latest\n    permissions:\n      contents: read\n      id-token: write\n    steps:\n      - uses: actions/checkout@v4\n      - uses: actions/setup-node@v4\n        with:\n          node-version: 20\n          registry-url: 'https://registry.npmjs.org'\n          cache: npm\n      - name: Install dependencies\n        run: npm ci\n      - name: Build project\n        run: npm run build\n      - name: Format code\n        run: npm run format\n      - name: Publish to npm\n        run: npm publish --access public\n        env:\n          NODE_AUTH_TOKEN: ${{ secrets.PUBLIC_TOKEN_NPM }}\n"
     }
   ]
 }

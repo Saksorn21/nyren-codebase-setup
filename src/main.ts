@@ -130,7 +130,7 @@ async function processExce(command: string, library?: string): Promise<void> {
       `\n${tools.error}`,
       tools.textRed(`Execution failed: ${tools.textGrey(error)}`)
     )
-    process.exit(1)
+    
   }
   tools.log(`\n${tools.success} ${tools.textGrey(output)}`)
 }

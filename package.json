@@ -20,10 +20,11 @@
     "dist/lib/zipUtil.js",
     "dist/lib/prompts.js",
     "dist/lib/pathHelper.js",
-    "dist/lib/packageJson.js",
     "dist/lib/fileSystem.js",
-    "dist/lib/templateUtils.js",
     "dist/lib/checkVersion.js",
+    "dist/lib/templateUtils.js",
+    "dist/lib/packageJsonUtils.js",
+    "dist/lib/processPackageJson.js",
     "tsconfigs/cjs.json",
     "tsconfigs/esm.json"
   ],
