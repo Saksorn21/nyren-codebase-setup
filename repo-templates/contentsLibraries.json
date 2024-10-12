@@ -1,14 +1,14 @@
 {
-  "js":[
-    { 
-      "pkgname": "jest", 
+  "javascript": [
+    {
+      "pkgname": "jest",
       "version": "29.7.0",
-      "confilgfile": "jest.config.js"
+      "configfile": "jest.config.js"
     },
     {
       "pkgname": "prettier",
-      "version":"3.3.3",
-      "confilgfile": ".prettierrc.json"
+      "version": "3.3.3",
+      "configfile": ".prettierrc.json"
     },
     {
       "pkgname": "nodemon",
@@ -19,11 +19,11 @@
       "version": "0.24.0"
     }
   ],
-  "ts": [
-    { 
-      "pkgname": "jest", 
+  "typescript": [
+    {
+      "pkgname": "jest",
       "version": "29.7.0",
-       "confilgfile": "jest.config.ts",
+      "configfile": "jest.config.ts",
       "sublib": [
         {
           "pkgname": "@types/jest",
@@ -34,25 +34,25 @@
           "version": "29.7.0"
         },
         {
-          "pkgname": "ts-jest", 
+          "pkgname": "ts-jest",
           "version": "29.2.5"
         },
         {
-          "pkgname": "ts-node", 
+          "pkgname": "ts-node",
           "version": "10.9.2"
         }
       ]
     },
-    { 
+    {
       "pkgname": "prettier",
-      "version":"3.3.3", 
-      "confilgfile": ".prettierrc.json"
+      "version": "3.3.3",
+      "configfile": ".prettierrc.json",
       "sublib": []
     },
-    { 
-      "pkgname": "ts-node", 
-      "version": "10.9.2", 
+    {
+      "pkgname": "ts-node",
+      "version": "10.9.2",
       "sublib": []
-    },
+    }
   ]
 }

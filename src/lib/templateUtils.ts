@@ -9,14 +9,11 @@ import { fetchToJson } from './utils.js'
 export interface ParseObj<T> {
   [name: string]: T | T[]
 }
-const fetchTemplateCode = async (templateName: string) => await fetchToJson(`https://unpkg.com/@nyren/repo-templates/${templateName}-template.json`)
+const fetchTemplateCode = async (templatePath: string) => await fetchToJson(`https://unpkg.com/@nyren/repo-templates@latest/${templatePath}`)
 
 
-async function parseTemplate(target: string): Promise<ParseObj<any>> {
-  const language = target === 'typescript' ? 'ts' : 'js'
+const parseTemplate = async (target: string): Promise<ParseObj<any>> => await fetchTemplateCode(target + '-template.json')
 
-  return fetchTemplateCode(language)
-}
 
 async function buildTemplateFiles(templateCode: ParseObj<any>): Promise<void> {
   const { userDiretory, baseFilesName, ...templatesCode } = templateCode
@@ -66,4 +63,4 @@ async function templateProcessor(
 }
 
 
-export { templateProcessor, buildTemplateFiles }
+export { templateProcessor, buildTemplateFiles, parseTemplate, fetchTemplateCode }
