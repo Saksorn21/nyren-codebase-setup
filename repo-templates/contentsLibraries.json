@@ -1,0 +1,58 @@
+{
+  "js":[
+    { 
+      "pkgname": "jest", 
+      "version": "29.7.0",
+      "confilgfile": "jest.config.js"
+    },
+    {
+      "pkgname": "prettier",
+      "version":"3.3.3",
+      "confilgfile": ".prettierrc.json"
+    },
+    {
+      "pkgname": "nodemon",
+      "version": "3.1.7"
+    },
+    {
+      "pkgname": "esbuild",
+      "version": "0.24.0"
+    }
+  ],
+  "ts": [
+    { 
+      "pkgname": "jest", 
+      "version": "29.7.0",
+       "confilgfile": "jest.config.ts",
+      "sublib": [
+        {
+          "pkgname": "@types/jest",
+          "version": "29.5.13"
+        },
+        {
+          "pkgname": "@jest/globals",
+          "version": "29.7.0"
+        },
+        {
+          "pkgname": "ts-jest", 
+          "version": "29.2.5"
+        },
+        {
+          "pkgname": "ts-node", 
+          "version": "10.9.2"
+        }
+      ]
+    },
+    { 
+      "pkgname": "prettier",
+      "version":"3.3.3", 
+      "confilgfile": ".prettierrc.json"
+      "sublib": []
+    },
+    { 
+      "pkgname": "ts-node", 
+      "version": "10.9.2", 
+      "sublib": []
+    },
+  ]
+}
