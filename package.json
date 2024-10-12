@@ -23,6 +23,7 @@
     "dist/lib/packageJson.js",
     "dist/lib/fileSystem.js",
     "dist/lib/templateUtils.js",
+    "dist/lib/checkVersion.js",
     "tsconfigs/cjs.json",
     "tsconfigs/esm.json"
   ],

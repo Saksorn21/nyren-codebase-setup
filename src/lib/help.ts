@@ -1,7 +1,7 @@
 import chalk from 'chalk'
 import logSymbols from 'log-symbols'
-export interface HelpFn<T1, T2 = string, T3 = string> {
-  [name: string]: (arge?: T2, arge2?: T3) => T1 | string
+export interface HelpFn<T1, T2 = string, T3 = string, T4 = string> {
+  [name: string]: (arge?: T2, arge2?: T3, arge3?: T4) => Promise<T1> | T1 | string 
 }
 
 
@@ -64,11 +64,14 @@ help.warnSettingCompleted = (projectName?: string, userDiretory?: string): void 
       `Successfully setting the project: ${textWhit(projectName)} to ${textWhit(userDiretory )}\n`
     )
   )
-help.noticeNewVersion = (currentVersion?: string,latestVersion?: string): void => {
+help.noticeNewVersion = async (currentVersion?: string,latestVersion?: string, semVer?: string) => {
+  const prefixNoify = `${prefixCli} ${info} `
+  const install = `${textDeepBlue.dim(`npm install -g @nyren/codebase-setup@latest@${latestVersion}`)}`
+  const changelogUrl = `${textOrange.dim(`https://github.com/Saksorn21/nyren-codebase-setup/releases/tag/v${latestVersion}`)}`
+  log(`${prefixNoify} ${textWhit(`New ${textDeepBlue(semVer)} version in npm a vailable! ${textDeepBlue.dim(currentVersion)} -> ${textOrange(latestVersion)}`)}`)
+  log(`${prefixNoify} ${textWhit(`Changelog ${changelogUrl}`)}`)
+  log(`${prefixNoify} ${textWhit(`To update run: ${install} or ${textOrange('nyrenx-codeup update')}`)}`)
   
-  const install = `${textDeepBlue.underline(`npm install -g @nyren/codebase-setup@latest@${latestVersion}`)}`
-  log(prefixCli, info, textWhit(`New version available! ${textDeepBlue(currentVersion)} -> ${textOrange(latestVersion)}`))
-  log(prefixCli, info, textWhit(`To update run: ${install} or nyrenx-codeup update` ))
 }
 function transformString(input: string): string {
   // Check if the input starts with '@' and contains '/'

@@ -11,17 +11,13 @@ async function build() {
     choices: [
       {
         name: `${chalk.hex('#87afff').bold('TypeScript')}`,
-        value: 'ts',
+        value: 'typescript',
         description: 'TypeScript template\n',
       },
       {
         name: `${chalk.hex('#d7af00').bold('JavaScript')}`,
-        value: 'js',
+        value: 'javasrcipt',
         description: 'JavaScript template\n',
-      },      {
-        name: `${chalk.rgb(0,125,156).bold('Go')}`,
-        value: 'go',
-        description: 'Go template\n',
       },
     ],
     

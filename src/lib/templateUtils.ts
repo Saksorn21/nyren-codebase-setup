@@ -12,11 +12,8 @@ export interface ParseObj<T> {
 const fetchTemplateCode = async (templateName: string) => await fetchToJson(`https://unpkg.com/@nyren/repo-templates/${templateName}-template.json`)
 
 
-async function parseTemplate(target: string): Promise<ParseObj<any>> {
-  const language = target === 'typescript' ? 'ts' : 'js'
+const parseTemplate = async (target: string): Promise<ParseObj<any>> => fetchTemplateCode(target)
 
-  return fetchTemplateCode(language)
-}
 
 async function buildTemplateFiles(templateCode: ParseObj<any>): Promise<void> {
   const { userDiretory, baseFilesName, ...templatesCode } = templateCode
