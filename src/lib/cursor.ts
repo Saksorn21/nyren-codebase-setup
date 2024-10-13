@@ -5,18 +5,20 @@ interface Cursor {
   [key: string]: () => void
 }
 let isHidden = false
-const terminal = process.stderr.isTTY
+
+const resetCursorOnExit = () =>{
+  const terminal = process.stderr.isTTY
   ? process.stderr
   : process.stdout.isTTY
     ? process.stdout
     : undefined
-const resetCursorOnExit = 
   terminal ? 
     onetime(()=> 
       onExit(()=> {
        terminal.write('\x1B[?25h') // Reset cursor visibility
       }, {alwaysLast: true})
     ): () => {}
+  }
 const cursor: Cursor = {}
 cursor.hide = (writableStream = process.stderr) => {
   
