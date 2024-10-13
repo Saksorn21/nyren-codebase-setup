@@ -10,30 +10,30 @@ import { oraPromise, type Ora } from 'ora'
 import { createProject, processSpinner, handleLibraryInstallation, setUpModule, setupTemplates, processBuildTemplateFiles, processExce,  } from './createProject.js'
 import process from 'node:process'
 
-export interface OptsInits {
+export interface InitOpts {
   projectName?: string
   target?: string
   module?: string
   directory?: string
 }
-async function createProjectWithOptions(options: OptsInits) {
+async function createProjectWithOptions(options: InitOpts) {
   //debugger
    tools.log(
     `${prefixCli} ${tools.info} Setting up the project: ${tools.textOrange(JSON.stringify(options))}\n`)
-  const { projectName, target: tg, module: md, directory } = options
+  const { projectName: pn, target: tg, module: md, directory: dir } = options
   let target = '' 
   let module = ''
   target = tg || await setupTemplates()
-  console.log(target, module)
-  target = target ? matchLanguage(target) || await setupTemplates() : target
-  console.log(target, module)
-  module = md || await setUpModule()
-  console.log(target, module)
-  module = module ? matchModule(module) || await setUpModule() : module 
-  console.log(target, module)
   
-  const fileProject = directory || projectName || ''
-  tools.log(fileProject)
+  target = target ? matchLanguage(target) || await setupTemplates() : target
+  
+  module = md || await setUpModule()
+  
+  module = module ? matchModule(module) || await setUpModule() : module 
+  const projectName = pn || await input('Project name', 'my-project')
+  const directory = dir || pn || projectName
+  console.debug({ projectName, target, module, directory })
+  await createProject({ projectName, target, module, directory })
 }
 
 function matchLanguage(target: string): string | null {

@@ -5,6 +5,7 @@ import { buildTemplateFiles, type ParseObj } from './lib/templateUtils.js'
 import { runCommand } from './lib/exec.js'
 import { processPackageJson } from './lib/processPackageJson.js'
 import { help, tools, prefixCli } from './lib/help.js'
+import {type InitOpts} from './createProjectWithOptions.js'
 import { oraPromise, type Ora } from 'ora'
 import process from 'node:process'
 
@@ -21,8 +22,11 @@ export interface SpinnerInput<T> {
   callAction: PromiseLike<T> | ((spinner: Ora) => PromiseLike<T>)
 }
 
-async function createProject() {
-  const target = await setupTemplates()
+async function createProject(opts?: InitOpts) {
+  console.log(opts)
+  let target = ''
+  opts !== undefined && (target = opts.target || await setupTemplates())
+  target = !target ? await setupTemplates() : target
   const row = await processPackageJson(target, setUpModule)
   const { templateCode } = row
   //console.log( row)
