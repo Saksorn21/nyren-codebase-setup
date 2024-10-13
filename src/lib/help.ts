@@ -1,5 +1,6 @@
 import chalk from 'chalk'
 import logSymbols from 'log-symbols'
+
 export interface HelpFn<T1, T2 = string, T3 = string, T4 = string> {
   [name: string]: (
     arge?: T2,
@@ -9,13 +10,13 @@ export interface HelpFn<T1, T2 = string, T3 = string, T4 = string> {
 }
 const text = (hex: string) => chalk.hex(hex).bold
 const textLightSteelBlue1 = text('#d7d7ff')
-const textSlateBlue3 = chalk.hex('#5f5faf').bold
-const textGreen = chalk.hex('#87ffaf').bold
-const textRed = chalk.hex('#d7005f').bold
-const textOrange = chalk.hex('#ffaf00').bold
-const textDeepBlue = chalk.hex('#00afff').bold
-const textWhit = chalk.hex('#ffffff').bold
-const textGrey = chalk.hex('#626262').bold
+const textSlateBlue3 = text('#5f5faf')
+const textGreen = text('#87ffaf')
+const textRed = text('#d7005f')
+const textOrange = text('#ffaf00')
+const textDeepBlue = text('#00afff')
+const textWhit = text('#ffffff')
+const textGrey = text('#626262')
 const prefixCli = `${textWhit('[')}${textSlateBlue3('nyrenx')}${textWhit(']')}`
 let help: HelpFn<void> = {}
 const info = logSymbols.info
@@ -80,7 +81,7 @@ help.noticeNewVersion = async (
   const prefixNoify = `${prefixCli} ${info} `
   const install = `${textDeepBlue.dim(`npm install -g @nyren/codebase-setup@latest@${latestVersion}`)}`
   const changelogUrl = `${textOrange.dim(`https://github.com/Saksorn21/nyren-codebase-setup/releases/tag/v${latestVersion}`)}`
-  log('\r')
+  log('\n')
   log(
     `${prefixNoify} ${textLightSteelBlue1(`New ${textDeepBlue(semVer)} version in npm a vailable! ${textDeepBlue.dim(currentVersion)} -> ${textOrange(latestVersion)}`)}`
   )

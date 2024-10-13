@@ -5,7 +5,6 @@ import { buildTemplateFiles, type ParseObj } from './lib/templateUtils.js'
 import { runCommand } from './lib/exec.js'
 import { processPackageJson } from './lib/processPackageJson.js'
 import { help, tools, prefixCli } from './lib/help.js'
-import cursor from './lib/cursor.js'
 import { oraPromise, type Ora } from 'ora'
 import process from 'node:process'
 
@@ -60,9 +59,9 @@ async function createProject() {
 
 async function setupTemplates() {
   return processSpinner({
-    start: 'Setting up repository templates',
-    success: 'Setup completed successfully!',
-    fail: 'Setup failed!',
+    start: 'Setting up target language',
+    success: 'Target language setup completed successfully!',
+    fail: 'Target language setup failed!',
     callAction: async () => await setTarget(),
   })
 }
@@ -123,7 +122,7 @@ async function processExce(command: string, library?: string): Promise<void> {
   if (error) {
     const msgError = `\n${tools.error} ${tools.textRed(`Execution failed: ${tools.textGrey(error)}`)}`
 
-    //throw msgError
+    throw msgError
   }
   tools.log(`${tools.textGrey(output)}\n`)
 }
@@ -136,8 +135,8 @@ async function processSpinner<T>(opts: SpinnerInput<T>): Promise<T> {
       color: 'white',
       prefixText: prefixCli,
       spinner: 'toggle13',
-      text: tools.textGrey(start),
-      successText: tools.textGreen(success),
+      text: tools.textGrey(start + '\n'),
+      successText: tools.textGreen(success + '\n'),
       failText: tools.textRed(fail),
     })
     return result
@@ -146,4 +145,4 @@ async function processSpinner<T>(opts: SpinnerInput<T>): Promise<T> {
   }
 }
 
-export { createProject, processSpinner }
+export { createProject, processSpinner, handleLibraryInstallation, setUpModule, setupTemplates, processBuildTemplateFiles, processExce,  }
