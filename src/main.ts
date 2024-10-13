@@ -1,10 +1,11 @@
 import { type ResultFs } from './lib/fileSystem.js'
-import { setModule, build, input, confirm } from './lib/prompts.js'
+import { setModule, setTarget, input, confirm } from './lib/prompts.js'
 import { presetSpinnerCreateFiles } from './lib/utils.js'
 import { buildTemplateFiles, type ParseObj } from './lib/templateUtils.js'
 import { runCommand } from './lib/exec.js'
 import { processPackageJson } from './lib/processPackageJson.js'
 import { help, tools, prefixCli } from './lib/help.js'
+import cursor from './lib/cursor.js'
 import { oraPromise, type Ora } from 'ora'
 import process from 'node:process'
 
@@ -53,6 +54,7 @@ async function createProject() {
           `Failed to copy the repository: ${tools.textWhit((copied.error as Error).message)}`
         )
       )
+      cursor.show()
       process.exit(1)
     }
   } else {
@@ -66,7 +68,7 @@ async function setupTemplates() {
     start: 'Setting up repository templates',
     success: 'Setup completed successfully!',
     fail: 'Setup failed!',
-    callAction: build(),
+    callAction: async () => await setTarget(),
   })
 }
 async function setUpModule(): Promise<string> {
@@ -112,6 +114,7 @@ async function handleLibraryInstallation(
     await processSpinner({
       start: 'npm install',
       success: 'npm installation completed successfully!',
+      fail: 'npm installation failed!',
       callAction: processExce(basecommand),
     })
   }
@@ -137,6 +140,7 @@ async function processSpinner<T>(opts: SpinnerInput<T>): Promise<T> {
     const result = await oraPromise(callAction, {
       color: 'white',
       prefixText: prefixCli,
+      spinner: 'toggle13',
       text: tools.textGrey(start),
       successText: tools.textGreen(success),
       failText: tools.textRed(fail),

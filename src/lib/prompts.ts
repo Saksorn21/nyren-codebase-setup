@@ -5,7 +5,7 @@ import {
 } from '@inquirer/prompts'
 import chalk from 'chalk'
 
-async function build() {
+async function setTarget() {
   return await select({
     message: chalk.hex('#8787ff').bold('Select a template'),
     choices: [
@@ -60,4 +60,4 @@ async function confirm(message: string): Promise<boolean> {
   })
 }
 
-export { build, setModule, input, confirm }
+export { setTarget, setModule, input, confirm }
