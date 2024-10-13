@@ -5,8 +5,11 @@ import { readPackageJson } from '../lib/packageJsonUtils.js'
 import { createProject, processSpinner } from '../main.js'
 import { checkForUpdate } from '../lib/checkVersion.js'
 import { runCommand } from '../lib/exec.js'
+import cursor from '../lib/cursor.js'
 const loadPackage = readPackageJson()
 
+cursor.hide()
+cursor.show()
 program
   .name('nyrenx-codeup')
   .description(loadPackage.description as string)
