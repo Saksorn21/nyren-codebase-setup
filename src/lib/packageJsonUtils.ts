@@ -48,7 +48,6 @@ export function finalizeProject(
     projectName: contentPackage.name.toString(),
     type: module.toLowerCase(),
     template: target,
-    directoryName: transformString(contentPackage.name.toString()),
     templateCode: {
       userDiretory: resolvePath(
         process.cwd(),
