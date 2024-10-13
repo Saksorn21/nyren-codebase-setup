@@ -4,37 +4,37 @@ import {
   confirm as confirmPrompt,
 } from '@inquirer/prompts'
 import chalk from 'chalk'
-
+import { tools } from './help.js'
 async function setTarget() {
   return await select({
-    message: chalk.hex('#8787ff').bold('Select a template'),
+    message: tools.text('#8787ff')('Select the target language'),
     choices: [
       {
-        name: `${chalk.hex('#87afff').bold('TypeScript')}`,
+        name: tools.text('#007ACC')('TypeScript'),
         value: 'typescript',
-        description: 'TypeScript template\n',
+        description: tools.textWhit.dim(`- Use ${tools.text('#007ACC')('TypeScript')} for type safety and modern features.\n`),
       },
       {
-        name: `${chalk.hex('#d7af00').bold('JavaScript')}`,
+        name: tools.text('#F7DF1E')('JavaScript'),
         value: 'javascript',
-        description: 'JavaScript template\n',
-      },
+        description: tools.textWhit.dim(`- Use ${tools.text('#F7DF1E')('JavaScript')} for flexibility and widespread compatibility.\n`),
+      }
     ],
   })
 }
 async function setModule() {
   return await select({
-    message: chalk.hex('#d7af87').bold('Select a module'),
+    message: tools.text('#af8700')('Select the module system'),
     choices: [
       {
-        name: `${chalk.hex('#d7af00').bold('CommonJs')}`,
+        name: tools.text('#F7DF1E')('CommonJs'),
         value: 'commonjs',
-        description: ' "type": "commonJs" - CommonJs\n',
+        description: tools.textWhit.dim(`Use "type": ${tools.text('#F7DF1E')('\"commonJs\"')} for traditional ${tools.text('#8CC84B')('Node.js')} module support.\n`),
       },
       {
-        name: `${chalk.hex('#d75f00').bold('Module')}`,
+        name: tools.text('#8CCB3D')('Module'),
         value: 'module',
-        description: ' "type": "module" - Esmodule\n',
+        description: tools.textWhit.dim(`Use "type": ${tools.text('#8CCB3D')('\"module\"')} for modern ${tools.text('#8CCB3D')('ES module')} syntax.\n`),
       },
     ],
   })
