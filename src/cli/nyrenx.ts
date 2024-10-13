@@ -6,7 +6,7 @@ import { createProject, processSpinner } from '../createProject.js'
 import { createProjectWithOptions, type OptsInits } from '../createProjectWithOptions.js'
 import { checkForUpdate } from '../lib/checkVersion.js'
 import { runCommand } from '../lib/exec.js'
-import cursor from '../lib/cursor.js'
+//import cursor from '../lib/cursor.js'
 import process from 'node:process'
 const loadPackage = readPackageJson()
 
@@ -21,17 +21,17 @@ program
 // global Action hook 
 program
   .hook('preAction', async () => {
-    cursor.hide()
+    //cursor.hide()
   })
   .hook('postAction', async () => {
     await checkForUpdate()
-    cursor.show()
+    //cursor.show()
   })
 
 program
   .command('init')
   .description('Create a new project with a template')
-  .option('-n, --name [project-name]', 'Project name')
+  .option('-n, --project-name [project-name]', 'Project name')
   .option('-t, --target [target]', 'Target language')
   .option('-m, --module [module]', 'Module name')
   .option('-d, --directory [directory]', 'Directory name')
