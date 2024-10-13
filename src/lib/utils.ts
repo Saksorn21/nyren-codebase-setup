@@ -16,13 +16,3 @@ export async function fetchToJson(
     return {}
   }
 }
-
-export const presetSpinnerCreateFiles = (
-  callFn: Promise<void>,
-  diretoryName: string
-) => ({
-  start: `Creating the ${diretoryName}`,
-  success: `${tools.textLightSteelBlue1(diretoryName)} creation completed successfully`,
-  fail: `${diretoryName} creation failed!`,
-  callAction: callFn,
-})

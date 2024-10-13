@@ -1,12 +1,11 @@
 import { type ResultFs } from './lib/fileSystem.js'
 import { setModule, setTarget, input, confirm } from './lib/prompts.js'
-import { presetSpinnerCreateFiles } from './lib/utils.js'
+import { processSpinner, presetSpinnerCreateFiles } from './lib/spinner.js'
 import { buildTemplateFiles, type ParseObj } from './lib/templateUtils.js'
 import { runCommand } from './lib/exec.js'
 import { processPackageJson } from './lib/processPackageJson.js'
-import { help, tools, prefixCli } from './lib/help.js'
+import { help, tools } from './lib/help.js'
 import {type InitOpts} from './createProjectWithOptions.js'
-import { oraPromise, type Ora } from 'ora'
 import process from 'node:process'
 
 
@@ -15,21 +14,13 @@ export interface Row {
   // Record<string, string | string[]>
   [name: string]: string | string[] | object
 }
-export interface SpinnerInput<T> {
-  start: string
-  success: string
-  fail?: string
-  callAction: PromiseLike<T> | ((spinner: Ora) => PromiseLike<T>)
-}
 
 async function createProject(opts?: InitOpts) {
-  console.log(opts)
   let target = ''
-  opts !== undefined && (target = opts.target || await setupTemplates())
+  opts !== undefined && (target = opts?.target || await setTarget())
   target = !target ? await setupTemplates() : target
-  const row = await processPackageJson(target, setUpModule)
+  const row = await processPackageJson(target, setUpModule, opts)
   const { templateCode } = row
-  //console.log( row)
 
   const isLibrary: boolean = await confirm(
     'Would you like to add more libraries?'
@@ -44,7 +35,7 @@ async function createProject(opts?: InitOpts) {
     )
 
     if (copied.success) {
-      await handleLibraryInstallation(isLibrary, row.directoryName as string)
+      await handleLibraryInstallation(isLibrary, templateCode.userDirectory as string)
     } else {
       tools.log(
         tools.error,
@@ -52,7 +43,7 @@ async function createProject(opts?: InitOpts) {
           `Failed to copy the repository: ${tools.textWhit((copied.error as Error).message)}`
         )
       )
-      cursor.show()
+    
       process.exit(1)
     }
   } else {
@@ -83,10 +74,9 @@ async function processBuildTemplateFiles(
   baseFilesName: string[]
 ): Promise<ResultFs> {
   try {
-    for (const file of baseFilesName) {
-      await processSpinner(
-        presetSpinnerCreateFiles(buildTemplateFiles(templateCode), file)
-      )
+    for (const diretoryName of baseFilesName) {
+      await presetSpinnerCreateFiles(buildTemplateFiles(templateCode), diretoryName)
+      
     }
     return { success: true }
   } catch (error: unknown) {
@@ -131,22 +121,4 @@ async function processExce(command: string, library?: string): Promise<void> {
   tools.log(`${tools.textGrey(output)}\n`)
 }
 
-async function processSpinner<T>(opts: SpinnerInput<T>): Promise<T> {
-  const { start, success, fail, callAction } = opts
-
-  try {
-    const result = await oraPromise(callAction, {
-      color: 'white',
-      prefixText: prefixCli,
-      spinner: 'toggle13',
-      text: tools.textGrey(start + '\n'),
-      successText: tools.textGreen(success + '\n'),
-      failText: tools.textRed(fail),
-    })
-    return result
-  } catch (error) {
-    throw error
-  }
-}
-
-export { createProject, processSpinner, handleLibraryInstallation, setUpModule, setupTemplates, processBuildTemplateFiles, processExce,  }
+export { createProject, handleLibraryInstallation, setUpModule, setupTemplates, processBuildTemplateFiles, processExce, processSpinner }

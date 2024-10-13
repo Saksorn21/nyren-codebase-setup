@@ -3,7 +3,6 @@ import {
   input as inputPrompt,
   confirm as confirmPrompt,
 } from '@inquirer/prompts'
-import chalk from 'chalk'
 import { tools } from './help.js'
 const presetLanguage = [
   {

@@ -3,10 +3,10 @@ import { Command } from 'commander'
 const program = new Command()
 import { readPackageJson } from '../lib/packageJsonUtils.js'
 import { createProject, processSpinner } from '../createProject.js'
-import { createProjectWithOptions, type OptsInits } from '../createProjectWithOptions.js'
+import { createProjectWithOptions, type InitOpts } from '../createProjectWithOptions.js'
 import { checkForUpdate } from '../lib/checkVersion.js'
 import { runCommand } from '../lib/exec.js'
-//import cursor from '../lib/cursor.js'
+import cursor from '../lib/cursor.js'
 import process from 'node:process'
 const loadPackage = readPackageJson()
 
@@ -20,12 +20,13 @@ program
 
 // global Action hook 
 program
-  .hook('preAction', async () => {
-    //cursor.hide()
+  .hook('preAction', () => {
+    cursor.hide()
+    
   })
   .hook('postAction', async () => {
     await checkForUpdate()
-    //cursor.show()
+    cursor.show()
   })
 
 program
@@ -36,7 +37,7 @@ program
   .option('-m, --module [module]', 'Module name')
   .option('-d, --directory [directory]', 'Directory name')
   .action(async (options) => {
-    const opts = options as OptsInits
+    const opts = options as InitOpts
       Object.keys(opts).length !== 0 ? await createProjectWithOptions(options) : await createProject()
   })
 program

@@ -1,14 +1,6 @@
-import { type ResultFs } from './lib/fileSystem.js'
-import { setModule, setTarget, input, confirm } from './lib/prompts.js'
-import { presetSpinnerCreateFiles } from './lib/utils.js'
-import { buildTemplateFiles, type ParseObj } from './lib/templateUtils.js'
-import { runCommand } from './lib/exec.js'
-import { processPackageJson } from './lib/processPackageJson.js'
-import { help, tools, prefixCli } from './lib/help.js'
-import cursor from './lib/cursor.js'
-import { oraPromise, type Ora } from 'ora'
-import { createProject, processSpinner, handleLibraryInstallation, setUpModule, setupTemplates, processBuildTemplateFiles, processExce,  } from './createProject.js'
-import process from 'node:process'
+
+import { input } from './lib/prompts.js'
+import { createProject, processSpinner, setUpModule, setupTemplates, } from './createProject.js'
 
 export interface InitOpts {
   projectName?: string
@@ -17,26 +9,30 @@ export interface InitOpts {
   directory?: string
 }
 async function createProjectWithOptions(options: InitOpts) {
-  //debugger
-   tools.log(
-    `${prefixCli} ${tools.info} Setting up the project: ${tools.textOrange(JSON.stringify(options))}\n`)
   const { projectName: pn, target: tg, module: md, directory: dir } = options
   let target = '' 
   let module = ''
   target = tg || await setupTemplates()
   
-  target = target ? matchLanguage(target) || await setupTemplates() : target
+  target = target ? await presetSpinnerMatch('Target', matchLanguage(target)) || await setupTemplates() : target;
   
   module = md || await setUpModule()
   
-  module = module ? matchModule(module) || await setUpModule() : module 
+  module = module ? await presetSpinnerMatch('Module', matchModule(module)) || await setUpModule() : module 
   const projectName = pn || await input('Project name', 'my-project')
   const directory = dir || pn || projectName
-  console.debug({ projectName, target, module, directory })
   await createProject({ projectName, target, module, directory })
 }
 
-function matchLanguage(target: string): string | null {
+const presetSpinnerMatch = async <T>(match: string, callFn: PromiseLike<T>) => await processSpinner({
+  start: `Verifying ${match}...`,
+     success: `${match} verified successfully!`,
+     fail: `Verification failed for ${match}.`,
+     callAction: callFn
+   })
+
+
+async function matchLanguage(target: string): Promise<string | null> {
   const languageVariants = [
     'js', 
     'javascript', 
@@ -56,8 +52,9 @@ function matchLanguage(target: string): string | null {
 
   return null; 
 }
-function matchModule(moduleType: string): string | null {
+async function matchModule(moduleType: string) {
   const esmVariants = [
+    'es',
     'esm', 
     'module', 
     'esmodule', 

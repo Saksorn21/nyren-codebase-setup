@@ -14,12 +14,12 @@ const parseTemplate = async (target: string): Promise<ParseObj<any>> =>
   fetchTemplateCode(target)
 
 async function buildTemplateFiles(templateCode: ParseObj<any>): Promise<void> {
-  const { userDiretory, baseFilesName, ...templatesCode } = templateCode
-  await createDirectory(userDiretory)
+  const { userDirectory, baseFilesName, ...templatesCode } = templateCode
+  await createDirectory(userDirectory)
   for (const [key, value] of Object.entries(templatesCode)) {
     for (const file of baseFilesName) {
       if (file.includes(key)) {
-        const fullPathUser = resolvePath(userDiretory, key)
+        const fullPathUser = resolvePath(userDirectory, key)
         await createDirectory(fullPathUser)
         if (key.endsWith('.json')) await createJsonFile(fullPathUser, value)
         else await createFile(fullPathUser, value as string)

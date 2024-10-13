@@ -3,7 +3,7 @@ import { transformString, help } from './help.js'
 import { templateProcessor } from './templateUtils.js'
 import { rfSync } from './fileSystem.js'
 import { getDirname, resolvePath } from './pathHelper.js'
-
+import {type InitOpts} from '../createProjectWithOptions.js'
 export interface Row {
   // It's the same.
   // Record<string, string | string[]>
@@ -41,17 +41,19 @@ export function finalizeProject(
   contentPackage: any,
   remaining: any,
   target: string,
-  module: string
+  module: string,
+  directory?: string
 ): Row {
+  
   contentPackage.type = module.toLowerCase()
   const row: Row = {
     projectName: contentPackage.name.toString(),
     type: module.toLowerCase(),
     template: target,
     templateCode: {
-      userDiretory: resolvePath(
+      userDirectory: resolvePath(
         process.cwd(),
-        transformString(contentPackage.name.toString())
+        transformString(directory ? directory : contentPackage.name.toString())
       ),
       'package.json': contentPackage,
       ...remaining,
@@ -62,10 +64,21 @@ export function finalizeProject(
 
   help.warnSettingCompleted(
     row.projectName as string,
-    (row.templateCode as any).userDiretory
+    (row.templateCode as any).userDirectory
   )
 
   return row
+}
+export async function processOptionsModule(callFn: Function, optsModule?: string){
+  let module = ''
+    optsModule !== undefined && (module = optsModule|| await callFn())
+   module = !module ? await callFn() : module
+  return module
+}
+export async function processPackageJsonByOptions(contentPackage: any, opts?: InitOpts) {
+   contentPackage.name = opts?.projectName || contentPackage.name
+  contentPackage.description = opts?.projectName || contentPackage.description
+   contentPackage.type = opts?.module
 }
 
 function updatePackageField(
