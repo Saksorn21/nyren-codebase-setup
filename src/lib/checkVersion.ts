@@ -10,6 +10,7 @@ export async function checkForUpdate(): Promise<string> {
     const { output, error } = await runCommand(
       `npm show ${packageName} version`
     )
+  
     const latestVersion: string = output.toString().trim()
     if (error) throw error
     if (semverGt(latestVersion, currentVersion as string)) {

@@ -9,12 +9,7 @@ import cursor from './lib/cursor.js'
 import { oraPromise, type Ora } from 'ora'
 import process from 'node:process'
 
-export interface OptsInits {
-  projectName?: string
-  repoTemplate?: string
-  version?: string
-  path?: string
-}
+
 export interface Row {
   // It's the same.
   // Record<string, string | string[]>
@@ -128,7 +123,7 @@ async function processExce(command: string, library?: string): Promise<void> {
   if (error) {
     const msgError = `\n${tools.error} ${tools.textRed(`Execution failed: ${tools.textGrey(error)}`)}`
 
-    throw msgError
+    //throw msgError
   }
   tools.log(`${tools.textGrey(output)}\n`)
 }

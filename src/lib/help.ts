@@ -80,6 +80,7 @@ help.noticeNewVersion = async (
   const prefixNoify = `${prefixCli} ${info} `
   const install = `${textDeepBlue.dim(`npm install -g @nyren/codebase-setup@latest@${latestVersion}`)}`
   const changelogUrl = `${textOrange.dim(`https://github.com/Saksorn21/nyren-codebase-setup/releases/tag/v${latestVersion}`)}`
+  log('\r')
   log(
     `${prefixNoify} ${textLightSteelBlue1(`New ${textDeepBlue(semVer)} version in npm a vailable! ${textDeepBlue.dim(currentVersion)} -> ${textOrange(latestVersion)}`)}`
   )

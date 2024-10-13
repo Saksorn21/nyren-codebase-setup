@@ -1,6 +1,6 @@
 {
   "name": "@nyren/codebase-setup",
-  "version": "0.3.0",
+  "version": "0.1.0",
   "description": "A CLI tool designed to streamline project setup for JavaScript and TypeScript, providing essential libraries and configurations for quick initialization and efficient workflows.",
   "bin": {
     "nyrenx-codeup": "dist/cli/nyrenx.js"
@@ -13,7 +13,8 @@
   "author": "Boat Saksorn (Thailand)",
   "license": "MIT",
   "files": [
-    "dist/main.js",
+    "dist/createProject.js",
+    "dist/createProjectWithOptions.js",
     "dist/cli/nyrenx.js",
     "dist/lib/help.js",
     "dist/lib/exec.js",
@@ -74,6 +75,7 @@
     "chalk": "^5.3.0",
     "commander": "^12.1.0",
     "log-symbols": "^7.0.0",
+    "onetime": "^7.0.0",
     "ora": "^8.1.0",
     "semver": "^7.6.3",
     "tslib": "^2.7.0"
