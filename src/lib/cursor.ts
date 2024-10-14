@@ -4,7 +4,6 @@ import { onExit } from 'signal-exit'
 interface Cursor {
   [key: string]: () => void
 }
-let isHidden = false
 
 const resetCursorOnExit = () => {
   const terminal = process.stderr.isTTY
@@ -27,12 +26,12 @@ const cursor: Cursor = {}
 cursor.hide = (writableStream = process.stderr) => {
   if (!writableStream.isTTY) return
   resetCursorOnExit()
-  isHidden = true
+  
   writableStream.write('\u001B[?25l')
 }
 cursor.show = (writableStream = process.stderr) => {
   if (!writableStream.isTTY) return
-  isHidden = true
+  
   writableStream.write('\u001B[?25h')
 }
 export default cursor

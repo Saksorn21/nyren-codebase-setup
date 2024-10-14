@@ -69,7 +69,7 @@ export function finalizeProject(
   return row
 }
 export const processDirectory = async (defaultValue: string) =>
-  await input('directory', defaultValue)
+  await input('directory', transformString(defaultValue))
 
 export async function processOptionsModule(
   callFn: Function,
