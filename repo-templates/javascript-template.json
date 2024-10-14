@@ -23,6 +23,10 @@
     { 
       "path": ".github/workflows/publish.yml",
       "content": "name: Publish on npm\n\non:\n  release:\n    types: [created]\n\njobs:\n  build:\n    runs-on: ubuntu-latest\n    permissions:\n      contents: read\n      id-token: write\n    steps:\n      - uses: actions/checkout@v4\n      - uses: actions/setup-node@v4\n        with:\n          node-version: 20\n          registry-url: 'https://registry.npmjs.org'\n          cache: npm\n      - name: Install dependencies\n        run: npm ci\n      - name: Build project\n        run: npm run build\n      - name: Format code\n        run: npm run format\n      - name: Publish to npm\n        run: npm publish --access public\n        env:\n          NODE_AUTH_TOKEN: ${{ secrets.PUBLIC_TOKEN_NPM }}\n"
+    },
+    {
+      "path": "README.md", 
+      "content": "# Project Template\n\n## Description \n\n   This is a template project for [Nyren](https://github.com/Saksorn21/nyren-codebase-setup).\n   This repository provides templates for **JavaScript** projects with essential commands to streamline development.\n\n## JavaScript Commands\n\n- **build**: Compile using esbuild.\n- **lint**: Run linter to check code formatting.\n- **format**: Format code using Prettier.\n- **test**: Run tests.\n\n## License\n\n   This project is licensed under the MIT License\n   MIT License. See [LICENSE](https://github.com/Saksorn21/nyren-codebase-setup/blob/main/LICENSE) for more details"
     }
   ]
 }

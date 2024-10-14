@@ -1,6 +1,6 @@
 {
   "name": "@nyren/repo-templates",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "repo-templates by.@nyren/codebase-setup",
   "files": [
     "javascript-template.json",
