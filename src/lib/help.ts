@@ -39,15 +39,15 @@ help.warnOverWrite = () => {
 help.libraryEx = () => {
   log(
     info,
-    `${textDeepBlue(`Example: ${textWhit('nyrenx @nyren/codebase-setup @nyren/ts256k1')}`)}`
+    `${textDeepBlue(`Example: ${textWhit('nyrenx @nyren/codebase-setup @nyren/ts256k1')} or ${textWhit('@nyren/ts256k1 --D ts-node @types/node')}`)}`
   )
   log(
     info,
-    `${textDeepBlue('The libraries you install will be added to the dependencies section.')}`
+    `${textDeepBlue('The libraries you install will be added to the dependencies section by default.')}`
   )
   log(
     info,
-    `${textDeepBlue(`To install a library as a devDependency, use the ${textLightSteelBlue1.underline('"-D"')} flag followed by the library name.`)}`
+    `${textDeepBlue(`To install libraries as devDependencies, use the ${textLightSteelBlue1.underline('"--D"')} flag followed by the library names.`)}`
   )
 }
 help.buildProject = () =>
@@ -83,7 +83,7 @@ help.noticeNewVersion = async (
   const changelogUrl = `${textOrange.dim(`https://github.com/Saksorn21/nyren-codebase-setup/releases/tag/v${latestVersion}`)}`
   log('\n')
   log(
-    `${prefixNoify} ${textLightSteelBlue1(`New ${textDeepBlue(semVer)} version in npm a vailable! ${textDeepBlue.dim(currentVersion)} -> ${textOrange(latestVersion)}`)}`
+    `${prefixNoify} ${textLightSteelBlue1(`A new version (${textDeepBlue(semVer)}) is available on npm! ${textDeepBlue.dim(currentVersion)} -> ${textOrange(latestVersion)}`)}`
   )
   log(`${prefixNoify} ${textWhit(`Changelog ${changelogUrl}`)}`)
   log(

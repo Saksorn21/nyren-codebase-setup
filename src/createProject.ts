@@ -5,9 +5,8 @@ import { buildTemplateFiles, type ParseObj } from './lib/templateUtils.js'
 import { runCommand } from './lib/exec.js'
 import { processPackageJson } from './lib/processPackageJson.js'
 import { help, tools } from './lib/help.js'
-import {type InitOpts} from './createProjectWithOptions.js'
+import { type InitOpts } from './createProjectWithOptions.js'
 import process from 'node:process'
-
 
 export interface Row {
   // It's the same.
@@ -17,8 +16,10 @@ export interface Row {
 
 async function createProject(opts?: InitOpts) {
   let target = ''
-  opts !== undefined && (target = opts?.target || await setTarget())
+  opts !== undefined && (target = opts?.target || (await setupTemplates()))
+
   target = !target ? await setupTemplates() : target
+
   const row = await processPackageJson(target, setUpModule, opts)
   const { templateCode } = row
 
@@ -35,7 +36,10 @@ async function createProject(opts?: InitOpts) {
     )
 
     if (copied.success) {
-      await handleLibraryInstallation(isLibrary, templateCode.userDirectory as string)
+      await handleLibraryInstallation(
+        isLibrary,
+        row.userDirectoryName as string
+      )
     } else {
       tools.log(
         tools.error,
@@ -43,7 +47,7 @@ async function createProject(opts?: InitOpts) {
           `Failed to copy the repository: ${tools.textWhit((copied.error as Error).message)}`
         )
       )
-    
+
       process.exit(1)
     }
   } else {
@@ -75,8 +79,10 @@ async function processBuildTemplateFiles(
 ): Promise<ResultFs> {
   try {
     for (const diretoryName of baseFilesName) {
-      await presetSpinnerCreateFiles(buildTemplateFiles(templateCode), diretoryName)
-      
+      await presetSpinnerCreateFiles(
+        buildTemplateFiles(templateCode),
+        diretoryName
+      )
     }
     return { success: true }
   } catch (error: unknown) {
@@ -88,24 +94,56 @@ async function handleLibraryInstallation(
   isLibrary: boolean,
   directoryName: string
 ): Promise<void> {
-  const basecommand = `cd ./${directoryName} && npm install`
+  const baseCommand = `cd ./${directoryName} && npm install`
+  const devDepsCommand = ` && npm install --save-dev `
   if (isLibrary) {
     help.libraryEx()
     const lib = await input('libraries', '')
+    const { deps, devDeps } = await analyzeLibraries(lib)
     await processSpinner({
-      start: 'Installing library',
-      success: 'Library installation completed successfully!',
+      start: `Installing libraries: ${tools.textWhit(deps)}${devDeps ? ` and dev libraries: ${tools.textWhit(devDeps)}` : ''}`,
+      success: `Libraries: ${tools.textWhit(deps)}${devDeps ? ` and dev libraries: ${tools.textWhit(devDeps)}` : ''} installed successfully!`,
       fail: 'Library installation failed!',
-      callAction: processExce(basecommand, lib),
+      callAction: async () => {
+        const commandDev = devDeps && devDepsCommand + devDeps
+        await processExce(baseCommand, deps + (commandDev ?? ''))
+      },
     })
   } else {
     await processSpinner({
       start: 'npm install',
       success: 'npm installation completed successfully!',
       fail: 'npm installation failed!',
-      callAction: processExce(basecommand),
+      callAction: processExce(baseCommand),
     })
   }
+}
+async function analyzeLibraries(libraries: string) {
+  let deps = ''
+  let devDeps: string | undefined = undefined
+  const args = libraries.trim().split(' ')
+
+  const isDevArgument = (arg: string) =>
+    arg.toLowerCase() === '--d' ||
+    arg.toLowerCase() === '--dev' ||
+    arg.toLowerCase() === '--save-dev'
+
+  const devFlagIndex = args.findIndex(arg => isDevArgument(arg))
+
+  const normalLibs =
+    devFlagIndex === -1
+      ? args.filter(arg => !arg.startsWith('-'))
+      : args.slice(0, devFlagIndex).filter(arg => !arg.startsWith('-'))
+
+  if (devFlagIndex !== -1) {
+    const devLibs = args.slice(devFlagIndex + 1)
+
+    deps = normalLibs.length > 0 ? normalLibs.join(' ') : deps
+    devDeps = devLibs.length > 0 ? devLibs.join(' ') : devDeps
+  } else {
+    deps = normalLibs.join(' ')
+  }
+  return { deps, devDeps }
 }
 
 async function processExce(command: string, library?: string): Promise<void> {
@@ -114,11 +152,19 @@ async function processExce(command: string, library?: string): Promise<void> {
   const { output, error } = await runCommand(commandToExecute)
 
   if (error) {
-    const msgError = `\n${tools.error} ${tools.textRed(`Execution failed: ${tools.textGrey(error)}`)}`
-
-    throw msgError
+    tools.log(
+      `\n${tools.error} ${tools.textRed(`Execution failed: ${tools.textGrey(error)}`)}`
+    )
   }
   tools.log(`${tools.textGrey(output)}\n`)
 }
 
-export { createProject, handleLibraryInstallation, setUpModule, setupTemplates, processBuildTemplateFiles, processExce, processSpinner }
+export {
+  createProject,
+  handleLibraryInstallation,
+  setUpModule,
+  setupTemplates,
+  processBuildTemplateFiles,
+  processExce,
+  processSpinner,
+}

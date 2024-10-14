@@ -3,7 +3,7 @@ import { transformString, help } from './help.js'
 import { templateProcessor } from './templateUtils.js'
 import { rfSync } from './fileSystem.js'
 import { getDirname, resolvePath } from './pathHelper.js'
-import {type InitOpts} from '../createProjectWithOptions.js'
+import { type InitOpts } from '../createProjectWithOptions.js'
 export interface Row {
   // It's the same.
   // Record<string, string | string[]>
@@ -44,17 +44,16 @@ export function finalizeProject(
   module: string,
   directory?: string
 ): Row {
-  
-  contentPackage.type = module.toLowerCase()
+  const normalizedDirectory = transformString(
+    directory ? directory : contentPackage.name
+  )
   const row: Row = {
     projectName: contentPackage.name.toString(),
     type: module.toLowerCase(),
     template: target,
+    userDirectoryName: normalizedDirectory,
     templateCode: {
-      userDirectory: resolvePath(
-        process.cwd(),
-        transformString(directory ? directory : contentPackage.name.toString())
-      ),
+      userDirectory: resolvePath(process.cwd(), normalizedDirectory),
       'package.json': contentPackage,
       ...remaining,
     },
@@ -69,16 +68,25 @@ export function finalizeProject(
 
   return row
 }
-export async function processOptionsModule(callFn: Function, optsModule?: string){
+export const processDirectory = async (defaultValue: string) =>
+  await input('directory', defaultValue)
+
+export async function processOptionsModule(
+  callFn: Function,
+  optsModule?: string
+) {
   let module = ''
-    optsModule !== undefined && (module = optsModule|| await callFn())
-   module = !module ? await callFn() : module
+  optsModule !== undefined && (module = optsModule || (await callFn()))
+  module = !module ? await callFn() : module
   return module
 }
-export async function processPackageJsonByOptions(contentPackage: any, opts?: InitOpts) {
-   contentPackage.name = opts?.projectName || contentPackage.name
+export async function processPackageJsonByOptions(
+  contentPackage: any,
+  opts?: InitOpts
+) {
+  contentPackage.name = opts?.projectName || contentPackage.name
   contentPackage.description = opts?.projectName || contentPackage.description
-   contentPackage.type = opts?.module
+  contentPackage.type = opts?.module
 }
 
 function updatePackageField(

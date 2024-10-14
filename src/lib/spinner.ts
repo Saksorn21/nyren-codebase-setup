@@ -1,4 +1,3 @@
-
 import { tools, prefixCli } from './help.js'
 import { oraPromise, type Ora } from 'ora'
 
@@ -30,10 +29,10 @@ export async function processSpinner<T>(opts: SpinnerInput<T>): Promise<T> {
 export const presetSpinnerCreateFiles = async <T>(
   callFn: PromiseLike<T>,
   diretoryName: string
-) => await processSpinner({
-  start: `Creating the ${diretoryName}`,
-  success: `${tools.textLightSteelBlue1(diretoryName)} creation completed successfully`,
-  fail: `${diretoryName} creation failed!`,
-  callAction: callFn,
-})
-
+) =>
+  await processSpinner({
+    start: `Creating the ${diretoryName}`,
+    success: `${tools.textLightSteelBlue1(diretoryName)} creation completed successfully`,
+    fail: `${diretoryName} creation failed!`,
+    callAction: callFn,
+  })
