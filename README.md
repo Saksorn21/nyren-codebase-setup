@@ -31,13 +31,23 @@ After installation, you can use the CLI to set up a new project:
 
 ```bash
 nyrenx-codeup init
+nyrenx-codeup update
 ```
 
 The CLI will guide you through a series of prompts, where you can choose the project language and other options.
 
-## Commands
+## Commands:
 
 - `init`: Initializes a new project with the selected language and configuration.
+  - Options:
+    - `-n, --project-name [project-name]`: Specify the name of the project. If not provided, the project will be created with a default name.
+    - `-t, --target [target]`: Select the target programming language for the project (e.g., JavaScript, TypeScript). This is required to generate the appropriate project structure and setup.
+    - `-m, --module [module]`: Specify the module format to use for the project (e.g., CommonJS or ESModule). This helps set the appropriate module configuration in the project.
+    - `-d, --directory [directory]`: Specify the directory where the project will be created. If not provided, the project will be created in the current directory.
+
+- `update`: Update the CLI tool to the latest version available. This ensures the tool stays up to date with the newest features and fixes.
+  - No additional options are required for this command.
+
 
 ## Dev Dependencies
 
@@ -51,6 +61,7 @@ When you choose TypeScript, the following `devDependencies` will be added automa
     "tslib": "^2.7.0"
   },
   "devDependencies": {
+    "@nyren/codebase-setup": "^0.2.2",
     "@jest/globals": "^29.7.0",
     "@types/jest": "^29.5.13",
     "@types/node": "^22.7.4",
@@ -138,12 +149,6 @@ The following options are available during project setup:
 - **JavaScript/TypeScript**: Select the programming language.
 - **Libraries**: Add useful libraries for the chosen language.
 - **Project Structure**: Automatically create a basic structure optimized for your choice.
-
-## Roadmap
-
-- Additional integrations with popular frameworks.
-- Customizable project templates.
-- Support for more languages and tools.
 
 ## License
 

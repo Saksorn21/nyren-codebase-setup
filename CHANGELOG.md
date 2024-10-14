@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.3.0]
+## [0.2.2] - 2024-10-09
+
+### Fixed
+- **Template Configuration Issue:**
+  - Fixed a configuration error in the TypeScript template where the settings for `tsconfig` were not correctly applied.
+  
+### Added
+- **Added `@nyren/codebase-setup` to devDependencies:**
+  - Installed `@nyren/codebase-setup` (v0.2.2) in `devDependencies` to ensure proper setup of `tsconfig` in TypeScript projects.
+
+## [0.2.1] - 2024-10-09
+
+### Fixed
+- **Function Name Correction:**
+  - Renamed `formatDaraPackage` to `formatDataPrackage` to fix a typo.
+  
+- **Export Cleanup:**
+  - Removed unnecessary exports in `help.js` to streamline the file and reduce unused exports.
+
+This update focuses on small but important fixes to improve code clarity and organization.
+
 ## [0.2.0] - 2024-10-09
 
 ### Major Changes
