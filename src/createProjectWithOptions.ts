@@ -4,16 +4,28 @@ import {
   processSpinner,
   setUpModule,
   setupTemplates,
+  processBuildTemplateFiles,
 } from './createProject.js'
-
+import { processPackageJson } from './lib/processPackageJson.js'
+import { help, tools } from './lib/help.js'
 export interface InitOpts {
   projectName?: string
+  fix?: string | boolean | undefined
   target?: string
   module?: string
   directory?: string
 }
+
 async function createProjectWithOptions(options: InitOpts) {
-  const { projectName: pn, target: tg, module: md, directory: dir } = options
+  const {
+    projectName: pn,
+    target: tg,
+    module: md,
+    directory: dir,
+    fix: fastProject,
+  } = options
+  if (fastProject !== undefined) return await fastCreateProject(options)
+
   let target = ''
   let module = ''
   target = tg || (await setupTemplates())
@@ -34,6 +46,36 @@ async function createProjectWithOptions(options: InitOpts) {
   const directory = dir || pn || projectName
 
   await createProject({ projectName, target, module, directory })
+}
+const fastProjectObj = async (opts: InitOpts): Promise<InitOpts> => ({
+  projectName: opts.fix as string,
+  target: (await matchLanguage(opts.target || 'typescript')) || 'typescript',
+  module: (await matchModule(opts.module || 'module')) || 'module',
+  directory: opts.directory || (opts.fix as string),
+})
+async function fastCreateProject(options: InitOpts) {
+  const { fix: fastProject } = options
+  if (fastProject === true || typeof fastProject === 'string') {
+    if (typeof fastProject !== 'string')
+      return tools.log(
+        tools.error,
+        tools.textRed('Please enter a valid project name')
+      )
+
+    const objFast = await fastProjectObj(options)
+    help.notification(objFast.target, objFast.module)
+    const row = await processPackageJson(
+      objFast.target as string,
+      setUpModule,
+      objFast as InitOpts
+    )
+    const { templateCode, userDirectoryName } = row
+    await processBuildTemplateFiles(
+      templateCode,
+      templateCode.baseFilesName,
+      userDirectoryName
+    )
+  }
 }
 
 const presetSpinnerMatch = async <T>(match: string, callFn: PromiseLike<T>) =>

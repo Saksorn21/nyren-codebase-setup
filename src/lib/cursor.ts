@@ -26,12 +26,12 @@ const cursor: Cursor = {}
 cursor.hide = (writableStream = process.stderr) => {
   if (!writableStream.isTTY) return
   resetCursorOnExit()
-  
+
   writableStream.write('\u001B[?25l')
 }
 cursor.show = (writableStream = process.stderr) => {
   if (!writableStream.isTTY) return
-  
+
   writableStream.write('\u001B[?25h')
 }
 export default cursor

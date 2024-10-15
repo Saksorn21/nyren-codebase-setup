@@ -1,5 +1,5 @@
 import chalk from 'chalk'
-import logSymbols from 'log-symbols'
+import symbols from './symbols.js'
 
 export interface HelpFn<T1, T2 = string, T3 = string, T4 = string> {
   [name: string]: (
@@ -19,10 +19,9 @@ const textWhit = text('#ffffff')
 const textGrey = text('#626262')
 const prefixCli = `${textWhit('[')}${textSlateBlue3('nyrenx')}${textWhit(']')}`
 let help: HelpFn<void> = {}
-const info = logSymbols.info
-const success = logSymbols.success
-const warning = logSymbols.warning
-const error = logSymbols.error
+const info = symbols.info
+const success = symbols.success
+const warning = symbols.warning
 const log = console.log
 help.warnOverWrite = () => {
   log(warning, `${textOrange('The directory will be overwritten.')}`)
@@ -68,10 +67,9 @@ help.warnSettingCompleted = (
   userDiretory?: string
 ): void =>
   tools.log(
-    success,
-    textGreen(
-      `Successfully setting the project: ${textWhit(projectName)} to ${textWhit(userDiretory)}\n`
-    )
+    `\r\n${success} ${textGreen(
+      `Successfully setting the project: ${textWhit(projectName)} to ${textWhit(userDiretory)}`
+    )}`
   )
 help.noticeNewVersion = async (
   currentVersion?: string,
@@ -87,7 +85,7 @@ help.noticeNewVersion = async (
   )
   log(`${prefixNoify} ${textWhit(`Changelog ${changelogUrl}`)}`)
   log(
-    `${prefixNoify} ${textWhit(`To update run: ${install} or ${textOrange('nyrenx-codeup update')}`)}`
+    `${prefixNoify} ${textWhit(`To update run: ${install} or ${textOrange('nyrenx update')}`)}`
   )
 }
 function transformString(input: string): string {
@@ -100,10 +98,7 @@ function transformString(input: string): string {
   return input
 }
 const tools = {
-  info,
-  success,
-  warning,
-  error,
+  ...symbols,
   text,
   textOrange,
   textDeepBlue,

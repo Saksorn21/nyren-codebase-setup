@@ -14,7 +14,7 @@ export async function processPackageJson(
   opts?: InitOpts
 ): Promise<ParseObj<any>> {
   const module = await processOptionsModule(callFn, opts?.module)
-  
+
   let directory = ''
   const { directory: dir } = opts || {}
   const templateCode = await processTemplate(target)

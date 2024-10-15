@@ -26,7 +26,6 @@ const packageJson: Map<string, string | string[]> = new Map<
 ])
 
 export async function processPackageJsonFields(contentPackage: any) {
-  
   help.buildProject()
   const keywords = new Set<string>()
 
@@ -84,11 +83,11 @@ export async function processOptionsModule(
 }
 export async function processPackageJsonByOptions(
   contentPackage: any,
-  opts?: InitOpts
+  opts: InitOpts
 ) {
-  contentPackage.name = opts?.projectName || contentPackage.name
-  contentPackage.description = opts?.projectName || contentPackage.description
-  contentPackage.type = opts?.module
+  contentPackage.name = opts.projectName
+  contentPackage.description = opts.projectName
+  contentPackage.type = opts.module
 }
 
 function updatePackageField(

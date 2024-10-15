@@ -35,7 +35,10 @@ program
   .option('-t, --target [target]', 'Target language')
   .option('-m, --module [module]', 'Module name')
   .option('-d, --directory [directory]', 'Directory name')
-  .option('--fix <fast-project-name','Quick Start the project without being guided through a series of prompts.')
+  .option(
+    '--fix [project-name]',
+    'Quick Start the project without being guided through a series of prompts.'
+  )
   .action(async options => {
     const opts = options as InitOpts
     Object.keys(opts).length !== 0

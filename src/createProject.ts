@@ -3,6 +3,7 @@ import { setModule, setTarget, input, confirm } from './lib/prompts.js'
 import { processSpinner, presetSpinnerCreateFiles } from './lib/spinner.js'
 import { buildTemplateFiles, type ParseObj } from './lib/templateUtils.js'
 import { runCommand } from './lib/exec.js'
+import { resolvePath } from './lib/pathHelper.js'
 import { processPackageJson } from './lib/processPackageJson.js'
 import { help, tools } from './lib/help.js'
 import { type InitOpts } from './createProjectWithOptions.js'
@@ -32,7 +33,8 @@ async function createProject(opts?: InitOpts) {
   if (await confirm('Do you want to continue?')) {
     const copied = await processBuildTemplateFiles(
       templateCode,
-      templateCode.baseFilesName
+      templateCode.baseFilesName,
+      row.userDirectoryName
     )
 
     if (copied.success) {
@@ -75,13 +77,14 @@ async function setUpModule(): Promise<string> {
 
 async function processBuildTemplateFiles(
   templateCode: ParseObj<string>,
-  baseFilesName: string[]
+  baseFilesName: string[],
+  userDiretoryName: string
 ): Promise<ResultFs> {
   try {
     for (const diretoryName of baseFilesName) {
       await presetSpinnerCreateFiles(
         buildTemplateFiles(templateCode),
-        diretoryName
+        resolvePath(userDiretoryName, diretoryName)
       )
     }
     return { success: true }
