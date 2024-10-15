@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "description": "A CLI tool designed to streamline project setup for JavaScript and TypeScript, providing essential libraries and configurations for quick initialization and efficient workflows.",
   "bin": {
-    "nyrenx-codeup": "dist/cli/nyrenx.js"
+    "nyrenx-codeup": "dist/cli/nyrenx.js",
+    "nyrenx": "dist/cli/nyrenx.js"
   },
   "type": "module",
   "repository": {
