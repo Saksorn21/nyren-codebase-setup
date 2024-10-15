@@ -8,14 +8,13 @@ import {
 } from './packageJsonUtils.js'
 import { type ParseObj } from './templateUtils.js'
 import { type InitOpts } from '../createProjectWithOptions.js'
-import { help } from './help.js'
 export async function processPackageJson(
   target: string,
   callFn: Function,
   opts?: InitOpts
 ): Promise<ParseObj<any>> {
   const module = await processOptionsModule(callFn, opts?.module)
-  help.buildProject()
+  
   let directory = ''
   const { directory: dir } = opts || {}
   const templateCode = await processTemplate(target)

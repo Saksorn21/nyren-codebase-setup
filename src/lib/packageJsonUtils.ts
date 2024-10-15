@@ -26,6 +26,8 @@ const packageJson: Map<string, string | string[]> = new Map<
 ])
 
 export async function processPackageJsonFields(contentPackage: any) {
+  
+  help.buildProject()
   const keywords = new Set<string>()
 
   for (const [key, value] of packageJson) {
