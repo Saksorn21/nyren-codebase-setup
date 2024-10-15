@@ -7,7 +7,7 @@ import {
   processBuildTemplateFiles,
 } from './createProject.js'
 import { processPackageJson } from './lib/processPackageJson.js'
-import { help, tools } from './lib/help.js'
+import { tools } from './lib/help.js'
 export interface InitOpts {
   projectName?: string
   fix?: string | boolean | undefined
@@ -63,7 +63,12 @@ async function fastCreateProject(options: InitOpts) {
       )
 
     const objFast = await fastProjectObj(options)
-    help.notification(objFast.target, objFast.module)
+    tools.log(
+      tools.textOrange(
+        `${tools.fast} Turbocharge your project builds with ${tools.textWhit(objFast.target)} and type ${tools.textWhit(objFast.module)}!`
+      )
+    )
+
     const row = await processPackageJson(
       objFast.target as string,
       setUpModule,

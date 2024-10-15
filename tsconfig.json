@@ -12,7 +12,6 @@
     "sourceMap": false,
     "declaration": false,
     "declarationMap": false,
-    "importHelpers": true,
     "allowSyntheticDefaultImports": true,
     "allowUnreachableCode": false,
     "esModuleInterop": true,
