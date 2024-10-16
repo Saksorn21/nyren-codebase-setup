@@ -52,7 +52,7 @@ async function input(
   title: string,
   defaultValue: string | string[]
 ): Promise<string> {
-  const msg = { message: ` ${tools.text('#87d75f')(title)}:` }
+  const msg = { message: title }
   let preset
   if (typeof defaultValue === 'string' && defaultValue !== '') {
     preset = { ...msg, default: defaultValue }
@@ -61,7 +61,28 @@ async function input(
   } else {
     preset = { ...msg }
   }
-  return await inputPrompt(preset)
+  return await inputPrompt({
+    ...preset,
+    theme: {
+      spinner: {
+        interval: 100,
+        frames: ['⠋', '⠙', '⠹', '⠸', 'dmmdkdkd⠼'],
+      },
+      style: {
+        answer: (msg: string) => tools.text('#F7ECE1')(msg),
+        defaultAnswer: (msg: string) => tools.text('#242038')(`(${msg})`),
+        message: (text: string, status: 'idle' | 'done' | 'loading') => {
+          if (status === 'idle') {
+            return tools.text('#8D86C9')(text)
+          } else if (status === 'loading') {
+            return tools.text('#242038')(text)
+          } else {
+            return tools.text('#87d75f')(text)
+          }
+        },
+      },
+    },
+  })
 }
 async function confirm(message: string): Promise<boolean> {
   return await confirmPrompt({
