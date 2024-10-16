@@ -64,13 +64,9 @@ async function input(
   return await inputPrompt({
     ...preset,
     theme: {
-      spinner: {
-        interval: 100,
-        frames: ['⠋', '⠙', '⠹', '⠸', 'dmmdkdkd⠼'],
-      },
       style: {
-        answer: (msg: string) => tools.text('#F7ECE1')(msg),
-        defaultAnswer: (msg: string) => tools.text('#242038')(`(${msg})`),
+        answer: (text: string) => tools.text('#F7ECE1')(text),
+        defaultAnswer: (text: string) => tools.text('#242038')(`(${text})`),
         message: (text: string, status: 'idle' | 'done' | 'loading') => {
           if (status === 'idle') {
             return tools.text('#8D86C9')(text)
