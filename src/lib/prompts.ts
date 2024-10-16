@@ -65,15 +65,16 @@ async function input(
     ...preset,
     theme: {
       style: {
-        answer: (text: string) => tools.text('#F7ECE1')(text),
-        defaultAnswer: (text: string) => tools.text('#242038')(`(${text})`),
+        answer: (text: string) => msg.message === 'license' ? tools.text('#F7ECE1')(text.toUpperCase()) : tools.text('#F7ECE1')(text),
+
+        defaultAnswer: (text: string) => tools.text('#d0d0d0').dim(`(${text})`),
         message: (text: string, status: 'idle' | 'done' | 'loading') => {
           if (status === 'idle') {
-            return tools.text('#F46036')(text)
+            return tools.text('#F46036')(text + ':')
           } else if (status === 'loading') {
-            return tools.text('#242038')(text)
+            return tools.text('#242038')(text + ':')
           } else {
-            return tools.text('#87d75f')(text)
+            return tools.text('#87d75f')(text + ':')
           }
         },
       },
