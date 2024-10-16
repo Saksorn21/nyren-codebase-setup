@@ -69,7 +69,7 @@ async function input(
         defaultAnswer: (text: string) => tools.text('#242038')(`(${text})`),
         message: (text: string, status: 'idle' | 'done' | 'loading') => {
           if (status === 'idle') {
-            return tools.text('#8D86C9')(text)
+            return tools.text('#F46036')(text)
           } else if (status === 'loading') {
             return tools.text('#242038')(text)
           } else {

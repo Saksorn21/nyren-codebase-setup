@@ -49,13 +49,13 @@ help.libraryEx = () => {
     `${textDeepBlue(`To install libraries as devDependencies, use the ${textLightSteelBlue1.underline('"--D"')} flag followed by the library names.`)}`
   )
 }
-help.buildProject = () =>
+help.infoProcessInput = () =>
   log(
     info,
     `${textDeepBlue("There is a default value. If you don't want to change it, just press Enter.")}`
   )
 
-help.notification = (target?: string, module?: string): void =>
+help.announcementOfResult = (target?: string, module?: string): void =>
   log(
     info,
     textSlateBlue3(

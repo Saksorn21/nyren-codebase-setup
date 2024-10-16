@@ -27,8 +27,8 @@ async function createProject(opts?: InitOpts) {
   const isLibrary: boolean = await confirm(
     'Would you like to add more libraries?'
   )
-  help.notification(row.template as string, row.type as string)
-  help.warnOverWrite()
+  help.announcementOfResult(row.template as string, row.type as string)
+  
 
   if (await confirm('Do you want to continue?')) {
     const copied = await processBuildTemplateFiles(
