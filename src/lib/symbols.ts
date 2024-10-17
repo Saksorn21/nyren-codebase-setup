@@ -8,5 +8,6 @@ const success = colorBold.green(_isUnicode ? '✔' : '✓')
 const warning = colorBold.yellow(_isUnicode ? '⚠️' : '‼')
 const error = colorBold.red(_isUnicode ? '❌' : '×')
 const fast = colorBold.yellow(_isUnicode ? '⚡' : 'ϟ')
-const namespace = { info, success, warning, error, fast }
+const idea = colorBold.cyan(_isUnicode ? '💡' : 'i')
+const namespace = { info, success, warning, error, fast, idea }
 export default namespace

@@ -22,9 +22,7 @@ async function createProjectWithOptions(options: InitOpts) {
     target: tg,
     module: md,
     directory: dir,
-    fix: fastProject,
   } = options
-  if (fastProject !== undefined) return await fastCreateProject(options)
 
   let target = ''
   let module = ''
@@ -48,24 +46,20 @@ async function createProjectWithOptions(options: InitOpts) {
   await createProject({ projectName, target, module, directory })
 }
 const fastProjectObj = async (opts: InitOpts): Promise<InitOpts> => ({
-  projectName: opts.fix as string,
-  target: (await matchLanguage(opts.target || 'typescript')) || 'typescript',
-  module: (await matchModule(opts.module || 'module')) || 'module',
-  directory: opts.directory || (opts.fix as string),
+  projectName: opts.projectName as string,
+  target: opts.target ,
+  module: opts.module,
+  directory: opts.directory || opts.projectName, 
 })
-async function fastCreateProject(options: InitOpts) {
-  const { fix: fastProject } = options
-  if (fastProject === true || typeof fastProject === 'string') {
-    if (typeof fastProject !== 'string')
-      return tools.log(
-        tools.error,
-        tools.textRed('Please enter a valid project name')
-      )
-
-    const objFast = await fastProjectObj(options)
+async function fastCreateProject(args: string[]) {
+  
+  const projectName = args[0] || 'my-project'
+ const { target, module } = await parseArgumentsFast(args)
+  
+  const objFast = await fastProjectObj({projectName, target, module})
     tools.log(
       tools.textOrange(
-        `${tools.fast} Turbocharge your project builds with ${tools.textWhit(objFast.target)} and type ${tools.textWhit(objFast.module)}!`
+        `${tools.fast} Turbocharge your project builds with ${tools.textWhit(objFast.target)}, using the module ${tools.textWhit(objFast.module)}, in the directory: ${tools.textWhit(objFast.directory)}! ${tools.fast}`
       )
     )
 
@@ -80,9 +74,33 @@ async function fastCreateProject(options: InitOpts) {
       templateCode.baseFilesName,
       userDirectoryName
     )
-  }
 }
+async function parseArgumentsFast(args: string[]){
+  const arr1 = args[1] || 'typescript'
+  const arr2 = args[2] || 'module'
+  const args2 = await matchLanguage(arr1) || await matchModule(arr1)|| 'typescript'
+  const args3 = await matchLanguage(arr2) || await matchModule(arr2)|| 'module'
+  let language, moduleType;
 
+  if (
+    ((args2 === 'typescript' || args2 === 'javascript') && (args3 === 'module' || args3 === 'commonjs')) ||
+    ((args2 === 'module' || args2 === 'commonjs') && (args3 === 'typescript' || args3 === 'javascript'))
+  ) {
+    if (args2 === 'typescript' || args2 === 'javascript') {
+      language = args2  
+      moduleType = args3  
+    } else {
+      language = args3 
+      moduleType = args2 
+    }
+  } else {
+    console.log('No matching arguments found');
+  }
+  if (language && moduleType) {
+    return { target: language, module: moduleType}
+  }
+    return { target: 'typescript', module: 'module' }
+}
 const presetSpinnerMatch = async <T>(match: string, callFn: PromiseLike<T>) =>
   await processSpinner({
     start: `Verifying ${match}...`,
@@ -123,7 +141,7 @@ async function matchModule(moduleType: string) {
     'import',
   ]
 
-  const cjsVariants = ['cjs', 'commonjs', 'common', 'require']
+  const cjsVariants = ['cjs', 'commonjs', 'common', 'require', 'node']
 
   const normalizedModuleType = moduleType.toLowerCase()
 
@@ -136,4 +154,4 @@ async function matchModule(moduleType: string) {
   return null
 }
 
-export { createProjectWithOptions }
+export { createProjectWithOptions, fastCreateProject }

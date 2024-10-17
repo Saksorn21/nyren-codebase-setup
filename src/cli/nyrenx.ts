@@ -6,6 +6,7 @@ import { createProject, processSpinner } from '../createProject.js'
 import examples from './examples.js'
 import {
   createProjectWithOptions,
+  fastCreateProject,
   type InitOpts,
 } from '../createProjectWithOptions.js'
 import { checkForUpdate } from '../lib/checkVersion.js'
@@ -15,7 +16,7 @@ import process from 'node:process'
 const loadPackage = readPackageJson()
 
 program
-  .name('nyrenx-codeup')
+  .name('nyrenx')
   .description(loadPackage.description as string)
   .version(loadPackage.version as string)
 
@@ -29,24 +30,32 @@ program
     cursor.show()
   })
 
-program
+const initCommand = program
   .command('init')
   .description('Create a new project with a template')
+  .usage('[options] [sub-command] -- [project-name target | module]')
   .addHelpText('after', examples.init())
   .option('-n, --project-name [project-name]', 'Project name')
   .option('-t, --target [target]', 'Target language')
   .option('-m, --module [module]', 'Module name')
   .option('-d, --directory [directory]', 'Directory name')
-  .option(
-    '--fix [project-name]',
-    'Quick Start the project without being guided through a series of prompts.'
-  )
-  .action(async options => {
-    const opts = options as InitOpts
+  .action(async (opts: InitOpts) => {
+    
     Object.keys(opts).length !== 0
-      ? await createProjectWithOptions(options)
+      ? await createProjectWithOptions(opts)
       : await createProject()
   })
+initCommand
+  .command('fast')
+  .usage('[options] -- [project-name target | module]')
+  .summary('Quick Start project')
+  .description('Quick Start the project without being guided through a series of prompts.')
+  .addHelpText('after', examples.init())
+  .arguments('[args...]')
+  .action(async (args: string[]) => {
+await fastCreateProject(args)
+  })
+
 program
   .command('update')
   .description('Update the project to the latest version')
@@ -60,5 +69,6 @@ program
       callAction: runCommand(command),
     })
   })
+
 
 await program.parseAsync(process.argv)

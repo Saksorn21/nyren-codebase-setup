@@ -8,6 +8,7 @@ export interface HelpFn<T1, T2 = string, T3 = string, T4 = string> {
     arge3?: T4
   ) => Promise<T1> | T1 | string
 }
+const reset = chalk.reset
 const text = (hex: string) => chalk.hex(hex).bold
 const textLightSteelBlue1 = text('#d7d7ff')
 const textSlateBlue3 = text('#5f5faf')
@@ -55,13 +56,13 @@ help.infoProcessInput = () =>
     `${textDeepBlue("There is a default value. If you don't want to change it, just press Enter.")}`
   )
 
-help.announcementOfResult = (target?: string, module?: string): void =>
-  log(
-    info,
-    textSlateBlue3(
-      `You will start the project using the language: ${tools.textOrange('[')}${textWhit(target)}${textOrange(']')}, with the module: ${textOrange('[')}${textWhit(module)}${textOrange(']')}.`
-    )
+help.announcementOfResult = (target?: string, module?: string,directory: string): void =>
+log(
+  info,
+  textSlateBlue3(
+    `You will start the project using the language: ${tools.textOrange('[')}${textWhit(target)}${textOrange(']')}, with the module: ${textOrange('[')}${textWhit(module)}${textOrange(']')} in the directory: ${textOrange('[')}${textWhit(directory)}${textOrange(']')}.`
   )
+)
 help.warnSettingCompleted = (
   projectName?: string,
   userDiretory?: string
@@ -99,7 +100,9 @@ function transformString(input: string): string {
 }
 const tools = {
   ...symbols,
+  prefixCli,
   text,
+  reset,
   textOrange,
   textDeepBlue,
   textWhit,
