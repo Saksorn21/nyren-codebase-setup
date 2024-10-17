@@ -3,6 +3,7 @@ import { Command } from 'commander'
 const program = new Command()
 import { readPackageJson } from '../lib/packageJsonUtils.js'
 import { createProject, processSpinner } from '../createProject.js'
+import examples from './examples.js'
 import {
   createProjectWithOptions,
   type InitOpts,
@@ -31,6 +32,7 @@ program
 program
   .command('init')
   .description('Create a new project with a template')
+  .addHelpText('after', examples.init())
   .option('-n, --project-name [project-name]', 'Project name')
   .option('-t, --target [target]', 'Target language')
   .option('-m, --module [module]', 'Module name')
