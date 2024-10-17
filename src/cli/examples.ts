@@ -1,11 +1,11 @@
 import { tools as t } from '../lib/help.js'
 interface Examples<T> {
-  [fnname: string]: () => T
+  [fnname: string]: T
 }
 const examples: Examples<string> = {}
-
-examples.init = function () {
-   return t.textLightSteelBlue1.dim(`
+examples.run = `nyrenx run --npm run dev`
+examples.install = `nyrenx i --nyren --d @types/nyren`
+examples.init = t.textLightSteelBlue1.dim(`
   ${t.textOrange(`${t.info} Examples `)}
   
     \`\`\`
@@ -33,6 +33,5 @@ examples.init = function () {
          ${t.text('#F7DF1E')('Commonjs:')} [ 'cjs', 'commonjs', 'common', 'require', 'node' ] `)}
    `)
      
-   
-}
+
 export default examples

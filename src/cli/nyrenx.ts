@@ -4,6 +4,7 @@ const program = new Command()
 import { readPackageJson } from '../lib/packageJsonUtils.js'
 import { createProject, processSpinner } from '../createProject.js'
 import { runAction } from '../runAction.js'
+import { installAction } from '../installAction.js'
 import examples from './examples.js'
 import {
   createProjectWithOptions,
@@ -21,7 +22,7 @@ program
   .description(loadPackage.description as string)
   .version(loadPackage.version as string)
 
-// global Action hook
+// global 
 program
   .hook('preAction', () => {
     cursor.hide()
@@ -30,18 +31,18 @@ program
     await checkForUpdate()
     cursor.show()
   })
+  .arguments('[args...]')
+
 program.command('run')
   .description('Project at runtime [nyrenx run -- yourcommand]')
-  .arguments('[args...]')
-  .action(function (...args) {
-     runAction.apply(this, args)
-  }
-  )
+  .action(async function (this: Command) {
+    await runAction(this.args)
+  })
 // init
 const initCommand = program.command('init')
   .description('Create a new project with a template')
   .usage('[options] [sub-command] -- [project-name target | module]')
-  .addHelpText('after', examples.init())
+  .addHelpText('after', examples.init)
   .option('-n, --project-name [project-name]', 'Project name')
   .option('-t, --target [target]', 'Target language')
   .option('-m, --module [module]', 'Module name')
@@ -58,12 +59,19 @@ initCommand
   .usage('[options] -- [project-name target | module]')
   .summary('Quick Start project')
   .description('Quick Start the project without being guided through a series of prompts.')
-  .addHelpText('after', examples.init())
-  .arguments('[args...]')
-  .action(async (args: string[]) => {
-await fastCreateProject(args)
+  .addHelpText('after', examples.init)
+  .action(async function(this: Command)  {
+await fastCreateProject(this.args)
   })
-
+program
+  .command('install')
+  .alias('i')
+  .allowUnknownOption()
+  .description('Installation libraries for the project on npm ')
+  .arguments('[args...]')
+  .action(async function(this: Command)  {
+await installAction(this.args)
+  })
 program
   .command('update')
   .description('Update the project to the latest version')

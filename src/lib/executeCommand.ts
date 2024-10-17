@@ -4,13 +4,29 @@ import { resolvePath } from './pathHelper.js'
 import { tools as t } from './help.js'
 
 export async function executeCommand (commandArgs: string[]) {
+  try{
   try {
     
      commandArgs[0] = resolvePath(await which(`${commandArgs[0]}`))
-    } catch (_) {
+  } catch (_) {
     t.log(`could not expand process command. using [${commandArgs.join(' ')}]`)
-    }
-  try{
+  }
+    // expand any other commands that follow a --
+        let expandNext = false
+        for (let i = 0; i < commandArgs.length; i++) {
+          if (commandArgs[i] === '--') {
+            expandNext = true
+          } else if (expandNext) {
+            try {
+              commandArgs[i] = resolvePath(await which(`${commandArgs[i]}`))
+              t.log(`expanding process command to [${commandArgs.join(' ')}]`)
+            } catch (_) {
+             t.log(`could not expand process command. using [${commandArgs.join(' ')}]`)
+          }
+            expandNext = false
+          }
+        }
+
 const { exitCode } = await execa(commandArgs[0], commandArgs.slice(1), { 
   stdio: 'inherit' })
 
