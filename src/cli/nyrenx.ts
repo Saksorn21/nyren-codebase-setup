@@ -3,6 +3,7 @@ import { Command } from 'commander'
 const program = new Command()
 import { readPackageJson } from '../lib/packageJsonUtils.js'
 import { createProject, processSpinner } from '../createProject.js'
+import { runAction } from '../runAction.js'
 import examples from './examples.js'
 import {
   createProjectWithOptions,
@@ -29,9 +30,15 @@ program
     await checkForUpdate()
     cursor.show()
   })
-
-const initCommand = program
-  .command('init')
+program.command('run')
+  .description('Project at runtime [nyrenx run -- yourcommand]')
+  .arguments('[args...]')
+  .action(function (...args) {
+     runAction.apply(this, args)
+  }
+  )
+// init
+const initCommand = program.command('init')
   .description('Create a new project with a template')
   .usage('[options] [sub-command] -- [project-name target | module]')
   .addHelpText('after', examples.init())
@@ -46,7 +53,8 @@ const initCommand = program
       : await createProject()
   })
 initCommand
-  .command('fast')
+  .command('quick')
+  .alias('fast')
   .usage('[options] -- [project-name target | module]')
   .summary('Quick Start project')
   .description('Quick Start the project without being guided through a series of prompts.')
