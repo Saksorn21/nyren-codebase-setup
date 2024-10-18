@@ -65,7 +65,10 @@ async function input(
     ...preset,
     theme: {
       style: {
-        answer: (text: string) => msg.message === 'license' ? tools.text('#F7ECE1')(text.toUpperCase()) : tools.text('#F7ECE1')(text),
+        answer: (text: string) =>
+          msg.message === 'license'
+            ? tools.text('#F7ECE1')(text.toUpperCase())
+            : tools.text('#F7ECE1')(text),
 
         defaultAnswer: (text: string) => tools.text('#d0d0d0').dim(`(${text})`),
         message: (text: string, status: 'idle' | 'done' | 'loading') => {

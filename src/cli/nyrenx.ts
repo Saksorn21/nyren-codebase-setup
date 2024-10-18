@@ -22,7 +22,7 @@ program
   .description(loadPackage.description as string)
   .version(loadPackage.version as string)
 
-// global 
+// global
 program
   .hook('preAction', () => {
     cursor.hide()
@@ -33,14 +33,17 @@ program
   })
   .arguments('[args...]')
 
-program.command('run')
-  .description('Project at runtime [nyrenx run -- yourcommand]')
+program
+  .command('run')
+  .description('Project at runtime')
+  .usage('[options] -- [yourcommand]')
   .option('-d, --directory [directory]', 'directory to run the project in')
-  .action(async function (this: Command,...args: any) {
-    runAction.apply(this,args)
+  .action(async function (this: Command, ...args: any) {
+    runAction.apply(this, args)
   })
 // init
-const initCommand = program.command('init')
+const initCommand = program
+  .command('init')
   .description('Create a new project with a template')
   .usage('[options] [sub-command] -- [project-name target | module]')
   .addHelpText('after', examples.init)
@@ -49,7 +52,6 @@ const initCommand = program.command('init')
   .option('-m, --module [module]', 'Module name')
   .option('-d, --directory [directory]', 'Directory name')
   .action(async (opts: InitOpts) => {
-    
     Object.keys(opts).length !== 0
       ? await createProjectWithOptions(opts)
       : await createProject()
@@ -59,20 +61,22 @@ initCommand
   .alias('fast')
   .usage('[options] -- [project-name target | module]')
   .summary('Quick Start project')
-  .description('Quick Start the project without being guided through a series of prompts.')
+  .description(
+    'Quick Start the project without being guided through a series of prompts.'
+  )
   .addHelpText('after', examples.init)
-  .action(async function(this: Command)  {
-await fastCreateProject(this.args)
+  .action(async function (this: Command) {
+    await fastCreateProject(this.args)
   })
 program
   .command('install')
   .alias('i')
   .allowUnknownOption()
   .description('Installation libraries for the project on npm ')
-   .option('-d, --directory [directory]', 'directory to run the project in')
+  .option('-d, --directory [directory]', 'directory to run the project in')
   .arguments('[args...]')
-  .action(function(this: Command, ...args)  {
-installAction.apply(this, args)
+  .action(function (this: Command, ...args) {
+    installAction.apply(this, args)
   })
 program
   .command('update')
@@ -87,6 +91,5 @@ program
       callAction: runCommand(command),
     })
   })
-
 
 await program.parseAsync(process.argv)

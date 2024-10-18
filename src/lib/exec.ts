@@ -12,7 +12,7 @@ import {
   type Message,
   type VerboseObject,
   type ExecaMethod,
-} from 'execa';
+} from 'execa'
 interface OutPutResult {
   output: string
   error?: string
@@ -44,10 +44,13 @@ export async function runCommand(command: string): Promise<OutPutResult> {
     return { output: '', error: (error as Error).message }
   }
 }
-async function execa(command: string | URL, args: string[], options?: Options): Promise<ResultPromise> {
-   return execa_(command, args, options)
+async function execa(
+  command: string | URL,
+  args: string[],
+  options?: Options
+): Promise<ResultPromise> {
+  return execa_(command, args, options)
 }
 export { ExecaError }
+export type {  ResultPromise, }
 export default execa
-
-

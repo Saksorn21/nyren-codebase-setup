@@ -18,5 +18,7 @@ export async function fetchToJson(
   }
 }
 
-export const validUserDirectoryPath = (path: string = process.cwd(), directoryName?: string): string => directoryName ? resolvePath(path, directoryName) : path
-
+export const validUserDirectoryPath = (
+  path: string = process.cwd(),
+  directoryName?: string
+): string => (directoryName ? resolvePath(path, directoryName) : path)

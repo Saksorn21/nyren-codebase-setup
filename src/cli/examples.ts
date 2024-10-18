@@ -32,6 +32,5 @@ examples.init = t.textLightSteelBlue1.dim(`
          ${t.text('#8CCB3D')('esModule:')} [ 'es', 'esm', 'module', 'esmodule', 'es6', 'es2015', 'esnext', 'import' ]
          ${t.text('#F7DF1E')('Commonjs:')} [ 'cjs', 'commonjs', 'common', 'require', 'node' ] `)}
    `)
-     
 
 export default examples

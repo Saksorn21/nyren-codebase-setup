@@ -56,13 +56,17 @@ help.infoProcessInput = () =>
     `${textDeepBlue("There is a default value. If you don't want to change it, just press Enter.")}`
   )
 
-help.announcementOfResult = (target?: string, module?: string,directory: string): void =>
-log(
-  info,
-  textSlateBlue3(
-    `You will start the project using the language: ${tools.textOrange('[')}${textWhit(target)}${textOrange(']')}, with the module: ${textOrange('[')}${textWhit(module)}${textOrange(']')} in the directory: ${textOrange('[')}${textWhit(directory)}${textOrange(']')}.`
+help.announcementOfResult = (
+  target?: string,
+  module?: string,
+  directory: string
+): void =>
+  log(
+    info,
+    textSlateBlue3(
+      `You will start the project using the language: ${tools.textOrange('[')}${textWhit(target)}${textOrange(']')}, with the module: ${textOrange('[')}${textWhit(module)}${textOrange(']')} in the directory: ${textOrange('[')}${textWhit(directory)}${textOrange(']')}.`
+    )
   )
-)
 help.warnSettingCompleted = (
   projectName?: string,
   userDiretory?: string

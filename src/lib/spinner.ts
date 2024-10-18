@@ -7,7 +7,12 @@ export interface SpinnerInput<T> extends PromiseOptions<T> {
   fail: string
   callAction: PromiseLike<T> | ((spinner: Ora) => PromiseLike<T>)
 }
-
+export interface SpinnerInput_<T> extends PromiseOptions<T> {
+  start: string
+  success: string
+  fail: string
+  callAction: (spinner: Ora) => PromiseLike<T>
+}
 export async function processSpinner<T>(opts: SpinnerInput<T>): Promise<T> {
   const { start, success, fail, callAction, ...remaining } = opts
 
@@ -26,7 +31,34 @@ export async function processSpinner<T>(opts: SpinnerInput<T>): Promise<T> {
     throw error
   }
 }
+export async function processSpinner_<T>(
+  opts: SpinnerInput_<T>
+): Promise<void> {
+  const { start, success, fail, callAction, ...remaining } = opts
 
+  try {
+    await oraPromise(
+      (spinner: Ora) => {
+        // เริ่ม spinner พร้อมข้อความเริ่มต้น
+        spinner.text = tools.textGrey(start || 'Processing...')
+
+        // เรียกฟังก์ชันการทำงานที่ไม่คืนค่า
+        return callAction(spinner)
+      },
+      {
+        color: 'white',
+        prefixText: prefixCli || '',
+        spinner: 'toggle13',
+        successText: tools.textGreen(success || 'Success!'),
+        failText: tools.textRed(fail || 'Failed!'),
+        ...remaining,
+      }
+    )
+  } catch (error) {
+    console.error(error)
+    throw error
+  }
+}
 export const presetSpinnerCreateFiles = async <T>(
   callFn: PromiseLike<T>,
   diretoryName: string
