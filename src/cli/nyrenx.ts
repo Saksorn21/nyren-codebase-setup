@@ -35,8 +35,9 @@ program
 
 program.command('run')
   .description('Project at runtime [nyrenx run -- yourcommand]')
-  .action(async function (this: Command) {
-    await runAction(this.args)
+  .option('-d, --directory [directory]', 'directory to run the project in')
+  .action(async function (this: Command,...args: any) {
+    runAction.apply(this,args)
   })
 // init
 const initCommand = program.command('init')
@@ -68,9 +69,10 @@ program
   .alias('i')
   .allowUnknownOption()
   .description('Installation libraries for the project on npm ')
+   .option('-d, --directory [directory]', 'directory to run the project in')
   .arguments('[args...]')
-  .action(async function(this: Command)  {
-await installAction(this.args)
+  .action(function(this: Command, ...args)  {
+installAction.apply(this, args)
   })
 program
   .command('update')

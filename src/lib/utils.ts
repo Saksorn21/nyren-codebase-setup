@@ -1,4 +1,5 @@
 import { tools } from './help.js'
+import { resolvePath } from './pathHelper.js'
 export async function fetchToJson(
   url: string
 ): Promise<Record<string, string>> {
@@ -16,3 +17,6 @@ export async function fetchToJson(
     return {}
   }
 }
+
+export const validUserDirectoryPath = (path: string = process.cwd(), directoryName?: string): string => directoryName ? resolvePath(path, directoryName) : path
+

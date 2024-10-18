@@ -1,7 +1,11 @@
 import { executeCommand } from './lib/executeCommand.js'
 import { tools as t } from './lib/help.js'
-export async function runAction(args: any) {
-  console.log(args)
+import { type Command } from 'commander'
+export async function runAction(this: Command) {
+  const args = this.args
+  const opts = this.opts()
+  
+  
   const commandArgs = args
   const commandIndex = process.argv.indexOf('--')
   if (commandIndex === -1 || commandIndex === process.argv.length - 1) {
@@ -10,6 +14,6 @@ export async function runAction(args: any) {
     t.log(t.textRed(` ${t.info}    or try: ${t.textWhit.dim(`[nyrenx run --npm run dev]`)}`))
     process.exit(1)
   }else{
-  await executeCommand(commandArgs)
+  await executeCommand(commandArgs, opts)
   }
 }
