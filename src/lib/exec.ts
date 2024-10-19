@@ -4,14 +4,7 @@ import {
   execa as execa_,
   ExecaError,
   type ResultPromise,
-  type Result,
   type Options,
-  type StdinOption,
-  type StdoutStderrOption,
-  type TemplateExpression,
-  type Message,
-  type VerboseObject,
-  type ExecaMethod,
 } from 'execa'
 interface OutPutResult {
   output: string
@@ -44,13 +37,12 @@ export async function runCommand(command: string): Promise<OutPutResult> {
     return { output: '', error: (error as Error).message }
   }
 }
-async function execa(
-  command: string | URL,
+const execa = (
+  file: string | URL,
   args: string[],
   options?: Options
-): Promise<ResultPromise> {
-  return execa_(command, args, options)
-}
+): ResultPromise => execa_(file, args, options)
+
 export { ExecaError }
 export type {  ResultPromise, }
 export default execa

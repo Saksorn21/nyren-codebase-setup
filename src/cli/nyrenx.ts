@@ -37,13 +37,15 @@ program
   .command('run')
   .description('Project at runtime')
   .usage('[options] -- [yourcommand]')
+  .option('-n, --npm', 'Use npm [nyrenx run -n -- run dev]  ')
+  .option('-nm, --nodemon', 'Use nodemon [nyrenx run -nm -- index.js]  ')
+  .option('-tn, --ts-node', 'Use ts-node [nyrenx run -tn -- index.ts]  ')
   .option('-d, --directory [directory]', 'directory to run the project in')
   .action(async function (this: Command, ...args: any) {
     runAction.apply(this, args)
   })
 // init
-const initCommand = program
-  .command('init')
+const initCommand = program.command('init')
   .description('Create a new project with a template')
   .usage('[options] [sub-command] -- [project-name target | module]')
   .addHelpText('after', examples.init)
@@ -56,8 +58,7 @@ const initCommand = program
       ? await createProjectWithOptions(opts)
       : await createProject()
   })
-initCommand
-  .command('quick')
+initCommand.command('quick')
   .alias('fast')
   .usage('[options] -- [project-name target | module]')
   .summary('Quick Start project')
@@ -68,15 +69,15 @@ initCommand
   .action(async function (this: Command) {
     await fastCreateProject(this.args)
   })
-program
-  .command('install')
+
+program.command('install')
   .alias('i')
   .allowUnknownOption()
   .description('Installation libraries for the project on npm ')
   .option('-d, --directory [directory]', 'directory to run the project in')
   .arguments('[args...]')
-  .action(function (this: Command, ...args) {
-    installAction.apply(this, args)
+  .action(function (this: Command) {
+    installAction.apply(this)
   })
 program
   .command('update')

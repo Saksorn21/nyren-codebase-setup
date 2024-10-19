@@ -59,7 +59,7 @@ help.infoProcessInput = () =>
 help.announcementOfResult = (
   target?: string,
   module?: string,
-  directory: string
+  directory?: string
 ): void =>
   log(
     info,

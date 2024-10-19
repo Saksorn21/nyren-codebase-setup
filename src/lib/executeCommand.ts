@@ -1,7 +1,8 @@
 import which from 'which'
 import execa, { ExecaError, type ResultPromise, } from './exec.js' // lib execa for npm 
+import type {SignalConstants} from 'node:os';
+import { resolvePath, basename } from './pathHelper.js'
 
-import { resolvePath } from './pathHelper.js'
 import { tools as t } from './help.js'
 
 // Centralize messages to reduce duplication
@@ -13,11 +14,11 @@ const messages = {
 }
 
 // Handle signal-specific logic
-async function signalHandler(signal: string, commandProcess: any) {
+async function signalHandler(signal: keyof  SignalConstants | number, subProcess: ResultPromise) {
   t.log(`Received ${signal}`)
-    if (commandProcess ) {
+    if (subProcess) {
       t.log(`Sending ${signal} to command process`)
-       commandProcess.kill(signal) // This should now work if commandProcess is the subprocess
+          subProcess.kill(signal) 
     } else {
       t.log(`No valid process to kill for signal ${signal}`)
     }
@@ -47,12 +48,10 @@ export async function executeCommand(commandArgs: string[], options: any = {}) {
     ? resolvePath(process.cwd(), options.directory)
     : process.cwd()
 
-  let commandProcess: Promise<ResultPromise>
+  let subProcess: ResultPromise
 
   // Signal handlers
-  const sigintHandler = () => signalHandler('SIGINT', commandProcess)
-  const sigtermHandler = () => signalHandler('SIGTERM', commandProcess)
-
+  
   try {
     // Resolve command and expand if necessary
     try {
@@ -63,16 +62,19 @@ export async function executeCommand(commandArgs: string[], options: any = {}) {
     }
 
     await expandCommands(commandArgs)
+    
 
     // Execute the command
-    commandProcess =  execa(commandArgs[0], commandArgs.slice(1), {
+      subProcess =  execa(commandArgs[0], commandArgs.slice(1), {
       stdio: 'inherit',
+        detached: true,
+      preferLocal: true,
       cwd: directoryProject,
     })
-    process.on('SIGINT', async() =>  await signalHandler('SIGINT', commandProcess))
-    process.on('SIGTERM', async() =>  signalHandler('SIGTERM', await commandProcess))
+    process.on('SIGINT', () => signalHandler('SIGINT', subProcess))
+    process.on('SIGTERM', () => signalHandler('SIGTERM', subProcess))
 
-    const { exitCode } = await commandProcess
+    const { exitCode } = await subProcess
     if (exitCode !== 0) {
       t.log(messages.exitCodeMessage(exitCode))
       throw new Error(messages.exitCodeMessage(exitCode))
@@ -82,9 +84,28 @@ export async function executeCommand(commandArgs: string[], options: any = {}) {
     handleCommandError(e as ExecaError, commandArgs)
 
   } finally {
-    process.removeListener('SIGINT', async() =>  await signalHandler('SIGINT', await commandProcess))
-    process.removeListener('SIGTERM',async () =>  await signalHandler('SIGTERM', await commandProcess))
+    process.removeListener('SIGINT', () => signalHandler('SIGINT', subProcess))
+    process.removeListener('SIGTERM', () => signalHandler('SIGTERM', subProcess))
   }
+}
+function normalizedCommand(fileCommand: string[]): string {
+  
+    fileCommand[0] = basename(fileCommand[0])
+   let expandNext = false
+   for (let i = 0; i < fileCommand.length; i++) {
+     if (fileCommand[i] === '--') {
+       expandNext = true
+     } else if (expandNext) {
+       try {
+             fileCommand[i] = basename(fileCommand[i])
+         t.log(`Expanding process command to [${fileCommand.join(' ')}]`)
+       } catch (_) {
+         t.log(messages.notCommand(fileCommand))
+       }
+       expandNext = false
+     }
+   }
+  return fileCommand.join(' ')
 }
 
 // Handles errors during execution
@@ -93,7 +114,11 @@ function handleCommandError(error: ExecaError, commandArgs: string[]) {
     if (error.code === 'ENOENT') {
       t.log(t.textRed(`Unknown command: ${t.textWhit(error.command)}`))
     } else if (error.message.includes('Command failed with exit code 1')) {
-      t.log(t.textRed(`Command exited with exit code 1: ${t.textWhit.dim(error.command)}`))
+      t.log(t.textRed(`Command exited with exit code 1: ${t.textWhit.dim(normalizedCommand(commandArgs))}`))
+    }else if (error.message.includes('Command failed with exit code 0')) {
+      t.log(t.textRed(`Command failed with exit code 0: ${t.textWhit(normalizedCommand(commandArgs))}
+  ${t.textWhit('debugger: ')}${t.error} ${t.textWhit.dim(error.originalMessage)}
+      `))
     } else {
       t.log(error.message)
     }

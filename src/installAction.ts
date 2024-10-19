@@ -1,9 +1,7 @@
-import { setModule, setTarget, input, confirm } from './lib/prompts.js'
-import { processSpinner_ } from './lib/spinner.js'
 import { executeCommand } from './lib/executeCommand.js'
 import { type Command } from 'commander'
+import { processSpinner_ } from './lib/spinner.js'
 import { validUserDirectoryPath } from './lib/utils.js'
-import { examples } from './cli/examples.js'
 import { readPackageJson } from './lib/packageJsonUtils.js'
 import { help, tools as t } from './lib/help.js'
 interface Libraries {
@@ -70,39 +68,30 @@ async function handleLibraryInstallation(
 
   const notifyInstall = `Installing libraries in the project "${t.textWhit(projectName)}": ${messageParts.join(', ')}.`;
 
-  t.log(t.textLightSteelBlue1(notifyInstall));
-  await Promise.all([
-           deps ? executeCommand((commands.deps ?? '').split(' '), opts) : Promise.resolve()
-         ,
-           devDeps
-             ? executeCommand((commands.devDeps ?? '').split(' '), opts)
-             : Promise.resolve()
-         ])
+    await processSpinner_({
+      start: 
+          deps.length > 0 
+            ? `Starting installation of libraries: ${t.textWhit(deps)}${devDeps && devDeps.length > 0 ? ` and dev libraries: ${t.textWhit(devDeps)}` : ''}...`
+            : `Starting installation of dev libraries: ${t.textWhit(devDeps)}...`,
+        success: `${notifyInstall} installation completed successfully!`,
+        fail: 'Failed to install the specified libraries. Please check for errors.',
+      callAction: async (spinner) => {
+        spinner.stopAndPersist({
+          text: t.textLightSteelBlue1(notifyInstall),
+        symbol: t.idea
+        })
 
-    // await processSpinner_({
-    //   start: 
-    //       deps.length > 0 
-    //         ? `Starting installation of libraries: ${t.textWhit(deps)}${devDeps && devDeps.length > 0 ? ` and dev libraries: ${t.textWhit(devDeps)}` : ''}...`
-    //         : `Starting installation of dev libraries: ${t.textWhit(devDeps)}...`,
-    //     success: `${notifyInstall} installation completed successfully!`,
-    //     fail: 'Failed to install the specified libraries. Please check for errors.',
-    //   callAction: async (spinner) => {
-    //     spinner.stopAndPersist({
-    //       text: t.textLightSteelBlue1(notifyInstall),
-    //     symbol: t.idea
-    //     })
-
-    //     //spinner.start()
-    //     //spinner.text = t.textLightSteelBlue1(notifyInstall);
-    //   await Promise.all([
-    //       deps ? executeCommand((commands.deps ?? '').split(' '), opts) : Promise.resolve()
-    //     ,
-    //       devDeps
-    //         ? executeCommand((commands.devDeps ?? '').split(' '), opts)
-    //         : Promise.resolve()
-    //     ])
-    //   },
-    // })
+        spinner.start()
+        //spinner.text = t.textLightSteelBlue1(notifyInstall);
+      await Promise.all([
+          deps ? executeCommand((commands.deps ?? '').split(' '), opts) : Promise.resolve()
+        ,
+          devDeps
+            ? executeCommand((commands.devDeps ?? '').split(' '), opts)
+            : Promise.resolve()
+        ])
+      },
+    })
 
 }
 async function analyzeLibraries(libraries: string) {

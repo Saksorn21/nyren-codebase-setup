@@ -39,10 +39,8 @@ export async function processSpinner_<T>(
   try {
     await oraPromise(
       (spinner: Ora) => {
-        // เริ่ม spinner พร้อมข้อความเริ่มต้น
         spinner.text = tools.textGrey(start || 'Processing...')
 
-        // เรียกฟังก์ชันการทำงานที่ไม่คืนค่า
         return callAction(spinner)
       },
       {

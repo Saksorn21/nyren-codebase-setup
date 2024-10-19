@@ -1,6 +1,6 @@
 import { homedir } from 'node:os'
 import { fileURLToPath } from 'node:url'
-import { dirname, join } from 'node:path'
+import { dirname, join, basename } from 'node:path'
 
 function getDirname(metaUrl: string): string {
   const __filename = fileURLToPath(metaUrl)
@@ -25,4 +25,4 @@ function resolvePath(...paths: string[]): string {
   return fullPath
 }
 
-export { resolvePath, getDirname }
+export { resolvePath, getDirname, dirname, basename }
