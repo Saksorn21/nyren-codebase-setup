@@ -22,3 +22,13 @@ export const validUserDirectoryPath = (
   path: string = process.cwd(),
   directoryName?: string
 ): string => (directoryName ? resolvePath(path, directoryName) : path)
+
+export function transformString(input: string): string {
+  // Check if the input starts with '@' and contains '/'
+  if (input.startsWith('@') && input.includes('/')) {
+    // Remove '@' and replace '/' with '-'
+    return input.replace(/^@/, '').replace('/', '-')
+  }
+  // If the input doesn't match the conditions, return the original input
+  return input
+}

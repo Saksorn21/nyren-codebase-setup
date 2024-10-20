@@ -44,5 +44,5 @@ const execa = (
 ): ResultPromise => execa_(file, args, options)
 
 export { ExecaError }
-export type {  ResultPromise, }
+export type { ResultPromise }
 export default execa

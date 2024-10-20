@@ -48,59 +48,63 @@ async function handleLibraryInstallation(
 ): Promise<void> {
   const baseCommand = `npm install `
   const devDepsCommand = 'npm install --save-dev '
-  const messageParts = []; 
+  const messageParts = []
   let projectName: string = ''
   try {
-  projectName = readPackageJson(validUserDirectoryPath(process.cwd(), opts.directory) + '/package.json'
-  ).name as string
-    } catch (error: unknown) {
-      t.log(t.textRed(` ${t.info}  get help: ${t.textWhit.dim(`[nyrenx install --help]`)}
+    projectName = readPackageJson(
+      validUserDirectoryPath(process.cwd(), opts.directory) + '/package.json'
+    ).name as string
+  } catch (error: unknown) {
+    t.log(
+      t.textRed(` ${t.info}  get help: ${t.textWhit.dim(`[nyrenx install --help]`)}
     ${t.idea} ${t.textWhit.dim(`- Check project files`)}
-      `))
+      `)
+    )
     process.exit(1)
-    }
+  }
   const { deps, devDeps } = await analyzeLibraries(input)
   const commandDev: string | undefined = devDeps && devDepsCommand + devDeps
   const commands: Libraries = { deps: undefined, devDeps: undefined }
   commands.deps = baseCommand + deps
   commands.devDeps = commandDev
 
-
   if (deps.length > 0) {
-    messageParts.push(`${t.textWhit(deps)}`); 
+    messageParts.push(`${t.textWhit(deps)}`)
   }
 
   if (devDeps && devDeps.length > 0) {
-    messageParts.push(`including the following dev libraries: ${t.textWhit(devDeps)}`);
+    messageParts.push(
+      `including the following dev libraries: ${t.textWhit(devDeps)}`
+    )
   }
 
-  const notifyInstall = `Installing libraries in the project "${t.textWhit(projectName)}": ${messageParts.join(', ')}.`;
+  const notifyInstall = `Installing libraries in the project "${t.textWhit(projectName)}": ${messageParts.join(', ')}.`
 
-    await processSpinner_({
-      start: 
-          deps.length > 0 
-            ? `Starting installation of libraries: ${t.textWhit(deps)}${devDeps && devDeps.length > 0 ? ` and dev libraries: ${t.textWhit(devDeps)}` : ''}...`
-            : `Starting installation of dev libraries: ${t.textWhit(devDeps)}...`,
-        success: `${notifyInstall} installation completed successfully!`,
-        fail: 'Failed to install the specified libraries. Please check for errors.',
-      callAction: async (spinner) => {
-        spinner.stopAndPersist({
-          text: t.textLightSteelBlue1(notifyInstall),
-        symbol: t.idea
-        })
+  await processSpinner_({
+    start:
+      deps.length > 0
+        ? `Starting installation of libraries: ${t.textWhit(deps)}${devDeps && devDeps.length > 0 ? ` and dev libraries: ${t.textWhit(devDeps)}` : ''}...`
+        : `Starting installation of dev libraries: ${t.textWhit(devDeps)}...`,
+    success: `${notifyInstall} installation completed successfully!`,
+    fail: 'Failed to install the specified libraries. Please check for errors.',
+    callAction: async spinner => {
+      spinner.stopAndPersist({
+        text: t.textLightSteelBlue1(notifyInstall),
+        symbol: t.idea,
+      })
 
-        spinner.start()
-        //spinner.text = t.textLightSteelBlue1(notifyInstall);
+      spinner.start()
+      //spinner.text = t.textLightSteelBlue1(notifyInstall);
       await Promise.all([
-          deps ? executeCommand((commands.deps ?? '').split(' '), opts) : Promise.resolve()
-        ,
-          devDeps
-            ? executeCommand((commands.devDeps ?? '').split(' '), opts)
-            : Promise.resolve()
-        ])
-      },
-    })
-
+        deps
+          ? executeCommand((commands.deps ?? '').split(' '), opts)
+          : Promise.resolve(),
+        devDeps
+          ? executeCommand((commands.devDeps ?? '').split(' '), opts)
+          : Promise.resolve(),
+      ])
+    },
+  })
 }
 async function analyzeLibraries(libraries: string) {
   let deps = ''

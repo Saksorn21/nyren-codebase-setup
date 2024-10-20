@@ -44,7 +44,7 @@ export async function processSpinner_<T>(
         return callAction(spinner)
       },
       {
-        color: 'white',
+        color: 'cyan',
         prefixText: prefixCli || '',
         spinner: 'toggle13',
         successText: tools.textGreen(success || 'Success!'),

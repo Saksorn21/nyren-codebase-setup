@@ -22,14 +22,16 @@ const signalHandler = (
   subProcess: ResultPromise
 ) =>
   subProcess
-    ? (onetime(() => {
+    ? onetime(() => {
         t.log(
           `\n${t.warning} ${t.textOrange(`Sending ${t.textWhit(signal)} to command process...`)}`
         )
         subProcess.kill(signal)
-      }))()
+      })()
     : (() => {
-        t.log(`\n${t.warning}${t.textOrange(`No valid process to kill for signal ${t.textWhit(signal)}`)}.`)
+        t.log(
+          `\n${t.warning}${t.textOrange(`No valid process to kill for signal ${t.textWhit(signal)}`)}.`
+        )
       })()
 
 // Expands command if prefixed by `--`
@@ -41,7 +43,11 @@ async function expandCommands(commandArgs: string[]) {
     } else if (expandNext) {
       try {
         commandArgs[i] = resolvePath(await which(commandArgs[i]))
-        t.log(t.textLightSteelBlue1(`Expanding process command to [${t.textWhit(commandArgs.join(' '))}]`))
+        t.log(
+          t.textLightSteelBlue1(
+            `Expanding process command to [${t.textWhit(commandArgs.join(' '))}]`
+          )
+        )
       } catch (_) {
         t.log(messages.notCommand(commandArgs))
       }
@@ -51,12 +57,12 @@ async function expandCommands(commandArgs: string[]) {
 }
 // Resolve command and expand if necessary
 async function whichCommand(commandArgs: string[]) {
-     try {
-       const whichCommand = await which(commandArgs[0])
-       commandArgs[0] = resolvePath(whichCommand)
-     } catch (_) {
-       t.log(messages.notCommand(commandArgs))
-     }
+  try {
+    const whichCommand = await which(commandArgs[0])
+    commandArgs[0] = resolvePath(whichCommand)
+  } catch (_) {
+    t.log(messages.notCommand(commandArgs))
+  }
 }
 
 // Handles the main command execution logic
@@ -76,7 +82,7 @@ export async function executeCommand(commandArgs: string[], options: any = {}) {
       preferLocal: true,
       cwd: directoryProject,
     })
-    
+
     process.on('SIGINT', () => signalHandler('SIGINT', subProcess))
     process.on('SIGTERM', () => signalHandler('SIGTERM', subProcess))
 
@@ -85,7 +91,6 @@ export async function executeCommand(commandArgs: string[], options: any = {}) {
   } catch (e: unknown) {
     handleCommandError(e as ExecaError, commandArgs)
   } finally {
-    
     process.removeListener('SIGINT', () => signalHandler('SIGINT', subProcess))
     process.removeListener('SIGTERM', () =>
       signalHandler('SIGTERM', subProcess)
@@ -121,15 +126,21 @@ function handleCommandError(error: ExecaError, commandArgs: string[]) {
     } else if (error.message.includes('Command failed with exit code 0')) {
       t.log(
         t.textRed(`Command failed with exit code 0: ${t.textWhit(normalizedCommand(commandArgs))}
-  ${t.textWhit('debugger: ')}${t.error} ${t.textWhit.dim(error.originalMessage? error.originalMessage : error.message)}
+  ${t.textWhit('debugger: ')}${t.error} ${t.textWhit.dim(error.originalMessage ? error.originalMessage : error.message)}
       `)
       )
-    }else if(error.message.includes('Attempted to assign to readonly property.')){
-      t.log(t.warning,t.textRed(
-        `Check command syntax
+    } else if (
+      error.message.includes('Attempted to assign to readonly property.')
+    ) {
+      t.log(
+        t.warning,
+        t.textRed(
+          `Check command syntax
     ${t.textWhit('debugger: ')}${t.error} ${t.textWhit.dim(error.message)}
-      `))
-    }else {
+      `
+        )
+      )
+    } else {
       t.log(error.message)
     }
   }

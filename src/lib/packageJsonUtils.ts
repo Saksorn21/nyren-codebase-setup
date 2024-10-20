@@ -1,5 +1,6 @@
 import { input } from './prompts.js'
-import { transformString, help } from './help.js'
+import { help } from './help.js'
+import { transformString } from './utils.js'
 import { templateProcessor } from './templateUtils.js'
 import { rfSync } from './fileSystem.js'
 import { getDirname, resolvePath } from './pathHelper.js'

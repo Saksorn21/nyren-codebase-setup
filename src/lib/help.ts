@@ -12,13 +12,14 @@ const reset = chalk.reset
 const text = (hex: string) => chalk.hex(hex).bold
 const textLightSteelBlue1 = text('#d7d7ff')
 const textSlateBlue3 = text('#5f5faf')
+const textNyren = text('#9067C6')
 const textGreen = text('#87ffaf')
 const textRed = text('#d7005f')
 const textOrange = text('#ffaf00')
 const textDeepBlue = text('#00afff')
 const textWhit = text('#ffffff')
 const textGrey = text('#626262')
-const prefixCli = `${textWhit('[')}${text('#9067C6')('nyrenx')}${textWhit(']')}`
+const prefixCli = `${textWhit('[')}${textNyren('nyrenx')}${textWhit(']')}`
 let help: HelpFn<void> = {}
 const info = symbols.info
 const success = symbols.success
@@ -93,18 +94,11 @@ help.noticeNewVersion = async (
     `${prefixNoify} ${textWhit(`To update run: ${install} or ${textOrange('nyrenx update')}`)}`
   )
 }
-function transformString(input: string): string {
-  // Check if the input starts with '@' and contains '/'
-  if (input.startsWith('@') && input.includes('/')) {
-    // Remove '@' and replace '/' with '-'
-    return input.replace(/^@/, '').replace('/', '-')
-  }
-  // If the input doesn't match the conditions, return the original input
-  return input
-}
+
 const tools = {
   ...symbols,
   prefixCli,
+  textNyren,
   text,
   reset,
   textOrange,
@@ -117,4 +111,4 @@ const tools = {
   textLightSteelBlue1,
   log,
 }
-export { help, tools, transformString, prefixCli }
+export { help, tools, prefixCli }

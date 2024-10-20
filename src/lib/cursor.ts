@@ -12,14 +12,14 @@ const resetCursorOnExit = () => {
       ? process.stdout
       : undefined
   terminal
-    ? (onetime(() =>
+    ? onetime(() =>
         onExit(
           () => {
             terminal.write('\x1B[?25h') // Reset cursor visibility
           },
           { alwaysLast: true }
         )
-      ))()
+      )()
     : () => {}
 }
 const cursor: Cursor = {}

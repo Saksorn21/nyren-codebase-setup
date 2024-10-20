@@ -92,7 +92,7 @@ async function parseArgumentsFast(args: string[]) {
       moduleType = args2
     }
   } else {
-    console.log('No matching arguments found')
+    console.log(tools.textRed('No matching arguments found'))
   }
   if (language && moduleType) {
     return { target: language, module: moduleType }
