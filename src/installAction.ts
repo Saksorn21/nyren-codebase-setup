@@ -24,7 +24,7 @@ export async function installAction(this: Command): Promise<void> {
     )
     t.log(
       t.textRed(
-        ` ${t.info}    or try: ${t.textWhit.dim(`[nyrenx i --nyren --d @types/nyren]`)}`
+        ` ${t.info}    or try: ${t.textWhit.dim(`[nyrenx i --directory my-project --nyren --d @types/nyren]`)}`
       )
     )
     process.exit(1)
@@ -49,8 +49,16 @@ async function handleLibraryInstallation(
   const baseCommand = `npm install `
   const devDepsCommand = 'npm install --save-dev '
   const messageParts = []; 
-  const projectName = readPackageJson(validUserDirectoryPath(process.cwd(), opts.directory) + '/package.json'
-  ).name
+  let projectName: string = ''
+  try {
+  projectName = readPackageJson(validUserDirectoryPath(process.cwd(), opts.directory) + '/package.json'
+  ).name as string
+    } catch (error: unknown) {
+      t.log(t.textRed(` ${t.info}  get help: ${t.textWhit.dim(`[nyrenx install --help]`)}
+    ${t.idea} ${t.textWhit.dim(`- Check project files`)}
+      `))
+    process.exit(1)
+    }
   const { deps, devDeps } = await analyzeLibraries(input)
   const commandDev: string | undefined = devDeps && devDepsCommand + devDeps
   const commands: Libraries = { deps: undefined, devDeps: undefined }

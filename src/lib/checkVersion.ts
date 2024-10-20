@@ -1,5 +1,5 @@
-import { runCommand } from './exec.js'
-import { tools, help } from './help.js'
+import execa from './exec.js'
+import { help } from './help.js'
 import { readPackageJson } from './packageJsonUtils.js'
 import { gt as semverGt, parse as semverParse } from 'semver'
 const packageName = '@nyren/codebase-setup'
@@ -7,12 +7,9 @@ const packageName = '@nyren/codebase-setup'
 export async function checkForUpdate(): Promise<string> {
   try {
     const currentVersion: string = readPackageJson().version.toString()
-    const { output, error } = await runCommand(
-      `npm show ${packageName} version`
-    )
-
-    const latestVersion: string = output.toString().trim()
-    if (error) throw error
+  const {stdout} = await execa('npm', ['show', packageName, 'version'])
+    
+    const latestVersion = stdout?.toString().trim() as string
     if (semverGt(latestVersion, currentVersion as string)) {
       const current = semverParse(currentVersion)!
       const latest = semverParse(latestVersion)!
@@ -33,7 +30,7 @@ export async function checkForUpdate(): Promise<string> {
       return ''
     }
   } catch (e: unknown) {
-    tools.log(tools.error, tools.textRed(e as Error))
+    //tools.log(tools.error, tools.textRed(e as Error))
     return ''
   }
 }
