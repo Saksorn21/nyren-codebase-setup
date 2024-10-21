@@ -5,7 +5,10 @@ import type { SignalConstants } from 'node:os'
 import { resolvePath, basename } from './pathHelper.js'
 
 import { tools as t } from './help.js'
-
+interface InputOptions {
+  prefix?: string
+  silent?: boolean
+}
 // Centralize messages to reduce duplication
 const messages = {
   notCommand: (command: string[]) =>
@@ -66,10 +69,12 @@ async function whichCommand(commandArgs: string[]) {
 }
 
 // Handles the main command execution logic
-export async function executeCommand(commandArgs: string[], options: any = {}) {
-  const directoryProject = options.directory
-    ? resolvePath(process.cwd(), options.directory)
+export async function executeCommand(commandArgs: string[], options: InputOptions ) {
+  const directoryProject = options.prefix
+    ? resolvePath(process.cwd(), options.prefix)
     : process.cwd()
+  const silentMode =  options.silent ? 'ignore' : 'inherit'
+  options.silent ? t.log(t.prefixCli,t.toolIcon,  t.text('#F46036')(`Silent mode`)) : null
   let subProcess: ResultPromise
   try {
     await whichCommand(commandArgs)
@@ -77,7 +82,7 @@ export async function executeCommand(commandArgs: string[], options: any = {}) {
 
     // Execute the command
     subProcess = execa(commandArgs[0], commandArgs.slice(1), {
-      stdio: 'inherit',
+      stdio: silentMode,
       detached: true,
       preferLocal: true,
       cwd: directoryProject,

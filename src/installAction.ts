@@ -26,7 +26,7 @@ export async function installAction(this: Command): Promise<void> {
     )
     t.log(
       t.textRed(
-        ` ${t.info}    or try: ${t.textWhit.dim(`[nyrenx i --directory my-project --nyren --d @types/nyren]`)}`
+        ` ${t.info}    or try: ${t.textWhit.dim(`[nyrenx i --prefix my-project -- nyren --d @types/nyren]`)}`
       )
     )
     process.exit(1)
@@ -54,7 +54,7 @@ export async function handleLibraryInstallation(
   let projectName: string = ''
   try {
     projectName = readPackageJson(
-      validUserDirectoryPath(process.cwd(), opts.directory) + '/package.json'
+      validUserDirectoryPath(process.cwd(), opts.prefix) + '/package.json'
     ).name as string
   } catch (error: unknown) {
     t.log(
