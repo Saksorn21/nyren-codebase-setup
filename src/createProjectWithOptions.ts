@@ -1,4 +1,5 @@
 import { input } from './lib/prompts.js'
+import { type Command } from 'commander'
 import {
   createProject,
   processSpinner,
@@ -46,7 +47,8 @@ const fastProjectObj = async (opts: InitOpts): Promise<InitOpts> => ({
   module: opts.module,
   directory: opts.directory || opts.projectName,
 })
-async function fastCreateProject(args: string[]) {
+async function fastCreateProject(this: Command) {
+  const args = this.args
   const projectName = args[0] || 'my-project'
   const { target, module } = await parseArgumentsFast(args)
 

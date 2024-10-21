@@ -23,7 +23,7 @@
     "node": ">=18.0.0"
   },
   "scripts": {
-    "cli": "bun src/cli/nyrenx.ts ",
+    "cli": "bun src/cli/nyrenx.ts",
     "build": "tsc",
     "lint": "prettier --check 'src/**/*.{js,ts}' 'dist/**/*.{js,ts}'",
     "format": "prettier --write 'src/**/*.{js,ts}' 'dist/**/*.{js,ts}'",
@@ -66,9 +66,7 @@
     "chalk": "^5.3.0",
     "commander": "^12.1.0",
     "execa": "^9.4.1",
-    "index.js": "^0.0.3",
     "is-unicode-supported": "^2.1.0",
-    "node": "^22.10.0",
     "onetime": "^7.0.0",
     "ora": "^8.1.0",
     "semver": "^7.6.3",

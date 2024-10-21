@@ -5,6 +5,7 @@ import { readPackageJson } from '../lib/packageJsonUtils.js'
 import { createProject } from '../createProject.js'
 import { runAction } from '../runAction.js'
 import { installAction } from '../installAction.js'
+import { runDynamic } from '../runDynamic.js'
 import examples from './examples.js'
 import {
   createProjectWithOptions,
@@ -21,6 +22,7 @@ program
   .name('nyrenx')
   .description(loadPackage.description as string)
   .version(loadPackage.version as string)
+  .allowUnknownOption()
 
 // global
 program
@@ -31,8 +33,12 @@ program
     await checkForUpdate()
     cursor.show()
   })
-  .arguments('[args...]')
-
+  .argument('[script]', 'The script to run for the project')
+  .argument('[args...]', 'dynamic command arguments')
+  .action(async (script: string, args: string[]) => {
+    const rawArgs = process.argv.slice(3) // adjust the index based on where actual args start
+    await runDynamic(program, script, rawArgs)
+  })
 program
   .command('run')
   .description('Project at runtime')
@@ -68,19 +74,20 @@ initCommand
     'Quick Start the project without being guided through a series of prompts.'
   )
   .addHelpText('after', examples.init)
-  .action(async function (this: Command) {
-    await fastCreateProject(this.args)
+  .action(async function (this: Command, ...args: any) {
+    fastCreateProject.apply(this, args)
   })
 
 program
   .command('install')
   .alias('i')
+  .usage('[options] -- [library]')
   .allowUnknownOption()
   .description('Installation libraries for the project on npm ')
+  .addHelpText('after', examples.install)
   .option('-d, --directory [directory]', 'directory to run the project in')
-  .arguments('[args...]')
-  .action(function (this: Command) {
-    installAction.apply(this)
+  .action(function (this: Command, ...args: any) {
+    installAction.apply(this, args)
   })
 program
   .command('update')

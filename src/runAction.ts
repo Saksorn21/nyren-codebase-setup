@@ -14,9 +14,7 @@ export async function runAction(this: Command) {
       )
     )
     t.log(
-      t.textRed(
-        ` ${t.info}  get help: ${t.textWhit.dim(`[nyrenx run --help]`)}`
-      )
+      t.textRed(` ${t.info}  get help: ${t.textWhit.dim(`[nyrenx help run]`)}`)
     )
     t.log(
       t.textRed(

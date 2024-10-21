@@ -1,10 +1,29 @@
-import { tools as t } from '../lib/help.js'
+import { tools as t, help } from '../lib/help.js'
+
 interface Examples<T> {
   [fnname: string]: T
 }
 const examples: Examples<string> = {}
-examples.run = `nyrenx run --npm run dev`
-examples.install = `nyrenx i --nyren --d @types/nyren`
+examples.run = t.textLightSteelBlue1.dim(`
+  ${t.textOrange(`${t.info} Examples `)}
+   \`\`\`
+   $ nyrenx run -- node index.js 
+   $ nyrenx run -- npm run dev
+   $ nyrenx run -- npm run test -- npm run build
+  `)
+examples.install = t.textLightSteelBlue1.dim(`
+  ${t.textOrange(`${t.info} Examples `)}
+
+   \`\`\`
+   $ nyrenx i -- @nyren/codebase-setup
+   $ nyrenx i -- --dev @types/node
+   $ nyrenx i -- ts-node -g
+   $ nyrenx install -- @nyren/codebase-setup --d @types/nyren
+   \`\`\`
+   ${t.idea} To install libraries as devDependencies, use the ${t.textLightSteelBlue1.underline('"--D"')} flag followed by the library names.
+   
+   `)
+
 examples.init = t.textLightSteelBlue1.dim(`
   ${t.textOrange(`${t.info} Examples `)}
   

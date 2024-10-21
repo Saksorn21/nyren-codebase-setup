@@ -25,7 +25,7 @@ export async function updateLatestVersion() {
     fail: `Failed to update ${packageName}. Please try again.`,
     spinner: {
       interval: 120,
-      frames: await randomVersion(),
+      frames: await randomVersionSpinner(),
     },
     callAction: async spinner => {
       spinner.start()
@@ -48,15 +48,8 @@ export async function updateLatestVersion() {
     },
   })
 }
-const timeout = (ms: number, msg?: string): Promise<void> =>
-  new Promise(resolve =>
-    setTimeout(() => {
-      t.log(msg || '')
-      resolve()
-    }, ms)
-  )
 
-function randomVersion(): Promise<string[]> {
+function randomVersionSpinner(): Promise<string[]> {
   return new Promise(resolve => {
     const generateRandom = () => Math.floor(Math.random() * 11)
     const mockVersion: string[] = []

@@ -141,7 +141,8 @@ function handleCommandError(error: ExecaError, commandArgs: string[]) {
         )
       )
     } else {
-      t.log(error.message)
+      t.log(t.error, t.text('#F46036')(error.message))
+      t.log(t.text('#F46036')(error.exitCode))
     }
   }
   process.exit(error.exitCode || 1)
