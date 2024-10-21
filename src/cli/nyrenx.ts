@@ -33,6 +33,7 @@ program
     await checkForUpdate()
     cursor.show()
   })
+  .option('-w, --watch', 'Watch for changes')
   .argument('[script]', 'The script to run for the project')
   .argument('[args...]', 'dynamic command arguments')
   .action(async (script: string, args: string[]) => {
