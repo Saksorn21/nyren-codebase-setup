@@ -1,4 +1,4 @@
-import { tools as t, help } from '../lib/help.js'
+import { tools as t } from '../lib/help.js'
 
 interface Examples<T> {
   [fnname: string]: T

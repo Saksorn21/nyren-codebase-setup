@@ -137,5 +137,5 @@ export async function executeScriptDynamic(
       `${t.toolIcon} run ${t.textWhit(script)} ${t.text('#6B1D70')('$')} ${t.textWhit.dim(commandArgsResult.join(' '))}`
     )
   )
-  // await executeCommand(commandArgsResult,options)
+  await executeCommand(commandArgsResult,options)
 }

@@ -38,7 +38,7 @@ program
   .option('-w, --watch', 'Watch for changes')
   .argument('[script]', 'The script to run for the project')
   .argument('[args...]', 'dynamic command arguments')
-  .action(async (script: string, args: string[]) => {
+  .action(async (script: string) => {
     const rawArgs = process.argv.slice(3) // adjust the index based on where actual args start
     await executeScriptDynamic(program, script, rawArgs)
   })
@@ -46,9 +46,6 @@ program
   .command('run')
   .description('Project at runtime')
   .usage('[options] -- [yourcommand]')
-  .option('-n, --npm', 'Use npm [nyrenx run -n -- run dev]  ')
-  .option('-nm, --nodemon', 'Use nodemon [nyrenx run -nm -- index.js]  ')
-  .option('-tn, --ts-node', 'Use ts-node [nyrenx run -tn -- index.ts]  ')
   .option('-p, --prefix [directory]', 'directory to run the project in')
   .action(async function (this: Command, ...args: any) {
     runAction.apply(this, args)

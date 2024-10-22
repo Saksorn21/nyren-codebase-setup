@@ -1,6 +1,6 @@
 import which from 'which'
 import execa, { ExecaError, type ResultPromise } from './exec.js' // lib execa for npm
-import onetime from 'onetime'
+// import onetime from 'onetime'
 import type { SignalConstants } from 'node:os'
 import { resolvePath, basename } from './pathHelper.js'
 
@@ -25,7 +25,7 @@ const signalHandler = (
   subProcess: ResultPromise
 ) =>
   subProcess
-    ? onetime(() => {
+    ? (() => {
         t.log(
           `\n${t.warning} ${t.textOrange(`Sending ${t.textWhit(signal)} to command process...`)}`
         )
