@@ -69,12 +69,17 @@ async function whichCommand(commandArgs: string[]) {
 }
 
 // Handles the main command execution logic
-export async function executeCommand(commandArgs: string[], options: InputOptions ) {
+export async function executeCommand(
+  commandArgs: string[],
+  options: InputOptions
+) {
   const directoryProject = options.prefix
     ? resolvePath(process.cwd(), options.prefix)
     : process.cwd()
-  const silentMode =  options.silent ? 'ignore' : 'inherit'
-  options.silent ? t.log(t.prefixCli,t.toolIcon,  t.text('#F46036')(`Silent mode`)) : null
+  const silentMode = options.silent ? 'ignore' : 'inherit'
+  options.silent
+    ? t.log(t.prefixCli, t.toolIcon, t.text('#F46036')(`Silent mode`))
+    : null
   let subProcess: ResultPromise
   try {
     await whichCommand(commandArgs)
