@@ -16,12 +16,14 @@ import { checkForUpdate } from '../lib/checkVersion.js'
 import { updateLatestVersion } from '../updateVersion.js'
 import cursor from '../lib/cursor.js'
 import process from 'node:process'
-const loadPackage = readPackageJson()
+const packageJson = readPackageJson()
+
+
 
 program
   .name('nyrenx')
-  .description(loadPackage.description as string)
-  .version(loadPackage.version as string)
+  .description(packageJson.description as string)
+  .version(packageJson.version as string)
   .allowUnknownOption()
 
 // global

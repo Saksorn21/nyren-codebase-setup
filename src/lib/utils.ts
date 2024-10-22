@@ -1,5 +1,6 @@
 import { tools } from './help.js'
 import { resolvePath } from './pathHelper.js'
+import ansiRegex  from'ansi-regex'
 export async function fetchToJson(
   url: string
 ): Promise<Record<string, string>> {
@@ -21,14 +22,21 @@ export async function fetchToJson(
 export const validUserDirectoryPath = (
   path: string = process.cwd(),
   directoryName?: string
-): string => (directoryName ? resolvePath(path, directoryName) : path)
+): string => directoryName ? resolvePath(path, directoryName) : path
 
-export function transformString(input: string): string {
-  // Check if the input starts with '@' and contains '/'
-  if (input.startsWith('@') && input.includes('/')) {
-    // Remove '@' and replace '/' with '-'
-    return input.replace(/^@/, '').replace('/', '-')
-  }
-  // If the input doesn't match the conditions, return the original input
-  return input
-}
+/**
+ * @param {string} str - Project name to be transformed.
+ * @returns {string} - Returns a valid folder name.
+ * @description - Transforms a project name into a folder-friendly format. If the input starts with '@' and contains '/',
+ *                the '@' is removed and all '/' characters are replaced with '-'. The result is suitable for use as a folder name.
+ * @example
+ * // @nyren/codebase-setup => nyren-codebase-setup
+ * // example/project => example-project
+ */
+export const formatProjectFolderName = (str: string): string =>
+  str.startsWith('@') && str.includes('/') ? str.replace(/^@/, '').replace(/\//g, '-') : str
+
+export const clearAnsiCodes = (str: string): string => 
+  typeof str === 'string' 
+    ? (() => str.replace(ansiRegex(), ''))() 
+    : (() => { throw new TypeError(`Expected a 'string', got '${typeof str}'`) })();

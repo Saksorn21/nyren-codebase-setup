@@ -1,12 +1,25 @@
 import execa from './exec.js'
 import which from 'which'
-import { help } from './help.js'
+import { help, tools as t } from './help.js'
 import { readPackageJson } from './packageJsonUtils.js'
 import { resolvePath } from './pathHelper.js'
-import { gt as semverGt, parse as semverParse } from 'semver'
+import { gt as semverGt, parse as semverParse, satisfies as semverSatisfies } from 'semver'
 
+const packageJson = readPackageJson()
+
+export function chackNodeVersion(wanted: string,pkg: string) {
+  const nodeVersionOfUser = process.version
+ if(!semverSatisfies(process.version,wanted, { includePrerelease: true })){
+   t.log(
+     t.prefixCli, 
+      t.toolIcon, 
+        t.text('#F46036')(
+          `You are using Node ${nodeVersionOfUser}, but this version of ${pkg} requires Node ${wanted}.\nPlease upgrade your Node version.`))
+   process.exit(1)
+ }
+}
 export async function checkForUpdate(): Promise<string | undefined> {
-  const packageJson = readPackageJson()
+  
   try {
     const packageName = packageJson.name.toString().trim()
     const currentVersion: string = packageJson.version.toString()
