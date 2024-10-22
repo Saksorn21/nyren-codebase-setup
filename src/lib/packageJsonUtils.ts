@@ -1,6 +1,6 @@
 import { input } from './prompts.js'
 import { help } from './help.js'
-import { transformString } from './utils.js'
+import { formatProjectFolderName } from './utils.js'
 import { templateProcessor } from './templateUtils.js'
 import { rfSync } from './fileSystem.js'
 import { getDirname, resolvePath } from './pathHelper.js'
@@ -46,7 +46,7 @@ export function finalizeProject(
   module: string,
   directory?: string
 ): Row {
-  const normalizedDirectory = transformString(
+  const normalizedDirectory = formatProjectFolderName(
     directory ? directory : contentPackage.name
   )
   const row: Row = {
@@ -71,7 +71,7 @@ export function finalizeProject(
   return row
 }
 export const processDirectory = async (defaultValue: string) =>
-  await input('directory', transformString(defaultValue))
+  await input('directory', formatProjectFolderName(defaultValue))
 
 export async function processOptionsModule(
   callFn: Function,

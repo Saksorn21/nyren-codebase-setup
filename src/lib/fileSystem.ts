@@ -1,24 +1,34 @@
-import { writeFile as fsWriteFile, mkdir as fsMkdir } from 'node:fs/promises'
-import { readFile as rf, readFileSync as rfSync } from 'node:fs'
+import { mkdir as fsMkdir } from 'node:fs/promises'
+import { readFile as rf, writeFile as wf , readFileSync as rfSync } from 'node:fs'
+import fs from 'node:fs'
 import { dirname, basename } from 'node:path'
 import { formatDataPackageJson } from './packageJsonUtils.js'
 export interface ResultFs {
   success: boolean
   error?: Error
 }
-const readFile = (path: string) =>
+const enum FS {
+  ENCODEING = 'utf-8',
+} as const
+const readFile = (path: fs.PathOrFileDescriptor) =>
   new Promise((res, rej): void =>
-    rf(path, { encoding: 'utf8', flag: 'r' }, (err, data): void =>
-      err ? rej(err) : res(data)
-    )
-  )
-//const readFile = async (path: string) => await fsReadFile(path, 'utf-8')
-const createFile = async (src: string, data: string) =>
-  await fsWriteFile(src, data, { encoding: 'utf-8', flag: 'w' })
+    rf(path, { encoding: FS.ENCODEING, flag: 'r' }, (err, data): void =>
+      (err ? rej(err) : res(data)))
+)
+const createFile = (path: fs.PathOrFileDescriptor, data: string | NodeJS.ArrayBufferView): Promise<void> => new Promise((res, rej) => wf(path, data, { encoding: FS.ENCODEING, flag: 'w' }, (err) => err ? rej(err) : res()))
 
+const chmod = (path: fs.PathLike, mode: fs.Mode): Promise<void> => new Promise((res, rej) => fs.chmod(path, mode, (err): void => (err ? rej(err) : res())))
+const mkdir = (
+  path: fs.PathLike, 
+  options?:
+    | fs.Mode
+    | (fs.MakeDirectoryOptions & { recursive?: boolean | null })
+    | undefined
+    | null,
+): Promise<string | undefined> => new Promise((res, rej) => fs.mkdir(path, options, (err, made) => (err ? rej(err) : res(made))))
 async function createDirectory(path: string): Promise<ResultFs> {
   try {
-    await fsMkdir(dirname(path), { recursive: true })
+    await mkdir(dirname(path), { recursive: true })
     return { success: true }
   } catch (error) {
     return { success: false, error: error as Error }

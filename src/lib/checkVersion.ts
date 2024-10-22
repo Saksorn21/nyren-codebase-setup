@@ -3,6 +3,7 @@ import which from 'which'
 import { help, tools as t } from './help.js'
 import { readPackageJson } from './packageJsonUtils.js'
 import { resolvePath } from './pathHelper.js'
+import { clearAnsiCodes } from './utils.js'
 import { gt as semverGt, parse as semverParse, satisfies as semverSatisfies } from 'semver'
 
 const packageJson = readPackageJson()
