@@ -8,7 +8,7 @@ import { gt as semverGt, parse as semverParse, satisfies as semverSatisfies } fr
 
 const packageJson = readPackageJson()
 
-export function chackNodeVersion(wanted: string,pkg: string) {
+export function chackNodeVersion(wanted: string, pkg: string) {
   const nodeVersionOfUser = process.version
  if(!semverSatisfies(process.version,wanted, { includePrerelease: true })){
    t.log(
@@ -27,7 +27,7 @@ export async function checkForUpdate(): Promise<string | undefined> {
     const fileNpm = resolvePath(await which('npm'))
     const { stdout } = await execa(fileNpm, ['show', packageName, 'version'])
 
-    const latestVersion = stdout?.toString().trim() as string
+    const latestVersion = clearAnsiCodes(stdout?.toString().trim() as string)
     if (semverGt(latestVersion, currentVersion as string)) {
       const current = semverParse(currentVersion)!
       const latest = semverParse(latestVersion)!

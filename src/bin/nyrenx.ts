@@ -12,7 +12,7 @@ import {
   fastCreateProject,
   type InitOpts,
 } from '../createProjectWithOptions.js'
-import { checkForUpdate } from '../lib/checkVersion.js'
+import { checkForUpdate, chackNodeVersion } from '../lib/checkVersion.js'
 import { updateLatestVersion } from '../updateVersion.js'
 import cursor from '../lib/cursor.js'
 import process from 'node:process'
@@ -29,6 +29,7 @@ program
 // global
 program
   .hook('preAction', () => {
+    chackNodeVersion((packageJson.engines as {node: string}).node , packageJson.name as string)
     cursor.hide()
   })
   .hook('postAction', async () => {

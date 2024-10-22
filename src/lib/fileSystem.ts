@@ -7,8 +7,8 @@ export interface ResultFs {
   success: boolean
   error?: Error
 }
-const enum FS {
-  ENCODEING = 'utf-8',
+const FS = {
+  ENCODEING: 'utf-8',
 } as const
 const readFile = (path: fs.PathOrFileDescriptor) =>
   new Promise((res, rej): void =>
