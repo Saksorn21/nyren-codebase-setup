@@ -17,19 +17,20 @@ import { updateLatestVersion } from '../updateVersion.js'
 import cursor from '../lib/cursor.js'
 import process from 'node:process'
 
-
-
-
 program
   .name('nyrenx')
-  .version(readPackageJson().version, '-v, --version', 'Output the current version.')
+  .version(
+    readPackageJson().version,
+    '-v, --version',
+    'Output the current version.'
+  )
   .helpOption('-h, --help', 'Output usage information.')
   .allowUnknownOption()
 
 // global
 program
   .hook('preAction', () => {
-    chackNodeVersion(readPackageJson().engines.node , readPackageJson().name)
+    chackNodeVersion(readPackageJson().engines.node, readPackageJson().name)
     cursor.hide()
   })
   .hook('postAction', async () => {

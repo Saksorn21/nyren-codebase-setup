@@ -127,15 +127,11 @@ function handleCommandError(error: ExecaError, commandArgs: string[]) {
   if (error.signal !== 'SIGINT' && error.signal !== 'SIGTERM') {
     if (error.code === 'ENOENT') {
       t.log(t.textRed(`Unknown command: ${t.textWhit(error.command)}`))
-    } else if (error.message.includes('Command failed with exit code 1')) {
+    } else if (
+      error.message.includes(`Command failed with exit code ${error.exitCode}`)
+    ) {
       t.log(
-        t.textRed(`Command failed with exit code 1: ${t.textWhit(normalizedCommand(commandArgs))}
-      
-      `)
-      )
-    } else if (error.message.includes('Command failed with exit code 0')) {
-      t.log(
-        t.textRed(`Command failed with exit code 0: ${t.textWhit(normalizedCommand(commandArgs))}
+        t.textRed(`Command failed with exit code ${error.exitCode}: ${t.textWhit(normalizedCommand(commandArgs))}
   ${t.textWhit('debugger: ')}${t.error} ${t.textWhit.dim(error.originalMessage ? error.originalMessage : error.message)}
       `)
       )
@@ -152,7 +148,7 @@ function handleCommandError(error: ExecaError, commandArgs: string[]) {
       )
     } else {
       t.log(t.error, t.text('#F46036')(error.message))
-      t.log(t.text('#F46036')(error?.exitCode))
+      t.log(t.text('#F46036')(error.exitCode))
     }
   }
   process.exit(error.exitCode || 1)

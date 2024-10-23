@@ -27,7 +27,7 @@
     "build": "tsc",
     "lint": "prettier --check 'src/**/*.{js,ts}' 'dist/**/*.{js,ts}'",
     "format": "prettier --write 'src/**/*.{js,ts}' 'dist/**/*.{js,ts}'",
-    "test": "jest --coverage"
+    "test": "jest --coverage --config jest.config.ts"
   },
   "keywords": [
     "cli",

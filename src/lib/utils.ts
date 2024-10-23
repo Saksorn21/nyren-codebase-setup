@@ -1,6 +1,6 @@
 import { tools } from './help.js'
 import { resolvePath } from './pathHelper.js'
-import ansiRegex  from'ansi-regex'
+import ansiRegex from 'ansi-regex'
 export async function fetchToJson(
   url: string
 ): Promise<Record<string, string>> {
@@ -22,7 +22,7 @@ export async function fetchToJson(
 export const validUserDirectoryPath = (
   path: string = process.cwd(),
   directoryName?: string
-): string => directoryName ? resolvePath(path, directoryName) : path
+): string => (directoryName ? resolvePath(path, directoryName) : path)
 
 /**
  * @param {string} str - Project name to be transformed.
@@ -34,9 +34,13 @@ export const validUserDirectoryPath = (
  * // example/project => example-project
  */
 export const formatProjectFolderName = (str: string): string =>
-  str.startsWith('@') && str.includes('/') ? str.replace(/^@/, '').replace(/\//g, '-') : str
+  str.startsWith('@') && str.includes('/')
+    ? str.replace(/^@/, '').replace(/\//g, '-')
+    : str
 
-export const clearAnsiCodes = (str: string): string => 
-  typeof str === 'string' 
-    ? (() => str.replace(ansiRegex(), ''))() 
-    : (() => { throw new TypeError(`Expected a 'string', got '${typeof str}'`) })();
+export const clearAnsiCodes = (str: string): string =>
+  typeof str === 'string'
+    ? (() => str.replace(ansiRegex(), ''))()
+    : (() => {
+        throw new TypeError(`Expected a 'string', got '${typeof str}'`)
+      })()

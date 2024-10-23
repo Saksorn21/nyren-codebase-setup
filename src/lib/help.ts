@@ -10,6 +10,8 @@ export interface HelpFn<T1, T2 = string, T3 = string, T4 = string> {
 }
 const reset = chalk.reset
 const text = (hex: string) => chalk.hex(hex).bold
+const bg = (hex: string, hex2: string = '#ffffff') =>
+  chalk.bgHex(hex).hex(hex2).bold
 const textLightSteelBlue1 = text('#d7d7ff')
 const textSlateBlue3 = text('#5f5faf')
 const textNyren = text('#9067C6')
@@ -100,6 +102,7 @@ const tools = {
   prefixCli,
   textNyren,
   text,
+  bg,
   reset,
   textOrange,
   textDeepBlue,

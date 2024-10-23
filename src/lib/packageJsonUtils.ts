@@ -110,9 +110,7 @@ function updatePackageField(
   }
 }
 
-export function readPackageJson(
-  src?: string
-): Record<string, any> {
+export function readPackageJson(src?: string): Record<string, any> {
   let packageJsonPath: string
   if (src) {
     packageJsonPath = src
