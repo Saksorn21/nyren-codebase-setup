@@ -23,7 +23,7 @@
     "node": ">=18.0.0"
   },
   "scripts": {
-    "cli": "bun src/cli/nyrenx.ts",
+    "cli": "bun src/bin/nyrenx.ts",
     "build": "tsc",
     "lint": "prettier --check 'src/**/*.{js,ts}' 'dist/**/*.{js,ts}'",
     "format": "prettier --write 'src/**/*.{js,ts}' 'dist/**/*.{js,ts}'",

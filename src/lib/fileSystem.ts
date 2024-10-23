@@ -1,6 +1,5 @@
-import { mkdir as fsMkdir } from 'node:fs/promises'
 import { readFile as rf, writeFile as wf , readFileSync as rfSync } from 'node:fs'
-import fs from 'node:fs'
+import fs, { Dirent} from 'node:fs'
 import { dirname, basename } from 'node:path'
 import { formatDataPackageJson } from './packageJsonUtils.js'
 export interface ResultFs {
@@ -17,7 +16,8 @@ const readFile = (path: fs.PathOrFileDescriptor) =>
 )
 const createFile = (path: fs.PathOrFileDescriptor, data: string | NodeJS.ArrayBufferView): Promise<void> => new Promise((res, rej) => wf(path, data, { encoding: FS.ENCODEING, flag: 'w' }, (err) => err ? rej(err) : res()))
 
-const chmod = (path: fs.PathLike, mode: fs.Mode): Promise<void> => new Promise((res, rej) => fs.chmod(path, mode, (err): void => (err ? rej(err) : res())))
+const readdir = (path: fs.PathLike): Promise<Dirent[]> => new Promise((res, rej) => fs.readdir(path, { withFileTypes: true }, (err, data) => err ? rej(err) : res(data))) 
+
 const mkdir = (
   path: fs.PathLike, 
   options?:
@@ -26,6 +26,7 @@ const mkdir = (
     | undefined
     | null,
 ): Promise<string | undefined> => new Promise((res, rej) => fs.mkdir(path, options, (err, made) => (err ? rej(err) : res(made))))
+
 async function createDirectory(path: string): Promise<ResultFs> {
   try {
     await mkdir(dirname(path), { recursive: true })
@@ -55,4 +56,4 @@ async function createJsonFile(
   }
 }
 
-export { readFile, rfSync, createJsonFile, createFile, createDirectory }
+export { readdir, readFile, rfSync, createJsonFile, createFile, createDirectory }
