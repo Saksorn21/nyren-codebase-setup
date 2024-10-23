@@ -3,6 +3,7 @@ import { type Command } from 'commander'
 import { processSpinner_ } from './lib/spinner.js'
 import { validUserDirectoryPath } from './lib/utils.js'
 import { readPackageJson } from './lib/packageJsonUtils.js'
+import { getPackageManager } from './lib/packageManagers.js'
 import { help, tools as t } from './lib/help.js'
 interface Libraries {
   deps: string | undefined
@@ -48,8 +49,9 @@ export async function handleLibraryInstallation(
   input: string,
   opts: any
 ): Promise<void> {
-  const baseCommand = `npm install `
-  const devDepsCommand = 'npm install --save-dev '
+  const { name, cli } = await getPackageManager()
+  const baseCommand = `${name} ${cli.install} `
+  const devDepsCommand = `${name} ${cli.install} ${cli.saveDevFlag}`
   const messageParts = []
   let projectName: string = ''
   try {

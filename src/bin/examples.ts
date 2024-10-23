@@ -6,10 +6,12 @@ interface Examples<T> {
 const examples: Examples<string> = {}
 examples.run = t.textLightSteelBlue1.dim(`
   ${t.textOrange(`${t.info} Examples `)}
+  
    \`\`\`
    $ nyrenx run -- node index.js 
    $ nyrenx run -- npm run dev
    $ nyrenx run -- npm run test -- npm run build
+   \`\`\`
   `)
 examples.install = t.textLightSteelBlue1.dim(`
   ${t.textOrange(`${t.info} Examples `)}
@@ -51,5 +53,15 @@ examples.init = t.textLightSteelBlue1.dim(`
          ${t.text('#8CCB3D')('esModule:')} [ 'es', 'esm', 'module', 'esmodule', 'es6', 'es2015', 'esnext', 'import' ]
          ${t.text('#F7DF1E')('Commonjs:')} [ 'cjs', 'commonjs', 'common', 'require', 'node' ] `)}
    `)
-
+examples.dynamicCommand = `
+  ${t.textOrange(`${t.info} Examples `)}
+  ${t.textLightSteelBlue1.dim(`
+    \`\`\`
+    $ nyrenx ./src/index.js 
+    $ nyrenx --watch ./src/index.ts
+    $ nyrenx dev
+    $ nyrenx test --coverage
+   \`\`\` `)}
+  ${t.textGreen(`TIP:`)} ${t.textWhit.visible(`Follow the scripts in the package.json file or script file.`)}
+  `
 export default examples

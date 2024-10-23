@@ -22,8 +22,8 @@ export function chackNodeVersion(wanted: string, pkg: string) {
 export async function checkForUpdate(): Promise<string | undefined> {
   
   try {
-    const packageName = packageJson.name.toString().trim()
-    const currentVersion: string = packageJson.version.toString()
+    const packageName = packageJson.name.trim()
+    const currentVersion: string = packageJson.version
     const fileNpm = resolvePath(await which('npm'))
     const { stdout } = await execa(fileNpm, ['show', packageName, 'version'])
 

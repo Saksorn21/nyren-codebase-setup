@@ -37,7 +37,7 @@ let instanceRunners;
    }
    return { name: instanceRunners.name, cli: instanceRunners.cli }
 }
-;(async () =>console.log(await getPackageManager()))()
+
 async function findLockFile() {
    const DEFAULT_PACKAGE_MANAGER = PACKAGEMANAGER.NPM;
 
@@ -104,7 +104,7 @@ class CreatePackageManager {
       }
    }
    get name () {
-   return this.packageManager.toUpperCase()
+   return this.packageManager.toLowerCase()
   }
 }
 class Npm extends CreatePackageManager {

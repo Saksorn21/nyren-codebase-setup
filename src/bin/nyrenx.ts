@@ -16,20 +16,20 @@ import { checkForUpdate, chackNodeVersion } from '../lib/checkVersion.js'
 import { updateLatestVersion } from '../updateVersion.js'
 import cursor from '../lib/cursor.js'
 import process from 'node:process'
-const packageJson = readPackageJson()
+
 
 
 
 program
   .name('nyrenx')
-  .description(packageJson.description as string)
-  .version(packageJson.version as string)
+  .version(readPackageJson().version, '-v, --version', 'Output the current version.')
+  .helpOption('-h, --help', 'Output usage information.')
   .allowUnknownOption()
 
 // global
 program
   .hook('preAction', () => {
-    chackNodeVersion((packageJson.engines as {node: string}).node , packageJson.name as string)
+    chackNodeVersion(readPackageJson().engines.node , readPackageJson().name)
     cursor.hide()
   })
   .hook('postAction', async () => {
@@ -84,6 +84,7 @@ initCommand
 program
   .command('install')
   .alias('i')
+  .alias('add')
   .usage('[options] -- [library]')
   .allowUnknownOption()
   .description('Installation libraries for the project on npm ')
