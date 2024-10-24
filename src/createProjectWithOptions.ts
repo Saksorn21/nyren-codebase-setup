@@ -16,6 +16,7 @@ export interface InitOpts {
   target?: string
   module?: string
   directory?: string
+  prefix?: string
 }
 
 async function createProjectWithOptions(options: InitOpts) {
@@ -42,32 +43,24 @@ async function createProjectWithOptions(options: InitOpts) {
 
   await createProject({ projectName, target, module, directory })
 }
-const fastProjectObj = async (opts: InitOpts): Promise<InitOpts> => ({
-  projectName: opts.projectName as string,
-  target: opts.target,
-  module: opts.module,
-  directory: opts.directory || opts.projectName,
-})
+
 async function fastCreateProject(this: Command) {
   const args = this.args
-  const opts = {}
+  const opts = this.opts()
+  console.log(args, opts)
   await parseAndSetDefaultArgs(args)
-  await processOfGeneratingOptionsResults(args, opts)
-  process.exit(0)
-  const projectName = args[0]
-  const { target, module } = await parseArgumentsFast(args)
-process.exit(0)
-  const objFast = await fastProjectObj({ projectName, target, module })
+  await finalizeOptions(args, opts)
+  
   tools.log(
     tools.textOrange(
-      `${tools.fast} Turbocharge your project builds with ${tools.textWhit(objFast.target)}, using the module ${tools.textWhit(objFast.module)}, in the directory: ${tools.textWhit(objFast.directory)}! ${tools.fast}`
+      `${tools.fast} Turbocharge your project builds with ${tools.textWhit(opts.target)}, using the module ${tools.textWhit(opts.module)}, in the directory: ${tools.textWhit(opts.directory)}! ${tools.fast}`
     )
   )
 
   const row = await processPackageJson(
-    objFast.target as string,
+    opts.target as string,
     setUpModule,
-    objFast as InitOpts
+    opts as InitOpts
   )
   const { templateCode, userDirectoryName } = row
   await processBuildTemplateFiles(
@@ -76,10 +69,10 @@ process.exit(0)
     userDirectoryName
   )
 }
-const analysisProcess = async (context: string, isNull = false): Promise<string | null> => await matchLanguage(context) || await matchModule(context) || (isNull ? null : context)
+const analysisProcess = async (context: string): Promise<string > => await matchLanguage(context) || await matchModule(context) || context
+
 async function parseAndSetDefaultArgs(args: string[]) {
   
-
   if (args.length > 3) {
     tools.log(
       tools.prefixCli,
@@ -115,56 +108,54 @@ for await (const arg of args) {
     )
   )
 }
-async function processOfGeneratingOptionsResults(args: string[], opts: InitOpts = {}){
-  console.log('args', args)
-  console.log('opts', opts)
-  let projectName, target, module
-  let argumentFirstOne = await analysisProcess(args[0], true)
-  let argumentTow = await analysisProcess(args[1], true)
-  let argumentThree = await analysisProcess(args[2], true)
-  let rawArgsFirstOne = args[0]
-  let rawArgsTow = args[1]
-  let rawArgsThree = args[2]
-  for await (const arg of args){
-  switch (arg) {
-     case 'typescript':
-      target = arg
-      opts.target = arg
-        break;
-    case 'javascript':
-      target = arg
-      opts.target = arg
-        break;
-    case 'commonjs':
-      module = arg
-      opts.module = arg
-        break;
-    case 'module':
-      module = arg
-      opts.module = arg
-        break;
-    default:
-      projectName = arg
-      opts.projectName = arg
-        break
-  }
-    
-}
-console.log(argumentFirstOne, argumentTow, argumentThree)
-  console.log('raw',rawArgsFirstOne, rawArgsTow, rawArgsThree)
-  console.log(projectName, target, module)
-  if (!target){
-    console.log('target', target, module)
-    target = module  === 'module' ? 'typescript' : 'javascript'
-  }
-  if(!module){
-    module = target === 'typescript' ? 'module' : 'commonjs'
-  }
-    opts.projectName = projectName || 'my-project'
-    opts.target = target ||'typescript'
-    opts.module = module||'module'
+async function finalizeOptions(args: string[], opts: InitOpts = {}){
+  let projectName, language, moduleType;
+  // Added flexibility in passing the “-- any” argument.
+  // $ nyrenx init fast -- my-project typescript module
+  // $ nyrenx init fast -- my-project typescript
+  // $ nyrenx init fast -- js esm
+  // $ nyrenx init fast -- cjs
   
-  console.log('opts', opts)
+  for await (const arg of args) {
+    switch (arg) {
+      case 'typescript':
+        language = arg;
+        opts.target = arg;
+        break;
+      case 'javascript':
+        language = arg;
+        opts.target = arg;
+        break;
+      case 'commonjs':
+        moduleType = arg;
+        opts.module = arg;
+        break;
+      case 'module':
+        moduleType = arg;
+        opts.module = arg;
+        break;
+      default:
+        projectName = arg;
+        opts.projectName = arg;
+        break;
+    }
+  }
+
+  if (!language) {
+    console.log('language', language, moduleType);
+    language = moduleType === 'module' ? 'typescript' : 'javascript';
+  }
+
+  if (!moduleType) {
+    moduleType = language === 'typescript' ? 'module' : 'commonjs';
+  }
+
+  opts.projectName = projectName || 'my-project';
+  opts.target = language || 'typescript';
+  opts.module = moduleType || 'module';
+  opts.directory = opts.prefix || opts.projectName || 'my-project';
+
+  console.log('opts', opts);
 }
 
 async function parseArgumentsFast(args: string[]) {

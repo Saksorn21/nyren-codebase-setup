@@ -78,8 +78,8 @@ initCommand
     'Quick Start the project without being guided through a series of prompts.'
   )
   .addHelpText('after', examples.init)
-  .action(async function (this: Command, ...args: any) {
-    
+  .action(async function (this: Command, ...args: any,option) {
+    console.log(option)
     fastCreateProject.apply(this, args)
   })
 
@@ -91,7 +91,7 @@ program
   .allowUnknownOption()
   .description('Installation libraries for the project on npm ')
   .addHelpText('after', examples.install)
-  .option('-p, --prefix [directory]', 'directory to run the project in')
+ // .option('-p, --prefix [directory]', 'directory to run the project in')
   .action(function (this: Command, ...args: any) {
     installAction.apply(this, args)
   })
