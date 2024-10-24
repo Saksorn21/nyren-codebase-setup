@@ -145,6 +145,9 @@ console.log(argumentFirstOne, argumentTow, argumentThree)
     console.log('target', target, module)
     target = module  === 'module' ? 'typescript' : 'javascript'
   }
+  if(!module){
+    module = target === 'typescript' ? 'module' : 'commonjs'
+  }
     opts.projectName = projectName || 'my-project'
     opts.target = target ||'typescript'
     opts.module = module||'module'
