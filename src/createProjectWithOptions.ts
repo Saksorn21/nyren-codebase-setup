@@ -8,6 +8,7 @@ import {
   processBuildTemplateFiles,
 } from './createProject.js'
 import { processPackageJson } from './lib/processPackageJson.js'
+import examples from './bin/examples.js'
 import { tools, help } from './lib/help.js'
 export interface InitOpts {
   projectName?: string
@@ -101,7 +102,7 @@ for await (const arg of args) {
     tools.error,
     tools.textRed(`Conflicting module types: Cannot use both ${tools.textWhit('commonjs')} and ${tools.textWhit('esmodule')} together.`)
   );
-    tools.log(help.$(args))
+    tools.log(examples.init)
   process.exit(2);
     }
   uniqueArgs.add(processedArg as string);
