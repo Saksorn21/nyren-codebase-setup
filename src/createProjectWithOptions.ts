@@ -51,7 +51,7 @@ async function fastCreateProject(this: Command) {
   const args = this.args
   const projectName = args[0] || 'my-project'
   const { target, module } = await parseArgumentsFast(args)
-
+process.exit(0)
   const objFast = await fastProjectObj({ projectName, target, module })
   tools.log(
     tools.textOrange(
@@ -71,7 +71,35 @@ async function fastCreateProject(this: Command) {
     userDirectoryName
   )
 }
+async function parseAndSetDefaultArgs(args: string[]) {
+  const analysisProcess = async (context: string) => await matchLanguage(context) || await matchModule(context) || context;
+
+  if (args.length > 3) {
+    tools.log(
+      tools.prefixCli,
+      tools.error,
+      tools.textRed(`Incompatible arguments: ${tools.textWhit('-- ' + args.join(' '))}. Expected up to 3 arguments, but got ${tools.textWhit(args.length)}.`)
+    )
+    process.exit(2);
+  }
+  if (args.length === 0) {
+    args.push('my-project', 'typescript', 'module');
+  }
+  const uniqueArgs = new Set<string>()
+for await (const arg of args) {
+  const processedArg = await analysisProcess(arg);
+  uniqueArgs.add(processedArg);
+}
+
+args = Array.from(uniqueArgs);
+}
+   
+
 async function parseArgumentsFast(args: string[]) {
+  
+ await parseAndSetDefaultArgs(args)
+  console.log(args)
+  process.exit(0)
   const arr1 = args[1] || 'typescript'
   const arr2 = args[2] || 'module'
   const args2 =

@@ -79,6 +79,7 @@ initCommand
   )
   .addHelpText('after', examples.init)
   .action(async function (this: Command, ...args: any) {
+    
     fastCreateProject.apply(this, args)
   })
 
