@@ -49,7 +49,10 @@ const fastProjectObj = async (opts: InitOpts): Promise<InitOpts> => ({
 })
 async function fastCreateProject(this: Command) {
   const args = this.args
+  const opts = {}
   await parseAndSetDefaultArgs(args)
+  await processOfGeneratingOptionsResults(args, opts)
+  process.exit(0)
   const projectName = args[0]
   const { target, module } = await parseArgumentsFast(args)
 process.exit(0)
@@ -100,7 +103,54 @@ for await (const arg of args) {
     )
   )
 }
-   
+async function processOfGeneratingOptionsResults(args: string[], opts: InitOpts = {}){
+  console.log('args', args)
+  console.log('opts', opts)
+  let projectName, target, module
+  let argumentFirstOne = await analysisProcess(args[0], true)
+  let argumentTow = await analysisProcess(args[1], true)
+  let argumentThree = await analysisProcess(args[2], true)
+  let rawArgsFirstOne = args[0]
+  let rawArgsTow = args[1]
+  let rawArgsThree = args[2]
+  for await (const arg of args){
+  switch (arg) {
+     case 'typescript':
+      target = arg
+      opts.target = arg
+        break;
+    case 'javascript':
+      target = arg
+      opts.target = arg
+        break;
+    case 'commonjs':
+      module = arg
+      opts.module = arg
+        break;
+    case 'module':
+      module = arg
+      opts.module = arg
+        break;
+    default:
+      projectName = arg
+      opts.projectName = arg
+        break
+  }
+    
+}
+console.log(argumentFirstOne, argumentTow, argumentThree)
+  console.log('raw',rawArgsFirstOne, rawArgsTow, rawArgsThree)
+  console.log(projectName, target, module)
+  if (!target){
+    console.log('target', target, module)
+    target = module  === 'module' ? 'typescript' : 'javascript'
+  }
+    opts.projectName = projectName || 'my-project'
+    opts.target = target ||'typescript'
+    opts.module = module||'module'
+  
+  console.log('opts', opts)
+}
 
 async function parseArgumentsFast(args: string[]) {
   const uniqueArgs = new Set<string>()
@@ -143,6 +193,7 @@ const presetSpinnerMatch = async <T>(match: string, callFn: PromiseLike<T>) =>
   })
 
 async function matchLanguage(target: string): Promise<'javascript' | 'typescript' | null> {
+  if(!target) return null
   const languageVariants = [
     'js',
     'javascript',
@@ -151,7 +202,6 @@ async function matchLanguage(target: string): Promise<'javascript' | 'typescript
     'type',
     'types',
   ]
-
   const normalizedTarget = target.toLowerCase()
 
   if (languageVariants.includes(normalizedTarget)) {
@@ -163,6 +213,7 @@ async function matchLanguage(target: string): Promise<'javascript' | 'typescript
   return null
 }
 async function matchModule(moduleType: string): Promise<'commonjs' | 'module' | null> {
+  if(!moduleType) return null
   const esmVariants = [
     'es',
     'esm',
