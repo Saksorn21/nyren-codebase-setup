@@ -96,7 +96,7 @@ help.noticeNewVersion = async (
     `${prefixNoify} ${textWhit(`To update run: ${install} or ${textOrange('nyrenx update')}`)}`
   )
 }
-
+help.$ = (commands: string[]) => `${text('800080')('$')} ${text('d7d7ff').dim(commands.join(' '))}`
 const tools = {
   ...symbols,
   prefixCli,

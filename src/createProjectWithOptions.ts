@@ -8,7 +8,7 @@ import {
   processBuildTemplateFiles,
 } from './createProject.js'
 import { processPackageJson } from './lib/processPackageJson.js'
-import { tools } from './lib/help.js'
+import { tools, help } from './lib/help.js'
 export interface InitOpts {
   projectName?: string
   fix?: string | boolean | undefined
@@ -91,8 +91,19 @@ async function parseAndSetDefaultArgs(args: string[]) {
     args.push('my-project', 'typescript', 'module');
   }
   const uniqueArgs = new Set<string>()
+   
 for await (const arg of args) {
   const processedArg = await analysisProcess(arg);
+  if (uniqueArgs.has('commonjs') && processedArg === 'module' || 
+    uniqueArgs.has('module') && processedArg === 'commonjs') {
+  tools.log(
+    tools.prefixCli,
+    tools.error,
+    tools.textRed(`Conflicting module types: Cannot use both ${tools.textWhit('commonjs')} and ${tools.textWhit('esmodule')} together.`)
+  );
+    tools.log(help.$(args))
+  process.exit(2);
+    }
   uniqueArgs.add(processedArg as string);
 }
 
