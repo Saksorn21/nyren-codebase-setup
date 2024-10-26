@@ -97,30 +97,32 @@ export async function executeCommand(
     process.on('SIGUSR2', () => signalHandler('SIGUSR2', subProcess))
 
     const { exitCode: subProcessExitCode } = await subProcess
-    exitCode = subProcessExitCode ?? 0
+    exitCode = subProcessExitCode 
     // Handle exit code
     if (exitCode !== 0) throw new Error(messages.exitCodeMessage(exitCode))
   } catch (e: unknown) {
     exitCode = (e as ExecaError).exitCode ?? 1
     handleCommandError(e as ExecaError, commandArgs)
   } finally {
-    
     process.removeListener('SIGINT', () => signalHandler('SIGINT', subProcess))
     process.removeListener('SIGTERM', () =>
       signalHandler('SIGTERM', subProcess)
     )
 t.log()
     process.on('exit', (code: number) => {
-      const userScript = normalizedArgumentScript()
-      const packageJsonScripts = readPackageJson(resolvePath(process.cwd(), 'package.json')).scripts
-        const matchScript = packageJsonScripts[userScript] ? true : false
-      console.log(code)
-      if (matchScript !== undefined && code !== 0){
-      t.log(`${t.textRed(`error`)}${t.textWhit.dim(`: script "${userScript}" exited with code ${code}`)}`)
-   }
-    })
-    
+      handleOnExited(code)
+  })
+    process.exit(exitCode)
   }
+}
+
+function handleOnExited(exitCode: number) {
+   const userScript = normalizedArgumentScript()
+     const packageJsonScripts = readPackageJson(resolvePath(process.cwd(), 'package.json')).scripts
+       const matchScript = packageJsonScripts[userScript] ? true : false
+   if(matchScript && exitCode !== 0){
+     t.log(`${t.textRed(`error`)}${t.textWhit.dim(`: script "${userScript}" exited with code ${exitCode}`)}`)
+   }
 }
 
 // Handles errors during execution
@@ -157,7 +159,7 @@ function normalizedArgumentScript(rawArgs: string[] = process.argv) {
   const command = normalizedCommand(rawArgs)
    const commandIndex = command.indexOf('nyrenx')
    const forwardedArgs = command.slice(commandIndex + 1)
-  console.log('forwardedArgs',forwardedArgs,'command',command)
+
   return forwardedArgs[0]
 }
 
@@ -166,24 +168,21 @@ function normalizedArgumentScript(rawArgs: string[] = process.argv) {
     let expandNext = false;
 
     const removeExtensions = (files: string[]) => files.map(file => file.split('.')[0]);
-    console.log(fileCommand)
     const firstCommand = basename(fileCommand[0]).split('.')[0]
     for (let i = 0; i < fileCommand.length; i++) {
+      // If the first command is a script, remove the extension
       if (firstCommand === 'node' || firstCommand === 'nodemon' || firstCommand ==='bun') {
         
         fileCommand.shift();
       }
     if (i === 0 || expandNext) {
       fileCommand[i] = basename(fileCommand[i]);
-      console.log(fileCommand)
     }
-
-    // ตั้งค่าสถานะ expandNext เมื่อพบ "--"
     if (fileCommand[i] === '--') {
       expandNext = true;
     }
     }
-    console.log(fileCommand)
+    
     return removeExtensions(fileCommand);
 }
 async function handleCommandOptions(opts: InputOptions) {

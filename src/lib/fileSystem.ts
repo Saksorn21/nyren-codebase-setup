@@ -2,8 +2,9 @@ import {
   readFile as rf,
   writeFile as wf,
   readFileSync as rfSync,
+  stat
 } from 'node:fs'
-import fs, { Dirent } from 'node:fs'
+import fs, { Dirent, Stats } from 'node:fs'
 import { dirname, basename } from 'node:path'
 import { formatDataPackageJson } from './packageJsonUtils.js'
 export interface ResultFs {
@@ -13,9 +14,9 @@ export interface ResultFs {
 const FS = {
   ENCODEING: 'utf-8',
 } as const
-const readFile = (path: fs.PathOrFileDescriptor) =>
-  new Promise((res, rej): void =>
-    rf(path, { encoding: FS.ENCODEING, flag: 'r' }, (err, data): void =>
+const readFile = (path: fs.PathOrFileDescriptor): Promise<string> =>
+  new Promise((res, rej) =>
+    rf(path, { encoding: FS.ENCODEING, flag: 'r' }, (err, data) =>
       err ? rej(err) : res(data)
     )
   )
@@ -35,7 +36,7 @@ const readdir = (path: fs.PathLike): Promise<Dirent[]> =>
       err ? rej(err) : res(data)
     )
   )
-
+const exists = (path: fs.PathLike): Promise<Stats> => new Promise((res, rej) => stat(path, (err, stats) => err ? rej(err) : res(stats)))
 const mkdir = (
   path: fs.PathLike,
   options?:
@@ -84,4 +85,5 @@ export {
   createJsonFile,
   createFile,
   createDirectory,
+  exists
 }

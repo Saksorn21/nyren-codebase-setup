@@ -70,30 +70,30 @@ const prepareScriptCommand = async (
 
   // If the file ends with .ts, use ts-node or bun based on the project type.
   // For other file extensions (.js, .cjs, .mjs), use node to execute the script.
-  const execCommand = command.endsWith('ts') ? runnersForType : 'node'
-    commandArgs.unshift(execCommand)
+const execCommand = command.endsWith('ts') ? runnersForType : 'node'
+  commandArgs.unshift('bun')
 }
 const combineSubcommand = async (commandArgs: string[]) => {
-  await findOrFallbackToNpx(commandArgs)
-  const commandToCombine = commandArgs.slice(0, 3).join(' ')
-  const args = commandArgs.slice(3)
+await findOrFallbackToNpx(commandArgs)
+const commandToCombine = commandArgs.slice(0, 3).join(' ')
+const args = commandArgs.slice(3)
 
-  if (commandArgs[0] === 'npx') {
-    commandArgs.length = 0
-    commandArgs.push(commandToCombine, ...args)
-  }
+if (commandArgs[0] === 'npx') {
+  commandArgs.length = 0
+  commandArgs.push(commandToCombine, ...args)
+}
 }
 
 const processWatchCommand = async (commandArgs: string[]): Promise<void> => {
-  switch (commandArgs[0]) {
-    case 'bun':
-      await combineSubcommand(commandArgs)
-      commandArgs.unshift('nodemon', '--exec')
-      break
-    case 'node':
-      commandArgs[0] = 'nodemon'
-      break
-  }
+switch (commandArgs[0]) {
+  case 'bun':
+    await combineSubcommand(commandArgs)
+    commandArgs.unshift('nodemon', '--exec')
+    break
+  case 'node':
+    commandArgs[0] = 'nodemon'
+    break
+}
 }
 // follwing is the main function Try it nyrenx dev or nyrenx --watch index.ts
 export async function executeScriptDynamic(
@@ -183,7 +183,7 @@ function handleCommandError(error: Error | unknown, commandArgs: string[]) {
     t.log(
       t.prefixCli,
       t.toolIcon,
-      t.textWhit.dim(` Unknown command: ${t.textWhit(command)}`)
+      t.textWhit.dim(` Script not found "${t.textWhit(command)}"`)
     )
     t.log(t.prefixCli, t.idea, t.textWhit.dim(`Try it:`))
     t.log(examples.dynamicCommand)

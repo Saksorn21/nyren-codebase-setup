@@ -18,7 +18,7 @@ export async function fetchToJson(
     return {}
   }
 }
-
+export const validExtensionsFile = (file: string,ext: string[] = ['ts', 'js', 'cjs', 'mjs']): boolean => ext.some(ext => file.endsWith(ext))
 export const validUserDirectoryPath = (
   path: string = process.cwd(),
   directoryName?: string
