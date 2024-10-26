@@ -16,7 +16,8 @@ const textLightSteelBlue1 = text('#d7d7ff')
 const textSlateBlue3 = text('#5f5faf')
 const textNyren = text('#9067C6')
 const textGreen = text('#87ffaf')
-const textRed = text('#d7005f')
+const textAmber = text('FFC107')
+const textRed = text('E53935') // #FF0000
 const textOrange = text('#ffaf00')
 const textDeepBlue = text('#00afff')
 const textWhit = text('#ffffff')
@@ -96,7 +97,7 @@ help.noticeNewVersion = async (
     `${prefixNoify} ${textWhit(`To update run: ${install} or ${textOrange('nyrenx update')}`)}`
   )
 }
-help.$ = (commands: string[]) => `${text('800080')('$')} ${text('d7d7ff').dim(commands.join(' '))}`
+help.$ = (commands?: string) => `${text('800080')('$')} ${text('d7d7ff').dim(commands)}`
 const tools = {
   ...symbols,
   prefixCli,
@@ -110,6 +111,7 @@ const tools = {
   textGrey,
   textGreen,
   textRed,
+  textAmber,
   textSlateBlue3,
   textLightSteelBlue1,
   log,

@@ -12,6 +12,7 @@
     "sourceMap": false,
     "declaration": false,
     "declarationMap": false,
+    "skipLibCheck": true,
     "allowSyntheticDefaultImports": true,
     "allowUnreachableCode": false,
     "esModuleInterop": true,

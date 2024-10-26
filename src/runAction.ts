@@ -3,7 +3,10 @@ import { tools as t } from './lib/help.js'
 import { type Command } from 'commander'
 export async function runAction(this: Command) {
   const args = this.args
-  const opts = this.opts()
+  const opts = {
+    ...this.parent?.opts(),
+...this.opts()
+  }
 
   const commandArgs = args
   const commandIndex = process.argv.indexOf('--')

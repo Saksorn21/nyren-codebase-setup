@@ -26,17 +26,24 @@ program
   )
   .helpOption('-h, --help', 'Output usage information.')
   .allowUnknownOption()
+  .enablePositionalOptions()
 
 // global
 program
   .hook('preAction', () => {
     chackNodeVersion(readPackageJson().engines.node, readPackageJson().name)
     cursor.hide()
+    
   })
   .hook('postAction', async () => {
+
     await checkForUpdate()
     cursor.show()
+    
   })
+
+program
+  .usage('<command> [options]' + '\n' + examples.dynamicCommand)
   .option('-s, --silent', 'silent mode')
   .option('-p, --prefix [directory]', 'directory to run the project in')
   .option('-w, --watch', 'Watch for changes')
@@ -50,7 +57,6 @@ program
   .command('run')
   .description('Project at runtime')
   .usage('[options] -- [yourcommand]')
-  .option('-p, --prefix [directory]', 'directory to run the project in')
   .action(async function (this: Command, ...args: any) {
     runAction.apply(this, args)
   })
@@ -69,18 +75,22 @@ const initCommand = program
       ? await createProjectWithOptions(opts)
       : await createProject()
   })
-initCommand
-  .command('quick')
+
+initCommand.command('quick')
   .alias('fast')
   .usage('[options] -- [project-name target | module]')
   .summary('Quick Start project')
   .description(
     'Quick Start the project without being guided through a series of prompts.'
   )
+
   .addHelpText('after', examples.init)
-  .action(async function (this: Command, ...args: any,option) {
-    console.log(option)
-    fastCreateProject.apply(this, args)
+  .action(async function (this: Command) {
+    await fastCreateProject( this.args,{
+      ...initCommand.parent?.opts(),
+        ...this.parent?.opts(),
+        ...this.opts()
+    })
   })
 
 program
@@ -91,7 +101,7 @@ program
   .allowUnknownOption()
   .description('Installation libraries for the project on npm ')
   .addHelpText('after', examples.install)
- // .option('-p, --prefix [directory]', 'directory to run the project in')
+  // .option('-p, --prefix [directory]', 'directory to run the project in')
   .action(function (this: Command, ...args: any) {
     installAction.apply(this, args)
   })
@@ -102,4 +112,41 @@ program
     await updateLatestVersion()
   })
 
+program
+  .command('help [command]')
+  .description('Display help for [command]')
+  .action((command) => command ? program.commands.find(c => c.name() === command)?.outputHelp() : program.outputHelp())
+
+function removeDynamicHelpSection (lines: string[]) {
+  let argumentsHelpIndex
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i] === 'Arguments:') {
+      argumentsHelpIndex = i
+      break
+    }
+  }
+  if (argumentsHelpIndex) {
+    lines.splice(argumentsHelpIndex, 4) // remove Arguments and the following 3 lines
+  }
+
+}
+program.addHelpText('after', ' ')
+program.addHelpText('before', 'Advanced: ')
+program.addHelpText('after', '  pro                          🏆 pro')
+program.addHelpText('after', '  ext                          🔌 extensions')
+
+// dotenvx ext
+program.helpInformation = function () {
+  const originalHelp = Command.prototype.helpInformation.call(this)
+  const lines = originalHelp.split('\n')
+
+  removeDynamicHelpSection(lines)
+
+  // Filter out the hidden command from the help output
+  const filteredLines = lines.filter(line =>
+    !line.includes('help [command]') 
+  )
+
+  return filteredLines.join('\n')
+}
 await program.parseAsync(process.argv)

@@ -111,6 +111,9 @@ export async function executeScriptDynamic(
   // construct the full command line manually including flags
   const commandIndex = rawArgs.indexOf(script)
   const forwardedArgs = rawArgs.slice(commandIndex + 1)
+  if (forwardedArgs.includes('--watch')){
+    options.watch = true
+  }
   const directoryPackageJson = options.prefix
     ? resolvePath(options.prefix, 'package.json')
     : 'package.json'
@@ -154,7 +157,8 @@ export async function executeScriptDynamic(
     handleCommandError(error, commandArgs)
     process.exit(1)
   }
-  t.log(`${t.text('d7d7ff').dim(messageRunners.join(' '))}`)
+
+    t.log(`${t.text('d7d7ff').dim(messageRunners.join(' '))}`)
 
   await executeCommand(commandArgsResult, options)
 }
@@ -183,6 +187,7 @@ function handleCommandError(error: Error | unknown, commandArgs: string[]) {
     )
     t.log(t.prefixCli, t.idea, t.textWhit.dim(`Try it:`))
     t.log(examples.dynamicCommand)
+    process.exit(2)
   }
   process.exit(1)
 }

@@ -1,5 +1,4 @@
 import { input } from './lib/prompts.js'
-import { type Command } from 'commander'
 import {
   createProject,
   processSpinner,
@@ -44,10 +43,10 @@ async function createProjectWithOptions(options: InitOpts) {
   await createProject({ projectName, target, module, directory })
 }
 
-async function fastCreateProject(this: Command) {
-  const args = this.args
-  const opts = this.opts()
-  console.log(args, opts)
+async function fastCreateProject(_argument: string[], options: InitOpts = {}) {
+  const args = _argument
+  const opts = options
+ 
   await parseAndSetDefaultArgs(args)
   await finalizeOptions(args, opts)
   
@@ -57,17 +56,18 @@ async function fastCreateProject(this: Command) {
     )
   )
 
-  const row = await processPackageJson(
+  const resultTemplate = await processPackageJson(
     opts.target as string,
     setUpModule,
     opts as InitOpts
   )
-  const { templateCode, userDirectoryName } = row
+  const { templateCode, userDirectoryName } = resultTemplate
   await processBuildTemplateFiles(
     templateCode,
     templateCode.baseFilesName,
     userDirectoryName
   )
+  
 }
 const analysisProcess = async (context: string): Promise<string > => await matchLanguage(context) || await matchModule(context) || context
 
@@ -112,7 +112,7 @@ async function finalizeOptions(args: string[], opts: InitOpts = {}){
   let projectName, language, moduleType;
   // Added flexibility in passing the “-- any” argument.
   // $ nyrenx init fast -- my-project typescript module
-  // $ nyrenx init fast -- my-project typescript
+  // $ nyrenx init fast -- node my-project
   // $ nyrenx init fast -- js esm
   // $ nyrenx init fast -- cjs
   
@@ -140,12 +140,14 @@ async function finalizeOptions(args: string[], opts: InitOpts = {}){
         break;
     }
   }
-
+  // get default values type: module  with typescript
+  // $ nyrenx init fast -- common -> language: javascript
   if (!language) {
     console.log('language', language, moduleType);
     language = moduleType === 'module' ? 'typescript' : 'javascript';
   }
-
+  // get default values language: typescript  with module
+  // $ nyrenx init fast -- js -> type: commonjs
   if (!moduleType) {
     moduleType = language === 'typescript' ? 'module' : 'commonjs';
   }
@@ -158,38 +160,6 @@ async function finalizeOptions(args: string[], opts: InitOpts = {}){
   console.log('opts', opts);
 }
 
-async function parseArgumentsFast(args: string[]) {
-  const uniqueArgs = new Set<string>()
-  console.log(args)
-  const argumentFirstOne = await analysisProcess(args[0], true)
-  if (argumentFirstOne !== null && (argumentFirstOne === 'typescript' || argumentFirstOne === 'javascript')){}
-  const args2 =
-    (await matchLanguage(arr1)) || (await matchModule(arr1)) || 'typescript'
-  const args3 =
-    (await matchLanguage(arr2)) || (await matchModule(arr2)) || 'module'
-  let language, moduleType
-
-  if (
-    ((args2 === 'typescript' || args2 === 'javascript') &&
-      (args3 === 'module' || args3 === 'commonjs')) ||
-    ((args2 === 'module' || args2 === 'commonjs') &&
-      (args3 === 'typescript' || args3 === 'javascript'))
-  ) {
-    if (args2 === 'typescript' || args2 === 'javascript') {
-      language = args2
-      moduleType = args3
-    } else {
-      language = args3
-      moduleType = args2
-    }
-  } else {
-    console.log(tools.textRed('No matching arguments found'))
-  }
-  if (language && moduleType) {
-    return { target: language, module: moduleType }
-  }
-  return { target: 'typescript', module: 'module' }
-}
 const presetSpinnerMatch = async <T>(match: string, callFn: PromiseLike<T>) =>
   await processSpinner({
     start: `Verifying ${match}...`,
