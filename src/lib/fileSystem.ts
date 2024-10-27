@@ -2,9 +2,9 @@ import {
   readFile as rf,
   writeFile as wf,
   readFileSync as rfSync,
-  stat
 } from 'node:fs'
-import fs, { Dirent, Stats } from 'node:fs'
+import fs, { Dirent,  } from 'node:fs'
+import { access } from 'node:fs/promises'
 import { dirname, basename } from 'node:path'
 import { formatDataPackageJson } from './packageJsonUtils.js'
 export interface ResultFs {
@@ -36,7 +36,8 @@ const readdir = (path: fs.PathLike): Promise<Dirent[]> =>
       err ? rej(err) : res(data)
     )
   )
-const exists = (path: fs.PathLike): Promise<Stats> => new Promise((res, rej) => stat(path, (err, stats) => err ? rej(err) : res(stats)))
+const exists = (path: fs.PathLike): Promise<boolean> =>
+  access(path).then(() => true).catch(() => false);
 const mkdir = (
   path: fs.PathLike,
   options?:
