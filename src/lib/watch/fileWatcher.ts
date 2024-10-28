@@ -1,10 +1,10 @@
-import nodemon from 'nodemon'
+import nodemon, {config} from 'nodemon'
 import type { 
   NodemonEventStart,
   NodemonEventRestart, 
   NodemonEventQuit, 
   NodemonEventExit } from 'nodemon'
-import { watch } from './changed.js'
+import { watch, resetWatchers } from './changed.js'
 import { resolvePath, dirname, trimCwd, findLocalBinaryPath } from '../pathHelper.js'
 import { readdir, readFile, exists } from '../fileSystem.js'
 import { validExtensionsFile } from '../utils.js'
@@ -17,6 +17,7 @@ interface FileWatcherOptions {
   watchPaths?: string[]
   ignore?: boolean | string[]
 }
+
 const PREFIXWATCH = `${t.prefixCli} ${t.toolIcon}`
 const logMessage = (message: string) => t.log(PREFIXWATCH, t.text('#d7d7ff').dim(message))
 // Retrieves ignore patterns from both .nyrenignore and .gitignore files.
@@ -42,10 +43,11 @@ export async function getIgnorePatterns(): Promise<string[]> {
 }
 
 export async function monitorChanges(scriptPath: string, opts: FileWatcherOptions): Promise<void> {
+  let watched
   await eventPreStart(scriptPath, opts);
-
+  
   const getBinaryBunPath = await findLocalBinaryPath('bun');
- const watched = await watch([dirname(opts.fullPath as string)])
+ 
   nodemon({
     script: opts.fullPath as string,
     ignore: opts.ignore as string[],
@@ -55,21 +57,25 @@ export async function monitorChanges(scriptPath: string, opts: FileWatcherOption
     restartable: 'rl',
     ext: 'js,cjs,mjs,json,ts',
   });
-
-  return new Promise((resolve, reject) => {
+  
+  
+  
+  return new Promise( (resolve, reject) => {
     let hasStarted = false;
-
-    nodemon
-      .on('start', () => {
+  
+    nodemon.on('start',async () => {
+      watched = await watch([dirname(opts.fullPath as string)],nodemon.config)
         if (!hasStarted) {
           hasStarted = true;
+      
           logMessage('Application has started.');
           eventStart(scriptPath);
           resolve();
         }
       })
       .on('restart', async (files) => {
-        watched
+        watched 
+        
         await eventRestart(files);
       })
       .on('crash', () => {
@@ -80,13 +86,12 @@ export async function monitorChanges(scriptPath: string, opts: FileWatcherOption
         eventQuit(code);
       })
       .on('exit', (code) => {
+        
         eventExited(code)
     })
-      .on('log', (log) => {
-        //console.log(log.type,log.message.toString())
-      })
   })
 }
+
 async function eventPreStart(scriptPath: string, opts: FileWatcherOptions ) {
   
    opts.scriptPath = scriptPath
