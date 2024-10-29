@@ -2,6 +2,7 @@ import { EventEmitter } from 'events'
 import { getIgnorePatterns } from './fileWatcher.js'
 import { readdir, readFile, exists } from '../fileSystem.js'
 import { validExtensionsFile } from '../utils.js'
+import { config as nconfig} from 'nodemon'
 import filterFilesByMonitorRulesfrom from'./match.js'
 import { tools as t } from '../help.js'
 import { resolvePath, dirname, trimCwd, findLocalBinaryPath } from '../pathHelper.js'
@@ -9,6 +10,8 @@ import { watch as watchFiles } from 'chokidar'
 let watchedFiles: string[] = []
 let watchers: any[] = []
 let nodemonConfig: any = {}
+let configNy = []
+console.log(configNy.slice.call(nconfig))
 export function resetWatchers() {
   watchers.forEach(watcher => watcher.close());
   watchers = [];
@@ -26,7 +29,8 @@ export async function watch(dirs: string[], config) {
     usePolling: false,
     interval: 100,
   };
-  
+  configNy.slice.call(nconfig)
+  console.log(configNy.slice.call(nconfig),configNy)
 
   const promise = new Promise((resolve) => {
     const watcher = watchFiles(nodemonConfig.dirs, watchOptions);
@@ -81,7 +85,7 @@ export async function watch(dirs: string[], config) {
   
 
 }
-const config = (config) => config
+
 import path from 'path'
 function filterAndRestart(files,config) {
   

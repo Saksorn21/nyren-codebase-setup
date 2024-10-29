@@ -13,6 +13,7 @@ if (process.send) {
 
     process.send({ type: event, data: data });
 
+    
     originalEmit.apply(taxi, arguments);
   };
 }

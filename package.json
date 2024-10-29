@@ -72,6 +72,7 @@
     "commander": "^12.1.0",
     "execa": "^9.4.1",
     "is-unicode-supported": "^2.1.0",
+    "minimatch": "^10.0.1",
     "nodemon": "3.1.7",
     "onetime": "^7.0.0",
     "ora": "^8.1.0",

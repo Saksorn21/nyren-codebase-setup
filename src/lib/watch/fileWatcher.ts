@@ -4,6 +4,7 @@ import type {
   NodemonEventRestart, 
   NodemonEventQuit, 
   NodemonEventExit } from 'nodemon'
+import log from '../utils/log.js'
 import { watch, resetWatchers } from './changed.js'
 import { resolvePath, dirname, trimCwd, findLocalBinaryPath } from '../pathHelper.js'
 import { readdir, readFile, exists } from '../fileSystem.js'
@@ -58,13 +59,19 @@ export async function monitorChanges(scriptPath: string, opts: FileWatcherOption
     ext: 'js,cjs,mjs,json,ts',
   });
   
+    
+      
+    
   
   
-  return new Promise( (resolve, reject) => {
+  return new Promise( async(resolve, reject) => {
     let hasStarted = false;
-  
-    nodemon.on('start',async () => {
+    
+    
+    nodemon.once('start',async () => {
       watched = await watch([dirname(opts.fullPath as string)],nodemon.config)
+      
+       
         if (!hasStarted) {
           hasStarted = true;
       
@@ -83,6 +90,7 @@ export async function monitorChanges(scriptPath: string, opts: FileWatcherOption
         reject(new Error('Application crashed'));
       })
       .on('quit', (code) => {
+        resetWatchers()
         eventQuit(code);
       })
       .on('exit', (code) => {
