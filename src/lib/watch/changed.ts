@@ -1,6 +1,7 @@
-import { EventEmitter } from 'events'
+
 import { getIgnorePatterns } from './fileWatcher.js'
-import { readdir, readFile, exists } from '../fileSystem.js'
+import log from '../utils/log.js'
+import taxi from '../utils/taxi.js'
 import { validExtensionsFile } from '../utils.js'
 import { config as nconfig} from 'nodemon'
 import filterFilesByMonitorRulesfrom from'./match.js'
@@ -10,29 +11,33 @@ import { watch as watchFiles } from 'chokidar'
 let watchedFiles: string[] = []
 let watchers: any[] = []
 let nodemonConfig: any = {}
-let configNy = []
-console.log(configNy.slice.call(nconfig))
+
+
 export function resetWatchers() {
   watchers.forEach(watcher => watcher.close());
   watchers = [];
   watchedFiles = [];
   console.log("All watchers have been reset.");
 }
-export async function watch(dirs: string[], config) {
-  const ignored = await getIgnorePatterns();
+export function watch(dirs: string[], config) {
+  
   
     nodemonConfig = config
-  const watchOptions = {
-    ignorePermissionErrors: true,
-    ignored: nodemonConfig.options.ignored,
-    persistent: true,
-    usePolling: false,
-    interval: 100,
-  };
-  configNy.slice.call(nconfig)
-  console.log(configNy.slice.call(nconfig),configNy)
+  
+  
+  
 
   const promise = new Promise((resolve) => {
+    const watchOptions = {
+      ignorePermissionErrors: true,
+      ignored: nodemonConfig.options.ignored,
+      persistent: true,
+      usePolling: false,
+      interval: 100,
+    }; 
+    if(process.platform === 'win32'){
+      watchOptions.disableGlobbing = true
+    }
     const watcher = watchFiles(nodemonConfig.dirs, watchOptions);
     watcher.ready = false;
 
@@ -44,9 +49,10 @@ export async function watch(dirs: string[], config) {
              return filterAndRestart(file,nodemonConfig);
           }
       watchedFiles.push(file);
-      
+      taxi.emit('watching', file)
       
     });
+    
     watcher.on('ready', function () {
       watchedFiles = Array.from(new Set(watchedFiles)); // ensure no dupes
       total = watchedFiles.length;
@@ -78,7 +84,7 @@ export async function watch(dirs: string[], config) {
         throw e;
       });
     }).then(function () {
-      t.log(`watching ${watchedFiles.length} file${
+      log.info(`watching ${watchedFiles.length} file${
         watchedFiles.length === 1 ? '' : 's'}`);
       return watchedFiles;
     });
@@ -96,7 +102,7 @@ function filterAndRestart(files,config) {
 
   if (files.length) {
       cwd = cwd
-    t.log(`files triggering change check: ${files.map((file: string) => trimCwd(file)).join(', ')}`);
+    log.trace(`files triggering change check: ${files.map((file: string) => trimCwd(file)).join(', ')}`);
 
     files = files.filter(Boolean).map(file => {
       return path.relative(process.cwd(), path.relative(cwd, file));
@@ -134,15 +140,15 @@ function filterAndRestart(files,config) {
       }
     }
 
-    t.log(
+    log.trace(
       'changes after filters (before/after): ' +
       [files.length, matched.result.length].join('/')
     );
 
     if(matched.result.length){
-      t.log('restarting due to changes...');
+      log.trace('restarting due to changes...');
       matched.result.map(file => {
-        t.log(path.relative(process.cwd(), file));
+        log.trace(path.relative(process.cwd(), file));
       })
     }
     }

@@ -19,20 +19,19 @@ function _log(type:string, message?: string) {
     }
   process.nextTick(() => {
     taxi.emit('log', { type: type, message, colour: msg });
-  });
-
+  })
   if (type === 'error') {
     console.error(msg);
   } else {
     console.log(msg || '');
   }
 }
-class Logger {
+class Logger { 
   constructor(){
     if (!(this instanceof Logger)) {
       return new Logger();
     }
-   
+  
   }
   log(message: string){
     

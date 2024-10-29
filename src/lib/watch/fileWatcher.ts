@@ -5,6 +5,7 @@ import type {
   NodemonEventQuit, 
   NodemonEventExit } from 'nodemon'
 import log from '../utils/log.js'
+import taxi from '../utils/taxi.js'
 import { watch, resetWatchers } from './changed.js'
 import { resolvePath, dirname, trimCwd, findLocalBinaryPath } from '../pathHelper.js'
 import { readdir, readFile, exists } from '../fileSystem.js'
@@ -18,7 +19,7 @@ interface FileWatcherOptions {
   watchPaths?: string[]
   ignore?: boolean | string[]
 }
-
+let options = {}
 const PREFIXWATCH = `${t.prefixCli} ${t.toolIcon}`
 const logMessage = (message: string) => t.log(PREFIXWATCH, t.text('#d7d7ff').dim(message))
 // Retrieves ignore patterns from both .nyrenignore and .gitignore files.
@@ -57,37 +58,56 @@ export async function monitorChanges(scriptPath: string, opts: FileWatcherOption
     verbose: true,
     restartable: 'rl',
     ext: 'js,cjs,mjs,json,ts',
+    stdout: false
   });
   
     
-      
-    
-  
   
   return new Promise( async(resolve, reject) => {
     let hasStarted = false;
-    
-    
-    nodemon.once('start',async () => {
-      watched = await watch([dirname(opts.fullPath as string)],nodemon.config)
+    taxi.once('nodemon:config', async (event) =>{ 
+      let config = event
+ console.log(!config.options.runOnChangeOnly || config.lastStarted !== 0)
+                                   
+      var runCmd = !config.options.runOnChangeOnly || config.lastStarted !== 0;
       
-       
-        if (!hasStarted) {
-          hasStarted = true;
-      
-          logMessage('Application has started.');
-          eventStart(scriptPath);
-          resolve();
+      if (runCmd) {
+
+       log.trace('starting `' + config.command.string + '`');
+      } else {
+        // should just watch file if command is not to be run
+        // had another alternate approach
+        // to stop process being forked/spawned in the below code
+        // but this approach does early exit and makes code cleaner
+        log.detail('start watch on: %s', config.options.watch);
+        if (config.options.watch !== false) {
+         await watch([dirname(opts.fullPath as string)],nodemon.config)
+
         }
-      })
-      .on('restart', async (files) => {
-        watched 
+      }
+      if (config.options.watch !== false) {
+        watch([dirname(opts.fullPath as string)],nodemon.config)
+      }
+  })
+    
+    
+    
+    
+    nodemon.on('readable', async()=> {
+      taxi.emit('nodemon:config', config)
+      
+      nodemon.stdout.on('data', (data) => {
         
-        await eventRestart(files);
-      })
-      .on('crash', () => {
+        console.log(`[Nodemon Output]: ${data.toString()}`);
+        // จัดการ output ที่ได้ เช่น เขียนไปยังไฟล์ หรือแสดงใน console
+      });
+  
+
+    }).on('crash', () => {
         logMessage('Application has crashed!');
         reject(new Error('Application crashed'));
+      }).on('restart', () => {
+      
       })
       .on('quit', (code) => {
         resetWatchers()
@@ -142,8 +162,12 @@ function eventExited(code?: NodemonEventExit){
       logMessage('was terminated by Ctrl+C (SIGINT).');
     } else if (code === 143) {
       logMessage('was terminated (SIGTERM).');
+    }else if(code === 0){
+     log.detail('clean exit - waiting for changes before restart')
+     
     }
-}
+     
+    }
 
 async function handleOptions(scriptPath: string, opts: FileWatcherOptions) {
   const isIgnore = opts.ignore ?? true;
