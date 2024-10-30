@@ -9,7 +9,6 @@ const levels: Record<string,Function> = {
   trace: t.text('d7d7ff').dim,
   detail: t.textSlateBlue3,
 }
-
 function _log(type:string, message?: string) {
   let msg = ''
   if (typeof message === 'string'){

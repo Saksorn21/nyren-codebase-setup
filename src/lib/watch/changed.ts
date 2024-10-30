@@ -1,16 +1,16 @@
 
-import { getIgnorePatterns } from './fileWatcher.js'
+
 import log from '../utils/log.js'
 import taxi from '../utils/taxi.js'
-import { validExtensionsFile } from '../utils.js'
+
 import { config as config} from 'nodemon'
 import filterFilesByMonitorRulesfrom from'./match.js'
 import { tools as t } from '../help.js'
-import { resolvePath, dirname, trimCwd, findLocalBinaryPath } from '../pathHelper.js'
+import { trimCwd,  } from '../pathHelper.js'
 import { watch as watchFiles } from 'chokidar'
 let watchedFiles: string[] = []
 let watchers: any[] = []
-let nodemonConfig: any = {}
+
 
 
 export function resetWatchers() {

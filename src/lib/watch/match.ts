@@ -1,7 +1,7 @@
 
 import path,{ sep } from 'node:path'
 import { minimatch, type MinimatchOptions } from 'minimatch'
-import { tools as t } from '../help.js'
+
 import log from '../utils/log.js'
 import taxi from '../utils/taxi.js'
 import { resolvePath, dirname, trimCwd, basename } from '../pathHelper.js'

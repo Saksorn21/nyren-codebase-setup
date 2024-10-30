@@ -6,8 +6,8 @@ import { resolvePath, dirname, trimCwd, findLocalBinaryPath } from '../pathHelpe
 export const run = async () => {
    taxi.once('nodemon:config', async (event) =>{ 
      let config = event
-     const dirs = config.dirs.map(dir => dir)
-   console.log(config)
+     
+   
 
      var runCmd = !config.options.runOnChangeOnly || config.lastStarted !== 0;
 
@@ -15,7 +15,7 @@ export const run = async () => {
 
       log.trace('starting `' + trimCwd(config.options.execOptions.script) + '`');
      } else {
-       log.detail('start watch on: %s', config.options.watch);
+       log.detail('start watch on: %s' + config.options.watch);
        if (config.options.watch !== false) {
         await watch()
 
