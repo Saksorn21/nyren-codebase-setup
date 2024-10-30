@@ -3,7 +3,7 @@ import { getIgnorePatterns } from './fileWatcher.js'
 import log from '../utils/log.js'
 import taxi from '../utils/taxi.js'
 import { validExtensionsFile } from '../utils.js'
-import { config as nconfig} from 'nodemon'
+import { config as config} from 'nodemon'
 import filterFilesByMonitorRulesfrom from'./match.js'
 import { tools as t } from '../help.js'
 import { resolvePath, dirname, trimCwd, findLocalBinaryPath } from '../pathHelper.js'
@@ -19,18 +19,12 @@ export function resetWatchers() {
   watchedFiles = [];
   console.log("All watchers have been reset.");
 }
-export function watch(dirs: string[], config) {
-  
-  
-    nodemonConfig = config
-  
-  
-  
+export function watch() {
 
   const promise = new Promise((resolve) => {
     const watchOptions = {
       ignorePermissionErrors: true,
-      ignored: nodemonConfig.options.ignored,
+      ignored: config.options.ignored,
       persistent: true,
       usePolling: false,
       interval: 100,
@@ -38,15 +32,15 @@ export function watch(dirs: string[], config) {
     if(process.platform === 'win32'){
       watchOptions.disableGlobbing = true
     }
-    const watcher = watchFiles(nodemonConfig.dirs, watchOptions);
+    const watcher = watchFiles(config.dirs, watchOptions);
     watcher.ready = false;
 
     var total = 0;
-    watcher.on('change', (file) => filterAndRestart(file, nodemonConfig));
-    watcher.on('unlink', (file) => filterAndRestart(file, nodemonConfig));
+    watcher.on('change',filterAndRestart);
+    watcher.on('unlink', filterAndRestart);
     watcher.on('add', function (file) {
       if (watcher.ready) {
-             return filterAndRestart(file,nodemonConfig);
+             return filterAndRestart(file);
           }
       watchedFiles.push(file);
       taxi.emit('watching', file)
@@ -80,9 +74,9 @@ export function watch(dirs: string[], config) {
   return promise.catch(e => {
       // this is a core error and it should break nodemon - so I have to break
       // out of a promise using the setTimeout
-      setTimeout(() => {
+      
         throw e;
-      });
+      
     }).then(function () {
       log.info(`watching ${watchedFiles.length} file${
         watchedFiles.length === 1 ? '' : 's'}`);
@@ -93,7 +87,7 @@ export function watch(dirs: string[], config) {
 }
 
 import path from 'path'
-function filterAndRestart(files,config) {
+function filterAndRestart(files) {
   
   let cwd = process.cwd();
   if (!Array.isArray(files)) {

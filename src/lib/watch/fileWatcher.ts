@@ -6,6 +6,7 @@ import type {
   NodemonEventExit } from 'nodemon'
 import log from '../utils/log.js'
 import taxi from '../utils/taxi.js'
+import { run } from './run.js'
 import { watch, resetWatchers } from './changed.js'
 import { resolvePath, dirname, trimCwd, findLocalBinaryPath } from '../pathHelper.js'
 import { readdir, readFile, exists } from '../fileSystem.js'
@@ -65,52 +66,22 @@ export async function monitorChanges(scriptPath: string, opts: FileWatcherOption
   
   return new Promise( async(resolve, reject) => {
     let hasStarted = false;
-    taxi.once('nodemon:config', async (event) =>{ 
-      let config = event
- console.log(!config.options.runOnChangeOnly || config.lastStarted !== 0)
-                                   
-      var runCmd = !config.options.runOnChangeOnly || config.lastStarted !== 0;
-      
-      if (runCmd) {
-
-       log.trace('starting `' + config.command.string + '`');
-      } else {
-        // should just watch file if command is not to be run
-        // had another alternate approach
-        // to stop process being forked/spawned in the below code
-        // but this approach does early exit and makes code cleaner
-        log.detail('start watch on: %s', config.options.watch);
-        if (config.options.watch !== false) {
-         await watch([dirname(opts.fullPath as string)],nodemon.config)
-
-        }
-      }
-      if (config.options.watch !== false) {
-        watch([dirname(opts.fullPath as string)],nodemon.config)
-      }
-  })
-    
-    
-    
-    
-    nodemon.on('readable', async()=> {
+      await run()
+    nodemon.on('readable', ()=> {
       taxi.emit('nodemon:config', config)
       
       nodemon.stdout.on('data', (data) => {
         
-        console.log(`[Nodemon Output]: ${data.toString()}`);
+        console.log(`\n${data.toString()}`);
         // จัดการ output ที่ได้ เช่น เขียนไปยังไฟล์ หรือแสดงใน console
       });
-  
 
     }).on('crash', () => {
         logMessage('Application has crashed!');
         reject(new Error('Application crashed'));
-      }).on('restart', () => {
-      
       })
       .on('quit', (code) => {
-        resetWatchers()
+        run.kill()
         eventQuit(code);
       })
       .on('exit', (code) => {
