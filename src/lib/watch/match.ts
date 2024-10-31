@@ -1,9 +1,10 @@
 
 import path,{ sep } from 'node:path'
+import fs from 'node:fs'
 import { minimatch, type MinimatchOptions } from 'minimatch'
 
 import log from '../utils/log.js'
-import taxi from '../utils/taxi.js'
+import type {NodemonSettings} from 'nodemon'
 import { resolvePath, dirname, trimCwd, basename } from '../pathHelper.js'
 
 
@@ -13,6 +14,96 @@ type MonitorResult = {
   watched: number;
   total: number;
 };
+
+
+
+
+export function generateWatchRules(
+  watchPaths: string | string[], 
+  ignorePaths: string | string[], 
+  config: NodemonSettings
+): string[] {
+  let monitorPatterns: string[] = [];
+
+  const watchList = Array.isArray(watchPaths) ? watchPaths : watchPaths ? [watchPaths] : [];
+  const ignoreList = Array.isArray(ignorePaths) ? ignorePaths : ignorePaths ? [ignorePaths] : [];
+
+  // Add watch paths to monitor patterns
+  if (watchList.length) {
+    monitorPatterns = [...watchList];
+  }
+
+  // Add ignore paths to monitor patterns
+  for (let i = 0; i < ignoreList.length; i++) {
+    monitorPatterns.push(`!${ignoreList[i]}`);
+  }
+
+  const currentDir = process.cwd();
+
+  // Update monitor patterns to expand directories to include all files
+  monitorPatterns = monitorPatterns.map((pattern) => {
+    const isNegated = pattern.startsWith('!');
+    let rule = isNegated ? pattern.slice(1) : pattern;
+
+    if (rule === '.' || rule === '.*') {
+      rule = '*.*';
+    }
+
+    const resolvedPath = path.resolve(currentDir, rule);
+
+    try {
+      const stat = fs.statSync(resolvedPath);
+      if (stat.isDirectory()) {
+        rule = `${resolvedPath.endsWith('/') ? resolvedPath : resolvedPath + '/'}**/*`;
+
+        if (!isNegated) {
+          config.dirs.push(resolvedPath);
+        }
+      } else {
+        throw new Error();
+      }
+    } catch (e) {
+      const baseDir = findBaseDirectory(resolvedPath);
+      if (!isNegated && baseDir && !config.dirs.includes(baseDir)) {
+        config.dirs.push(baseDir);
+      }
+    }
+
+    if (rule.endsWith('/')) {
+      rule += '*';
+    }
+
+    if (rule.endsWith('*') && !rule.endsWith('**/*') && !rule.includes('*.*')) {
+      if (!rule.endsWith('**')) {
+        rule += '/*';
+      }
+    }
+
+    return isNegated ? `!${rule}` : rule;
+  });
+
+  return monitorPatterns;
+}
+
+function findBaseDirectory(dir: string): string | false {
+  try {
+    if (/[?*\{\[]+/.test(dir)) {
+      const baseDir = path.dirname(dir.replace(/([?*\{\[]+.*$)/, 'foo'));
+      const stat = fs.statSync(baseDir);
+      if (stat.isDirectory()) {
+        return baseDir;
+      }
+    } else {
+      const stat = fs.statSync(dir);
+      if (stat.isFile() || stat.isDirectory()) {
+        return dir;
+      }
+    }
+  } catch (error) {
+    // Error handling left empty intentionally
+  }
+  return false;
+}
 
 function filterFilesByMonitorRules(files: string[], monitor: string[], ext: string): MonitorResult {
   const cwd = process.cwd();

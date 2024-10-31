@@ -4,10 +4,10 @@ import log from '../utils/log.js'
 import taxi from '../utils/taxi.js'
 
 import { config as config} from 'nodemon'
-import filterFilesByMonitorRulesfrom from'./match.js'
+import filterFilesByMonitorRulesfrom, {generateWatchRules} from'./match.js'
 import { tools as t } from '../help.js'
-import { trimCwd,  } from '../pathHelper.js'
-import { watch as watchFiles } from 'chokidar'
+import { trimCwd, resolvePath } from '../pathHelper.js'
+import { watch as watchFiles, type WatchOptions } from 'chokidar'
 let watchedFiles: string[] = []
 let watchers: any[] = []
 
@@ -19,29 +19,55 @@ export function resetWatchers() {
   watchedFiles = [];
   console.log("All watchers have been reset.");
 }
-export function watch() {
 
+export function watch() {
+  const dirs: string[] = [].slice.call(config.dirs);
+ 
+  const rootIgnores = config.options.ignore
+  let watchReady: boolean = false
+ // const rootIgnored = config.options.ignore;
+  
   const promise = new Promise((resolve) => {
-    const watchOptions = {
-      ignorePermissionErrors: true,
-      ignored: config.options.ignored,
-      persistent: true,
-      usePolling: false,
-      interval: 100,
-    }; 
+    const dotFilePattern = /[/\\]\./;
+
+    const ignored: any[] = generateWatchRules(
+      [], // not needed
+      Array.from(rootIgnores),
+      config
+    ).map(pattern => pattern.slice(1));
+  const addDotFile = dirs.filter(dir => dir.match(dotFilePattern));
+
+  // don't ignore dotfiles if explicitly watched.
+  if (addDotFile.length === 0) {
+    
+      ignored.push(dotFilePattern);
+  }
+  const watchOptions: WatchOptions = {
+
+    ignorePermissionErrors: true,
+      ignored,
+    persistent: true,
+    usePolling: false,
+    interval: undefined
+  }; 
+
+
     if(process.platform === 'win32'){
       watchOptions.disableGlobbing = true
     }
-    const watcher = watchFiles(config.dirs, watchOptions);
-    watcher.ready = false;
+    
+    const watcher = watchFiles(dirs, watchOptions);
+    
 
     var total = 0;
+    
     watcher.on('change',filterAndRestart);
     watcher.on('unlink', filterAndRestart);
-    watcher.on('add', function (file) {
-      if (watcher.ready) {
+    watcher.on('add', function (file: string) {
+      if (watchReady) {
              return filterAndRestart(file);
           }
+      
       watchedFiles.push(file);
       taxi.emit('watching', file)
       
@@ -50,11 +76,11 @@ export function watch() {
     watcher.on('ready', function () {
       watchedFiles = Array.from(new Set(watchedFiles)); // ensure no dupes
       total = watchedFiles.length;
-      watcher.ready = true;
+        watchReady = true;
       resolve(total);
     });
 
-    watcher.on('error', function (error) {
+    watcher.on('error', (error: Error) => {
       if (error.code === 'EINVAL') {
         t.log(
           'Internal watch failed. Likely cause: too many ' +
@@ -74,11 +100,13 @@ export function watch() {
   return promise.catch(e => {
       // this is a core error and it should break nodemon - so I have to break
       // out of a promise using the setTimeout
-      
+      setTimeout(() => {
         throw e;
+      })
+      
       
     }).then(function () {
-      log.info(`watching ${watchedFiles.length} file${
+      log.trace(`watching ${watchedFiles.length} file${
         watchedFiles.length === 1 ? '' : 's'}`);
       return watchedFiles;
     });

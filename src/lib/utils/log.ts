@@ -53,6 +53,8 @@ class Logger {
     _log('detail', message)
   }
 }
+
+
 const log = new Logger()
 
 export default log

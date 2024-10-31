@@ -8,10 +8,11 @@ import type {
 import log from '../utils/log.js'
 import taxi from '../utils/taxi.js'
 import { run } from './run.js'
-import { watch, resetWatchers } from './changed.js'
+
 import {
   resolvePath,
   dirname,
+  basename,
   trimCwd,
   findLocalBinaryPath,
 } from '../pathHelper.js'
@@ -75,10 +76,23 @@ export async function monitorChanges(
   return new Promise(async (resolve, reject) => {
     let hasStarted = false
     await run()
+      function bindNodemonEvents() {
+        const events = ['start', 'quit', 'restart', 'readable', 'crash','exit'];
+
+        events.forEach(event => {
+          (nodemon as any).on(event, (...args: any[]) => {
+            taxi.emit(`nodemon:${event}`, ...args);
+          });
+        });
+      }
+
+      // เรียกใช้ฟังก์ชันเพื่อเริ่มการเชื่อมโยงอีเวนต์
+      
     ;(nodemon as any)
       .on('readable', () => {
         taxi.emit('nodemon:config', config)
-
+        
+        bindNodemonEvents()
         nodemon.stdout.on('data', data => {
           console.log(`\n${data.toString()}`)
           // จัดการ output ที่ได้ เช่น เขียนไปยังไฟล์ หรือแสดงใน console
@@ -92,9 +106,7 @@ export async function monitorChanges(
         run.kill()
         eventQuit(code)
       })
-      .on('exit', code => {
-        eventExited(code)
-      })
+  
   })
 }
 
@@ -121,7 +133,7 @@ async function eventPreStart(scriptPath: string, opts: FileWatcherOptions) {
   }
   await handleOptions(scriptPath, opts)
   logMessage(`to restart at any time, enter 'rl'`)
-  logMessage(`watching path(s): ${opts ? opts.watchPaths.join(', ') : 'all'}`)
+  logMessage(`watching path(s): ${opts ? opts.watchPaths?.join(', ') : 'all'}`)
   logMessage('watching extensions: js|cjs|mjs|json|ts')
 }
 
@@ -151,27 +163,50 @@ function eventExited(code?: NodemonEventExit) {
   } else if (code === 143) {
     logMessage('was terminated (SIGTERM).')
   } else if (code === 0) {
-    log.detail('clean exit - waiting for changes before restart')
+    log.detail('clean exit - waiting for changes before restart!!!')
   }
 }
 
+
+const processExtensionsFile=  (opts: FileWatcherOptions ) => {
+  const result: string[] = [];
+  let ext = ['js', 'cjs', 'mjs', 'json', 'ts']
+  const baseDir = dirname(opts.fullPath ?? '')
+  const cwd = process.cwd();
+  if(!(opts.watchAll ?? false)){
+  if( opts.fullPath?.endsWith('.ts')) {
+    ext = ['ts', 'json']
+  }else if(opts.fullPath?.endsWith('.js')){
+    ext = ['js', 'json', 'cjs', 'mjs']
+  }
+  }
+  if (cwd === baseDir) {
+    result.push('*.*');
+    return result
+  }
+
+  for (const _ext of ext) {
+    result.push(`${baseDir}/**/*.${_ext}`);
+  }
+  return result
+}
 async function handleOptions(scriptPath: string, opts: FileWatcherOptions) {
   const isIgnore = opts.ignore ?? true
   if (isIgnore) {
     logMessage(`Loading ignore patterns from .nyrenignore and .gitignore`)
   }
 
-  const isAllFiles = opts.watchAll ?? false
-  if (isAllFiles) {
+  
+  if (opts.watchAll ?? false) {
     logMessage(`Watching all files`)
   }
-
   opts.fullPath = resolvePath(process.cwd(), scriptPath)
-  const baseDir = dirname(opts.fullPath)
-
-  opts.watchFilesAll = isAllFiles
-    ? ['*.*']
-    : [`${baseDir}/**/*.js`, `${baseDir}/**/*.ts`]
+  
+  
+  
+  
+  opts.watchFilesAll = processExtensionsFile(opts)
+  
   opts.watchPaths = opts.watchFilesAll
     .map(file => trimCwd(file))
     .filter(file => file !== '')
@@ -179,7 +214,8 @@ async function handleOptions(scriptPath: string, opts: FileWatcherOptions) {
 }
 ;(async () => {
   try {
-    await monitorChanges('src/index.js', { ignore: false, watchAll: false })
+    await monitorChanges('index.js', { ignore: true, watchAll: true })
+    
     console.log('Tracking changes...')
   } catch (error) {
     console.error('Failed to start tracking: ', error)
