@@ -57,7 +57,7 @@ export async function monitorChanges(
   scriptPath: string,
   opts: FileWatcherOptions
 ): Promise<void> {
-  let watched
+
   await eventPreStart(scriptPath, opts)
 
   const getBinaryBunPath = await findLocalBinaryPath('bun')
@@ -73,34 +73,22 @@ export async function monitorChanges(
     stdout: false,
   })
 
-  return new Promise(async (resolve, reject) => {
+  return new Promise(async (reject) => {
     let hasStarted = false
     await run()
-      function bindNodemonEvents() {
-        const events = ['start', 'quit', 'restart', 'readable', 'crash','exit'];
-
-        events.forEach(event => {
-          (nodemon as any).on(event, (...args: any[]) => {
-            taxi.emit(`nodemon:${event}`, ...args);
-          });
-        });
-      }
-
-      // เรียกใช้ฟังก์ชันเพื่อเริ่มการเชื่อมโยงอีเวนต์
-      
+      bindNodemonEvents(nodemon)
     ;(nodemon as any)
       .on('readable', () => {
         taxi.emit('nodemon:config', config)
         
-        bindNodemonEvents()
         nodemon.stdout.on('data', data => {
           console.log(`\n${data.toString()}`)
-          // จัดการ output ที่ได้ เช่น เขียนไปยังไฟล์ หรือแสดงใน console
+
         })
       })
       .on('crash', () => {
-        logMessage('Application has crashed!')
-        reject(new Error('Application crashed'))
+        log.error('Application has crashed!')
+        reject()
       })
       .on('quit', code => {
         run.kill()
@@ -109,7 +97,13 @@ export async function monitorChanges(
   
   })
 }
+function bindNodemonEvents(nodemonEvent: typeof nodemon) {
+  const events = ['start', 'quit', 'restart', 'readable', 'crash','exit'];
 
+  events.forEach(event => (nodemonEvent as any).on(event, (...args: any[]) => taxi.emit(`nodemon:${event}`, ...args)
+)
+);
+}
 async function eventPreStart(scriptPath: string, opts: FileWatcherOptions) {
   opts.scriptPath = scriptPath
 
@@ -137,34 +131,10 @@ async function eventPreStart(scriptPath: string, opts: FileWatcherOptions) {
   logMessage('watching extensions: js|cjs|mjs|json|ts')
 }
 
-function eventStart(scriptPath: string) {
-  logMessage(`staring \`${t.textWhit(scriptPath)}\``)
-}
-async function eventRestart(changed?: NodemonEventRestart): Promise<void> {
-  if (changed && changed.matched) {
-    const { result, total } = changed.matched
-    logMessage(
-      `changes after filters (before/ after) (${result.length} / ${total})`
-    )
-    logMessage(`restarted due to: ${trimCwd(result)} : ${total} files changed`)
-  } else {
-    logMessage(`changes after filters (before/ after): ${changed.length} / 1`)
-    logMessage(`restarted due to: ${trimCwd(changed as string)} files`)
-  }
-}
+
 function eventQuit(code?: NodemonEventQuit) {
   logMessage(`${t.textRed('error')} : exited with code ${code ?? 'unknown'}`)
   process.exit(code ?? 1) // กำหนดค่าเป็น 1 หาก code เป็น null หรือ undefined
-}
-function eventExited(code?: NodemonEventExit) {
-  code = code ?? 0
-  if (code === 130) {
-    logMessage('was terminated by Ctrl+C (SIGINT).')
-  } else if (code === 143) {
-    logMessage('was terminated (SIGTERM).')
-  } else if (code === 0) {
-    log.detail('clean exit - waiting for changes before restart!!!')
-  }
 }
 
 
@@ -214,7 +184,7 @@ async function handleOptions(scriptPath: string, opts: FileWatcherOptions) {
 }
 ;(async () => {
   try {
-    await monitorChanges('index.js', { ignore: true, watchAll: true })
+    await monitorChanges('src/index.js', { ignore: true, watchAll: false })
     
     console.log('Tracking changes...')
   } catch (error) {
