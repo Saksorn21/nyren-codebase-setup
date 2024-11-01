@@ -182,12 +182,13 @@ async function handleOptions(scriptPath: string, opts: FileWatcherOptions) {
     .filter(file => file !== '')
   opts.ignore = isIgnore ? await getIgnorePatterns() : []
 }
-;(async () => {
-  try {
-    await monitorChanges('src/index.js', { ignore: true, watchAll: false })
+
+// ;(async () => {
+//   try {
+//     await monitorChanges('src/index.js', { ignore: true, watchAll: false })
     
-    console.log('Tracking changes...')
-  } catch (error) {
-    console.error('Failed to start tracking: ', error)
-  }
-})()
+//     console.log('Tracking changes...')
+//   } catch (error) {
+//     console.error('Failed to start tracking: ', error)
+//   }
+// })()

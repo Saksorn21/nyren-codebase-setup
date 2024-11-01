@@ -1,9 +1,10 @@
-import { resolvePath } from './lib/pathHelper.js'
+import { resolvePath, findLocalBinaryPath } from './lib/pathHelper.js'
 import { readPackageJson } from './lib/packageJsonUtils.js'
 import { executeCommand } from './lib/executeCommand.js'
 import which from 'which'
 import { tools as t } from './lib/help.js'
 import examples from './bin/examples.js'
+import {monitorChanges} from './lib/watch/fileWatcher.js'
 import { type Command } from 'commander'
 
 const enum MatchResult {
@@ -16,20 +17,6 @@ const whichRunner = async (runner: string) => {
     return runner
   } catch {
     return null
-  }
-}
-const findOrFallbackToNpx = async (commandArgs: string[]) => {
-  try {
-    await which(commandArgs[0])
-  } catch {
-    t.log(
-      t.prefixCli,
-      t.toolIcon,
-      t.text('#EF3054')(
-        `Since the package: ${t.textWhit(commandArgs[0])} is missing, we will ${t.textWhit('install')} it temporarily using ${t.textWhit('npx')} automatically.`
-      )
-    )
-    commandArgs.unshift('npx', '--yes')
   }
 }
 const findMatchingScript = async (
@@ -70,31 +57,11 @@ const prepareScriptCommand = async (
 
   // If the file ends with .ts, use ts-node or bun based on the project type.
   // For other file extensions (.js, .cjs, .mjs), use node to execute the script.
-const execCommand = command.endsWith('ts') ? runnersForType : 'node'
-  commandArgs.unshift('bun')
-}
-const combineSubcommand = async (commandArgs: string[]) => {
-await findOrFallbackToNpx(commandArgs)
-const commandToCombine = commandArgs.slice(0, 3).join(' ')
-const args = commandArgs.slice(3)
-
-if (commandArgs[0] === 'npx') {
-  commandArgs.length = 0
-  commandArgs.push(commandToCombine, ...args)
-}
+const execCommand = await findLocalBinaryPath('bun')
+  commandArgs.unshift(execCommand)
 }
 
-const processWatchCommand = async (commandArgs: string[]): Promise<void> => {
-switch (commandArgs[0]) {
-  case 'bun':
-    await combineSubcommand(commandArgs)
-    commandArgs.unshift('nodemon', '--exec')
-    break
-  case 'node':
-    commandArgs[0] = 'nodemon'
-    break
-}
-}
+
 // follwing is the main function Try it nyrenx dev or nyrenx --watch index.ts
 export async function executeScriptDynamic(
   program: Command,
@@ -129,9 +96,12 @@ export async function executeScriptDynamic(
   try {
     // nyrenx [script for package.json] Suppose there is nyrenx test
     if (scriptMatchResult === MatchResult.MATCH_FOUND) {
-      await findOrFallbackToNpx(commandArgs)
-      if (options.watch) await processWatchCommand(commandArgs)
+      if (options.watch) {
+        return await monitorChanges(commandArgs[1], options)
+        }
+      commandArgs[0] = 'nyrenx'
       commandArgsResult.push(...commandArgs, ...forwardedArgs)
+      
       messageRunners.push(
         `${t.text('#800080')('$')} ${pkj.name}@${pkj.version} ${script}`,
         t.text('#800080')('\n$'),
@@ -141,9 +111,9 @@ export async function executeScriptDynamic(
     } else {
       await prepareScriptCommand(commandArgs, pkj.type)
       // nyrenx --watch ./path/to/file.<ts,js | cjs | mjs>
-      if (options.watch) await processWatchCommand(commandArgs)
-
-      await findOrFallbackToNpx(commandArgs)
+      if (options.watch) {
+      return await monitorChanges(commandArgs[1], options)
+      }
 
       commandArgsResult.push(...commandArgs, ...forwardedArgs)
       messageRunners.push(
