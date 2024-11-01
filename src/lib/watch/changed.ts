@@ -1,11 +1,11 @@
 
 
-import log from '../utils/log.js'
-import taxi from '../utils/taxi.js'
 
-import { config as config} from 'nodemon'
-import filterFilesByMonitorRulesfrom, {generateWatchRules} from'./match.js'
-import { tools as t } from '../help.js'
+import utils from '../utils/main.js'
+import { config } from 'nodemon'
+import  {filterFilesByMonitorRules
+  ,generateWatchRules} from'./match.js'
+
 import { trimCwd, resolvePath } from '../pathHelper.js'
 import { watch as watchFiles, type WatchOptions } from 'chokidar'
 let watchedFiles: string[] = []
@@ -52,7 +52,7 @@ export function watch() {
   }; 
 
 
-    if(process.platform === 'win32'){
+    if(utils.isWindows){
       watchOptions.disableGlobbing = true
     }
     
@@ -69,7 +69,7 @@ export function watch() {
           }
       
       watchedFiles.push(file);
-      taxi.emit('watching', file)
+      utils.taxi.emit('watching', file)
       
     });
     
@@ -82,13 +82,13 @@ export function watch() {
 
     watcher.on('error', (error: Error) => {
       if (error.code === 'EINVAL') {
-        t.log(
+        utils.log.error(
           'Internal watch failed. Likely cause: too many ' +
           'files being watched (perhaps from the root of a drive?\n' +
           'See https://github.com/paulmillr/chokidar/issues/229 for details'
         );
       } else {
-        t.log('Internal watch failed: ' + error.message);
+        utils.log.error('Internal watch failed: ' + error.message);
         process.exit(1);
       }
     });
@@ -106,7 +106,7 @@ export function watch() {
       
       
     }).then(function () {
-      log.trace(`watching ${watchedFiles.length} file${
+      utils.log.trace(`watching ${watchedFiles.length} file${
         watchedFiles.length === 1 ? '' : 's'}`);
       return watchedFiles;
     });
@@ -114,7 +114,7 @@ export function watch() {
 
 }
 
-import path from 'path'
+import path, {relative } from 'path'
 function filterAndRestart(files) {
   
   let cwd = process.cwd();
@@ -124,21 +124,21 @@ function filterAndRestart(files) {
 
   if (files.length) {
       cwd = cwd
-    log.trace(`files triggering change check: ${files.map((file: string) => trimCwd(file)).join(', ')}`);
+    utils.log.trace(`files triggering change check: ${files.map((file: string) => trimCwd(file)).join(', ')}`);
 
-    files = files.filter(Boolean).map(file => {
-      return path.relative(process.cwd(), path.relative(cwd, file));
+    files = files.filter(Boolean).map((file: string) => {
+      return relative(process.cwd(), relative(cwd, file));
     });
 
-    if (process.platform === 'win32') {
+    if (utils.isWindows) {
       // ensure the drive letter is in uppercase (c:\foo -> C:\foo)
-      files = files.map(f => {
+      files = files.map((f: string) => {
         if (f.indexOf(':') === -1) { return f; }
         return f[0].toUpperCase() + f.slice(1);
       });
     }
     
-    let matched = filterFilesByMonitorRulesfrom(
+    let matched: any = filterFilesByMonitorRules(
       files,
       config.options.monitor,
       config.options
@@ -147,30 +147,31 @@ function filterAndRestart(files) {
     )
     
     if (config.options.execOptions && config.options.execOptions.script) {
-      const script = path.resolve(config.options.execOptions.script);
+      const script = resolvePath(config.options.execOptions.script);
       if (matched.result.length === 0 && script) {
         const length = script.length;
-        files.find(file => {
-          if (file.substr(-length, length) === script) {
+        files.find((file: string) => {
+          if (file.substring(-length, length) === script) {
             matched = {
               result: [file],
               total: 1,
             };
             return true;
           }
+          return false
         });
       }
     }
 
-    log.trace(
+    utils.log.trace(
       'changes after filters (before/after): ' +
       [files.length, matched.result.length].join('/')
     );
 
     if(matched.result.length){
-      log.trace('restarting due to changes...');
+      utils.log.trace('restarting due to changes...');
       matched.result.map(file => {
-        log.trace(path.relative(process.cwd(), file));
+        utils.log.trace(relative(process.cwd(), file));
       })
     }
     }

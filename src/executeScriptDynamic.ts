@@ -5,6 +5,7 @@ import which from 'which'
 import { tools as t } from './lib/help.js'
 import examples from './bin/examples.js'
 import {monitorChanges} from './lib/watch/fileWatcher.js'
+import utils from './lib/utils/main.js'
 import { type Command } from 'commander'
 
 const enum MatchResult {
@@ -99,11 +100,11 @@ export async function executeScriptDynamic(
       if (options.watch) {
         return await monitorChanges(commandArgs[1], options)
         }
-      commandArgs[0] = 'nyrenx'
-      commandArgsResult.push(...commandArgs, ...forwardedArgs)
       
+      commandArgsResult.push(...commandArgs, ...forwardedArgs)
+      commandArgs[0] = 'nyrenx'
       messageRunners.push(
-        `${t.text('#800080')('$')} ${pkj.name}@${pkj.version} ${script}`,
+        `${utils.color.hex('#800080')('$')} ${pkj.name}@${pkj.version} ${script}`,
         t.text('#800080')('\n$'),
         ...commandArgs
       )
@@ -128,7 +129,7 @@ export async function executeScriptDynamic(
     process.exit(1)
   }
 
-    t.log(`${t.text('d7d7ff').dim(messageRunners.join(' '))}`)
+    utils.log.info(`${t.text('d7d7ff').dim(messageRunners.join(' '))}`)
 
   await executeCommand(commandArgsResult, options)
 }
@@ -141,22 +142,21 @@ function handleCommandError(error: Error | unknown, commandArgs: string[]) {
         : 'Unknown error'
   const command = commandArgs.join(' ')
   if (err === 'Invalid prepareScriptCommand') {
-    t.log(
-      t.prefixCli,
-      t.error,
-      t
-        .text('#EF3054')
+    utils.log.fail(
+      
+      utils.icon.error +
+      utils.color
+        .hex('#EF3054')
         .visible(
-          `The command: ${command} is not a valid script. Please provide a valid script file: ${t.textWhit(`path/to/file.<ts | js | cjs | mjs>`)}`
+          ` The command: ${command} is not a valid script. Please provide a valid script file: ${t.textWhit(`path/to/file.<ts | js | cjs | mjs>`)}`
         )
     )
-    t.log(
-      t.prefixCli,
-      t.toolIcon,
+      utils.log.fail(
+      utils.icon.tool +
       t.textWhit.dim(` Script not found "${t.textWhit(command)}"`)
     )
-    t.log(t.prefixCli, t.idea, t.textWhit.dim(`Try it:`))
-    t.log(examples.dynamicCommand)
+          utils.log.fail( t.idea + t.textWhit.dim(` Try it:`))
+      utils.log.fail(examples.dynamicCommand)
     process.exit(2)
   }
   process.exit(1)

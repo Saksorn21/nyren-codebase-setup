@@ -5,7 +5,7 @@ class Taxi extends EventEmitter{
 const taxi = new Taxi()
 
 
-process.on('message', (event) => taxi.emit(event))
+process.on('message', (event: string | symbol) => taxi.emit(event))
 
 if (process.send) {
   const originalEmit = taxi.emit;

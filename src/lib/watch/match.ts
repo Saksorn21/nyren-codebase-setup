@@ -8,7 +8,7 @@ import type {NodemonSettings} from 'nodemon'
 import { resolvePath, dirname, trimCwd, basename } from '../pathHelper.js'
 
 
-type MonitorResult = {
+export type MonitorResult = {
   result: string[];
   ignored: number;
   watched: number;
@@ -105,7 +105,7 @@ function findBaseDirectory(dir: string): string | false {
   return false;
 }
 
-function filterFilesByMonitorRules(files: string[], monitor: string[], ext: string): MonitorResult {
+export function filterFilesByMonitorRules(files: string[], monitor: string[], ext: string): MonitorResult {
   const cwd = process.cwd();
   const rules = monitor
     .sort((a, b) => {
@@ -211,4 +211,3 @@ function filterFilesByMonitorRules(files: string[], monitor: string[], ext: stri
   };
 }
 
-export default filterFilesByMonitorRules;

@@ -5,8 +5,8 @@ import type {
   NodemonEventQuit,
   NodemonEventExit,
 } from 'nodemon'
-import log from '../utils/log.js'
-import taxi from '../utils/taxi.js'
+import utils from '../utils/main.js'
+
 import { run } from './run.js'
 
 import {
@@ -19,6 +19,7 @@ import {
 import { readdir, readFile, exists } from '../fileSystem.js'
 import { validExtensionsFile } from '../utils.js'
 import { tools as t } from '../help.js'
+const taxi = utils.taxi
 interface FileWatcherOptions {
   scriptPath?: string
   fullPath?: string
@@ -27,10 +28,7 @@ interface FileWatcherOptions {
   watchPaths?: string[]
   ignore?: boolean | string[]
 }
-let options = {}
-const PREFIXWATCH = `${t.prefixCli} ${t.toolIcon}`
-const logMessage = (message: string) =>
-  t.log(PREFIXWATCH, t.text('#d7d7ff').dim(message))
+
 // Retrieves ignore patterns from both .nyrenignore and .gitignore files.
 // If both files exist, their patterns will be combined into a single array.
 // Lines starting with '#' are treated as comments and ignored.
@@ -74,7 +72,7 @@ export async function monitorChanges(
   })
 
   return new Promise(async (reject) => {
-    let hasStarted = false
+    
     await run()
       bindNodemonEvents(nodemon)
     ;(nodemon as any)
@@ -87,7 +85,7 @@ export async function monitorChanges(
         })
       })
       .on('crash', () => {
-        log.error('Application has crashed!')
+        utils.log.fail('Application has crashed!')
         reject()
       })
       .on('quit', code => {
@@ -119,21 +117,21 @@ async function eventPreStart(scriptPath: string, opts: FileWatcherOptions) {
         )
     )
   } else {
-    t.log(
-      t.textRed(`error`),
+    utils.log.error(
+      t.textRed(`error`) +
       t.textWhit.dim(`: file not found "${scriptPath}" please check the path.`)
     )
     process.exit(2)
   }
   await handleOptions(scriptPath, opts)
-  logMessage(`to restart at any time, enter 'rl'`)
-  logMessage(`watching path(s): ${opts ? opts.watchPaths?.join(', ') : 'all'}`)
-  logMessage('watching extensions: js|cjs|mjs|json|ts')
+  utils.log.info(`to restart at any time, enter 'rl'`)
+    utils.log.info(`watching path(s): ${opts ? opts.watchPaths?.join(', ') : 'all'}`)
+    utils.log.info('watching extensions: js|cjs|mjs|json|ts')
 }
 
 
 function eventQuit(code?: NodemonEventQuit) {
-  logMessage(`${t.textRed('error')} : exited with code ${code ?? 'unknown'}`)
+    utils.log.error(`${t.textRed('error')} : exited with code ${code ?? 'unknown'}`)
   process.exit(code ?? 1) // กำหนดค่าเป็น 1 หาก code เป็น null หรือ undefined
 }
 
@@ -141,7 +139,7 @@ function eventQuit(code?: NodemonEventQuit) {
 const processExtensionsFile=  (opts: FileWatcherOptions ) => {
   const result: string[] = [];
   let ext = ['js', 'cjs', 'mjs', 'json', 'ts']
-  const baseDir = dirname(opts.fullPath ?? '')
+  const baseDir = utils.path.dirname(opts.fullPath ?? '')
   const cwd = process.cwd();
   if(!(opts.watchAll ?? false)){
   if( opts.fullPath?.endsWith('.ts')) {
@@ -163,12 +161,12 @@ const processExtensionsFile=  (opts: FileWatcherOptions ) => {
 async function handleOptions(scriptPath: string, opts: FileWatcherOptions) {
   const isIgnore = opts.ignore ?? true
   if (isIgnore) {
-    logMessage(`Loading ignore patterns from .nyrenignore and .gitignore`)
+      utils.log.info(`Loading ignore patterns from .nyrenignore and .gitignore`)
   }
 
   
   if (opts.watchAll ?? false) {
-    logMessage(`Watching all files`)
+      utils.log.info(`Watching all files`)
   }
   opts.fullPath = resolvePath(process.cwd(), scriptPath)
   

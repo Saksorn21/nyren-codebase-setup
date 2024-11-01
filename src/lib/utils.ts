@@ -1,4 +1,5 @@
 import { tools } from './help.js'
+import utils from './utils/main.js'
 import { resolvePath } from './pathHelper.js'
 import ansiRegex from 'ansi-regex'
 export async function fetchToJson(
