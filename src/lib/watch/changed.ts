@@ -114,8 +114,8 @@ export function watch() {
 
 }
 
-import path, {relative } from 'path'
-function filterAndRestart(files) {
+import  {relative } from 'path'
+function filterAndRestart(files: string | string[]) {
   
   let cwd = process.cwd();
   if (!Array.isArray(files)) {

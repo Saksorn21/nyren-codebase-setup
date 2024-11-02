@@ -7,7 +7,6 @@ import log from '../utils/log.js'
 import type {NodemonSettings} from 'nodemon'
 import { resolvePath, dirname, trimCwd, basename } from '../pathHelper.js'
 
-
 export type MonitorResult = {
   result: string[];
   ignored: number;

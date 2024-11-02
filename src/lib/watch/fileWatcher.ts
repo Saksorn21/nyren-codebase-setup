@@ -6,7 +6,6 @@ import type {
   NodemonEventExit,
 } from 'nodemon'
 import utils from '../utils/main.js'
-
 import { run } from './run.js'
 
 import {
@@ -82,25 +81,14 @@ const inputConfig = opts.nodemon
     ;(nodemon as any)
       .on('readable', () => {
         taxi.emit('nodemon:config', config)
-        
-        nodemon.stdout.on('data', data => {
-          console.log(`\n${data.toString()}`)
-
-        })
       })
-      .on('crash', () => {
-        utils.log.fail('Application has crashed!')
-        reject()
-      })
-      .on('quit', code => {
-        run.kill()
-        eventQuit(code)
-      })
-  
+    nodemon.on('log',(log)=>{
+      //console.warn('log',log)
+    })
   })
 }
 function bindNodemonEvents(nodemonEvent: typeof nodemon) {
-  const events = ['start', 'quit', 'restart', 'readable', 'crash','exit'];
+  const events = ['start', 'quit', 'restart', 'readable', 'crash','exit','stdout','removeAllListeners'];
 
   events.forEach(event => (nodemonEvent as any).on(event, (...args: any[]) => taxi.emit(`nodemon:${event}`, ...args)
 )
@@ -134,10 +122,7 @@ async function eventPreStart(scriptPath: string, opts: FileWatcherOptions) {
 }
 
 
-function eventQuit(code?: NodemonEventQuit) {
-    utils.log.error(`${t.textRed('error')} : exited with code ${code ?? 'unknown'}`)
-  process.exit(code ?? 1) // กำหนดค่าเป็น 1 หาก code เป็น null หรือ undefined
-}
+
 
 
 const processExtensionsFile=  (opts: FileWatcherOptions ): {watches: string[], ext: string} => {
