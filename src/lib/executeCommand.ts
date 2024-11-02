@@ -9,6 +9,7 @@ interface InputOptions {
   prefix?: string
   silent?: boolean
 }
+
 // Centralize messages to reduce duplication
 const messages = {
   notCommand: (command: string[]) =>
