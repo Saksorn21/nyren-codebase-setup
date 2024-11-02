@@ -81,7 +81,13 @@ const inputConfig = opts.nodemon
     ;(nodemon as any)
       .on('readable', () => {
         taxi.emit('nodemon:config', config)
+        taxi.emit(`stdout`, nodemon.stdout)
+        nodemon.stdout?.on('data', (data) => {
+          console.log(`[Nodemon Output]: ${data.toString()}`);
+        });
       })
+     
+    
     nodemon.on('log',(log)=>{
       //console.warn('log',log)
     })
@@ -91,8 +97,8 @@ function bindNodemonEvents(nodemonEvent: typeof nodemon) {
   const events = ['start', 'quit', 'restart', 'readable', 'crash','exit','stdout','removeAllListeners'];
 
   events.forEach(event => (nodemonEvent as any).on(event, (...args: any[]) => taxi.emit(`nodemon:${event}`, ...args)
-)
-);
+));
+  
 }
 async function eventPreStart(scriptPath: string, opts: FileWatcherOptions) {
   opts.scriptPath = scriptPath

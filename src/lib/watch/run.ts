@@ -15,6 +15,8 @@ let runCmd = false
 let config
 export const run = async () => {
   
+  try {
+  
    taxi.once('nodemon:config', async (event) =>{ 
      config = event
      
@@ -28,35 +30,61 @@ export const run = async () => {
      } else {
        log.detail('start watch on: ' + config.options.watch);
        if (config.options.watch !== false) {
-      watch()
-
-       }
+         watch()
+   return
+          }
      }
      // if (config.options.watch !== false) watch()
      
      taxi.on('nodemon:start', () => taxi.emit('start', config)
     )
+     if (config.options.watch !== false) {
+       watch()
+
+        }
    })
-  taxi.on('start', (config) =>  utils.log.trace('starting `' + trimCwd(config.options.execOptions.script) + 'p`') )
-    taxi.on('nodemon:stdout', (data: Buffer) => {
-       console.log(data.toString())
+  
+  taxi.on('start', (config) =>  utils.log.trace('starting `' + trimCwd(config.options.execOptions.script) + '`') )
+    taxi.on('stdout', (stdout) => {
+     stdout.on('close', (e)=>{
+       console.log('close',e)
+       taxi.emit('nodemon:exit',0)
      })
+       //stdout.on('data',(code) =>{
+       //  console.log(code)
+      // })
+
+     })
+    taxi.on('nodemon:stdout', (data) => {
+      console.log(data.toString())
+    })
+     taxi.on('nodemon:exit', (code) => eventExited(code) )
     
-     taxi.on('nodemon:exit', (code) => eventExited(code)
-     )
   taxi.on('nodemon:crash', () => utils.log.fail('Application has crashed!'))
   taxi.on('nodemon:quit', (code:NodemonEventQuit) => {
     run.kill()
-    nodemon.reset(run.kill())
+    
     eventQuit(code)
   })
     
+    } catch (error: unknown) {
 
+    } finally {
+       
+    }
 
 }
+process.on('SIGUSR2', () => {
+  process.kill(process.pid, 'SIGTERM');
+   console.log('SIGUSR2')
+   run.kill()
+  
+  // eventQuit(130)
+ })
 process.on('exit', function (code, signal) {
   console.log('exiting')
   console.log(code, signal)
+  eventExited(code)
 })
 
 run.kill = () =>{
@@ -74,7 +102,7 @@ function eventExited(code?: NodemonEventExit) {
   } else if (code === 0) {
       log.detail('clean exit - waiting for changes before restart')
   }
-    process.exit(code)
+
     }
   
 }
