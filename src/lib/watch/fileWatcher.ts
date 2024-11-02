@@ -27,6 +27,10 @@ interface FileWatcherOptions {
   watchFilesAll?: string[]
   watchPaths?: string[]
   ignore?: boolean | string[]
+  nodemon?: {
+    watch: string[]
+    ext: string
+  }
 }
 
 // Retrieves ignore patterns from both .nyrenignore and .gitignore files.
@@ -59,15 +63,15 @@ export async function monitorChanges(
   await eventPreStart(scriptPath, opts)
 
   const getBinaryBunPath = await findLocalBinaryPath('bun')
-
+const inputConfig = opts.nodemon
   nodemon({
     script: opts.fullPath as string,
     ignore: opts.ignore as string[],
-    watch: opts.watchFilesAll,
+    watch: inputConfig?.watch || ['*.*'],
     execMap: { ts: getBinaryBunPath, js: getBinaryBunPath },
     verbose: true,
     restartable: 'rl',
-    ext: 'js,cjs,mjs,json,ts',
+    ext: inputConfig?.ext || '',
     stdout: false,
   })
 
@@ -126,7 +130,7 @@ async function eventPreStart(scriptPath: string, opts: FileWatcherOptions) {
   await handleOptions(scriptPath, opts)
   utils.log.info(`to restart at any time, enter 'rl'`)
     utils.log.info(`watching path(s): ${opts ? opts.watchPaths?.join(', ') : 'all'}`)
-    utils.log.info('watching extensions: js|cjs|mjs|json|ts')
+    utils.log.info('watching extensions: ' + opts.nodemon?.ext || '')
 }
 
 
@@ -136,10 +140,13 @@ function eventQuit(code?: NodemonEventQuit) {
 }
 
 
-const processExtensionsFile=  (opts: FileWatcherOptions ) => {
+const processExtensionsFile=  (opts: FileWatcherOptions ): {watches: string[], ext: string} => {
+  const watches: string[] = []
   const result: string[] = [];
   let ext = ['js', 'cjs', 'mjs', 'json', 'ts']
   const baseDir = utils.path.dirname(opts.fullPath ?? '')
+  const script = utils.path.basename(opts.fullPath ?? '')
+  const scriptExt = utils.path.extname(opts.fullPath ?? '')
   const cwd = process.cwd();
   if(!(opts.watchAll ?? false)){
   if( opts.fullPath?.endsWith('.ts')) {
@@ -150,34 +157,36 @@ const processExtensionsFile=  (opts: FileWatcherOptions ) => {
   }
   if (cwd === baseDir) {
     result.push('*.*');
-    return result
-  }
+      watches.push('*.*')
+    
+  }else {
 
   for (const _ext of ext) {
     result.push(`${baseDir}/**/*.${_ext}`);
+      watches.push(`${baseDir}/**/*.${_ext}`);
+    }
   }
-  return result
+  return {watches,ext: ext.join(',')}
 }
 async function handleOptions(scriptPath: string, opts: FileWatcherOptions) {
   const isIgnore = opts.ignore ?? true
   if (isIgnore) {
       utils.log.info(`Loading ignore patterns from .nyrenignore and .gitignore`)
   }
-
-  
   if (opts.watchAll ?? false) {
       utils.log.info(`Watching all files`)
   }
   opts.fullPath = resolvePath(process.cwd(), scriptPath)
+  const { watches, ext } = processExtensionsFile(opts)
+  opts.nodemon = {
+    watch: watches,
+    ext: ext
+  }
   
-  
-  
-  
-  opts.watchFilesAll = processExtensionsFile(opts)
-  
-  opts.watchPaths = opts.watchFilesAll
-    .map(file => trimCwd(file))
-    .filter(file => file !== '')
+ 
+  opts.watchPaths = opts.nodemon?.watch
+    .map((file: string) => trimCwd(file))
+    .filter((file: string) => file !== '')
   opts.ignore = isIgnore ? await getIgnorePatterns() : []
 }
 
