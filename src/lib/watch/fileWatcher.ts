@@ -68,20 +68,21 @@ const inputConfig = opts.nodemon
     ignore: opts.ignore as string[],
     watch: inputConfig?.watch || ['*.*'],
     execMap: { ts: getBinaryBunPath, js: getBinaryBunPath },
-    verbose: false,
+    verbose: true,
     restartable: inputConfig?.restart || '',
     ext: inputConfig?.ext || '',
+    signal: "SIGUSR2",
     colours: false,
-    stdout: false,
+    stdout: true,
   })
 
-  return new Promise(async (reject) => {
+  return new Promise(async () => {
     
     await run()
       bindNodemonEvents(nodemon)
     ;(nodemon as any)
       .on('readable', () => taxi.emit('nodemon:config', nodemon.config))
-    reject()
+    nodemon.on('log', (data: any) => console.log(data))
   })
 }
 function bindNodemonEvents(nodemonEvent: typeof nodemon) {
@@ -108,17 +109,12 @@ const scriptPath = opts.scriptPath || ''
     utils.log.info('watching extensions: ' + opts.nodemon?.ext || '')
 }
 
-
-
-
-
 const processExtensionsFile=  (opts: FileWatcherOptions ): {watches: string[], ext: string} => {
   const watches: string[] = []
   const result: string[] = [];
   let ext = ['js', 'cjs', 'mjs', 'json', 'ts']
   const baseDir = utils.path.dirname(opts.fullPath ?? '')
-  const script = utils.path.basename(opts.fullPath ?? '')
-  const scriptExt = utils.path.extname(opts.fullPath ?? '')
+  
   const cwd = process.cwd();
   if(!(opts.watchAll ?? false)){
   if( opts.fullPath?.endsWith('.ts')) {

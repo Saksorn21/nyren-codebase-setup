@@ -1,5 +1,5 @@
 import log from '../utils/log.js'
-
+import {config as nodemonConfig} from 'nodemon'
 import utils from '../utils/main.js'
 import { watch, resetWatchers } from './changed.js'
 import { trimCwd } from '../pathHelper.js'
@@ -10,22 +10,21 @@ import type {
 } from 'nodemon'
 const taxi = utils.taxi
 let runCmd = false
-let config: NodemonEventConfig = {}
+let config: NodemonEventConfig = nodemonConfig
 
-export const run = async () => {
-  try {
-    taxi.once('nodemon:config', async event => {
+export const run = async () => taxi.once('nodemon:config', async event => {
       config = event
-
       runCmd = !config.options.runOnChangeOnly || config.lastStarted !== 0
 
       if (runCmd) {
         log.info(
           'starting `' + trimCwd(config.options.execOptions.script) + '`'
         )
+        
       } else {
         log.info('start watch on: ' + config.options.watch)
         if (config.options.watch !== false) {
+          
           watch()
         }
       }
@@ -35,34 +34,23 @@ export const run = async () => {
         watch()
       }
       utils.log.info('chlid pid: ' + process.pid)
+      processResume(config)
     })
-  } catch (error: unknown) {
-  } finally {
-    process.on('SIGTERM', () => {
-      console.log('SIGTERM', process.pid)
-      process.kill(process.pid, 'SIGTERM')
-    })
-    process.on('SIGINT', () => {
-      console.log('SIGINT')
-      process.kill(process.pid, 'SIGINT')
-    })
-    process.on('exit', function (code: number, signal: string) {
-      console.log('exiting')
-      console.log(code, signal)
-    })
-  }
-}
 
 run.kill = () => {
   resetWatchers()
 }
+
+// Customize the start nodemon event to not send anything to use.
 taxi.on('start', config =>
   utils.log.trace(
     'starting `' + trimCwd(config.options.execOptions.script) + '`'
   )
 )
+
 taxi.on('nodemon:stdout', data => {
   console.log(data.toString())
+  
 })
 
 taxi.on('nodemon:exit', (code: NodemonEventExit) => eventExitedAndQuit(code))
@@ -74,12 +62,14 @@ function eventExitedAndQuit(code?: NodemonEventExit | NodemonEventQuit) {
   if (code !== undefined) {
     if (code === 130) {
       log.detail('was terminated by Ctrl+C (SIGINT).')
+      process.exit(130)
     } else if (code === 143) {
       log.detail('was terminated (SIGTERM).')
+      process.exit(143)
       // nodemon returns null, clean state, exit - wait for files to change then restart.
     } else if (code === null) {
-      setTimeout(()=>
-      log.detail('clean exit - waiting for changes before restart'),500)
+      setTimeout(()=> log.detail('clean exit - waiting for changes before restart'),100)
+      
     } else {
       log.detail('exited with code: ' + code)
     }
@@ -91,9 +81,53 @@ function eventExitedAndQuit(code?: NodemonEventExit | NodemonEventQuit) {
 }
 //immediately try to stop any polling
 config.run = false
-function eventQuit(code?: NodemonEventQuit) {
-  utils.log.fail(
-    `${utils.color.red('error')}${utils.color.reset.all(`: exited with code ${code ?? 'unknown'}`)}`
-  )
-  process.exit(code ?? 1) // กำหนดค่าเป็น 1 หาก code เป็น null หรือ undefined
+function processResume(config: NodemonEventConfig,stdin: typeof process.stdin = process.stdin) {
+   if(config.options.stdin){
+     stdin.resume()
+     stdin.setEncoding('utf8')
+     stdin.on('data', checkExitCommand)
+   }
 }
+function checkExitCommand(data: Buffer) {
+  const str = data.toString().trim().toLowerCase();
+
+  if (str === '.exit') emitExitSignal();
+  else if (str === '.clean') console.clear()
+}
+const emitExitSignal = () =>{ //taxi.emit('nodemon:quit');
+  process.kill(process.pid)
+ // process.exit()
+}
+// ฟังก์ชันสำหรับการทำความสะอาด
+function gracefulShutdown(callback) {
+  console.log('Cleaning up before shutdown...');
+  // ทำการทำความสะอาด เช่น ปิดการเชื่อมต่อฐานข้อมูล
+  // เมื่อเสร็จสิ้นเรียก callback
+  setTimeout(() => {
+    console.log('Cleanup done.');
+    callback();
+  }, 1000); // สมมุติใช้เวลา 1 วินาทีในการทำความสะอาด
+}
+
+// จับสัญญาณ SIGUSR2
+process.on('SIGUSR2', function () {
+  gracefulShutdown(function () {
+    process.kill(process.pid, 'SIGTERM'); // ปิดโปรเซส
+  });
+});
+
+process.on('SIGTERM', () => {
+    console.log('SIGTERM', process.pid)
+    process.kill(process.pid, 'SIGTERM')
+  })
+  process.on('SIGINT', () => {
+    console.log('SIGINT')
+    process.kill(process.pid, 'SIGINT')
+  })
+  process.on('exit', function (code: number, signal: string) {
+    console.log('exiting')
+    console.log(code, signal)
+  })
+
+
+
