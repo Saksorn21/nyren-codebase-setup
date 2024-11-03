@@ -73,7 +73,7 @@ const inputConfig = opts.nodemon
     ext: inputConfig?.ext || '',
     signal: "SIGUSR2",
     colours: false,
-    stdout: true,
+    stdout: false,
   })
 
   return new Promise(async () => {
@@ -82,11 +82,11 @@ const inputConfig = opts.nodemon
       bindNodemonEvents(nodemon)
     ;(nodemon as any)
       .on('readable', () => taxi.emit('nodemon:config', nodemon.config))
-    nodemon.on('log', (data: any) => console.log(data))
+   // nodemon.on('log', (data: any) => console.log(data))
   })
 }
 function bindNodemonEvents(nodemonEvent: typeof nodemon) {
-  const events = ['start', 'quit', 'restart', 'readable', 'crash','exit','stdout'];
+  const events = ['start', 'quit', 'restart', 'readable', 'crash','exit','stdout','stderr'];
 
   events.forEach(event => (nodemonEvent as any).on(event, (...args: any[]) => taxi.emit(`nodemon:${event}`, ...args)
 ));

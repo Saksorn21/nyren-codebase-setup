@@ -1,26 +1,23 @@
 
-import path,{ sep } from 'node:path'
-import fs from 'node:fs'
+import { sep } from 'node:path'
+import {statSync } from 'node:fs'
 import minimatch from 'minimatch'
 
 import log from '../utils/log.js'
 import type {NodemonSettings} from 'nodemon'
-import { resolvePath, dirname, trimCwd, basename } from '../pathHelper.js'
+import { resolvePath, dirname,  basename } from '../pathHelper.js'
 
 export type MonitorResult = {
   result: string[];
   ignored: number;
   watched: number;
   total: number;
-};
-
-
-
+}
 
 export function generateWatchRules(
   watchPaths: string | string[], 
   ignorePaths: string | string[], 
-  config: NodemonSettings
+  config: any
 ): string[] {
   let monitorPatterns: string[] = [];
 
@@ -48,10 +45,10 @@ export function generateWatchRules(
       rule = '*.*';
     }
 
-    const resolvedPath = path.resolve(currentDir, rule);
+    const resolvedPath = resolvePath(currentDir, rule);
 
     try {
-      const stat = fs.statSync(resolvedPath);
+      const stat = statSync(resolvedPath);
       if (stat.isDirectory()) {
         rule = `${resolvedPath.endsWith('/') ? resolvedPath : resolvedPath + '/'}**/*`;
 
@@ -87,13 +84,13 @@ export function generateWatchRules(
 function findBaseDirectory(dir: string): string | false {
   try {
     if (/[?*\{\[]+/.test(dir)) {
-      const baseDir = path.dirname(dir.replace(/([?*\{\[]+.*$)/, 'foo'));
-      const stat = fs.statSync(baseDir);
+      const baseDir = dirname(dir.replace(/([?*\{\[]+.*$)/, 'foo'));
+      const stat = statSync(baseDir);
       if (stat.isDirectory()) {
         return baseDir;
       }
     } else {
-      const stat = fs.statSync(dir);
+      const stat = statSync(dir);
       if (stat.isFile() || stat.isDirectory()) {
         return dir;
       }
@@ -108,7 +105,7 @@ export function filterFilesByMonitorRules(files: string[], monitor: string[], ex
   const cwd = process.cwd();
   const rules = monitor
     .sort((a, b) => {
-      const r = b.split(path.sep).length - a.split(path.sep).length;
+      const r = b.split(sep).length - a.split(sep).length;
       const aIsIgnore = a.startsWith('!');
       const bIsIgnore = b.startsWith('!');
 
@@ -119,7 +116,7 @@ export function filterFilesByMonitorRules(files: string[], monitor: string[], ex
       return r === 0 ? b.length - a.length : r;
     })
     .map((s) => {
-      const prefix = s.charAt(0);
+      const prefix: any = s.charAt(0);
 
       if (prefix === '!') {
         if (s.startsWith('!' + cwd)) {
