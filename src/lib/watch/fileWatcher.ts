@@ -10,16 +10,15 @@ import { run } from './run.js'
 
 import {
   resolvePath,
-  dirname,
-  basename,
   trimCwd,
   findLocalBinaryPath,
 } from '../pathHelper.js'
-import { readdir, readFile, exists } from '../fileSystem.js'
+import { readFile, exists } from '../fileSystem.js'
 import { validExtensionsFile } from '../utils.js'
 import { tools as t } from '../help.js'
 const taxi = utils.taxi
 interface FileWatcherOptions {
+  cwd?: string
   scriptPath?: string
   fullPath?: string
   watchAll?: boolean
@@ -27,6 +26,7 @@ interface FileWatcherOptions {
   watchPaths?: string[]
   ignore?: boolean | string[]
   nodemon?: {
+    restart: string
     watch: string[]
     ext: string
   }
@@ -55,11 +55,11 @@ export async function getIgnorePatterns(): Promise<string[]> {
 }
 
 export async function monitorChanges(
-  scriptPath: string,
   opts: FileWatcherOptions
 ): Promise<void> {
-
-  await eventPreStart(scriptPath, opts)
+  nodemon.reset(()=>{})
+  
+  await eventPreStart( opts)
 
   const getBinaryBunPath = await findLocalBinaryPath('bun')
 const inputConfig = opts.nodemon
@@ -68,9 +68,10 @@ const inputConfig = opts.nodemon
     ignore: opts.ignore as string[],
     watch: inputConfig?.watch || ['*.*'],
     execMap: { ts: getBinaryBunPath, js: getBinaryBunPath },
-    verbose: true,
-    restartable: 'rl',
+    verbose: false,
+    restartable: inputConfig?.restart || '',
     ext: inputConfig?.ext || '',
+    colours: false,
     stdout: false,
   })
 
@@ -79,42 +80,22 @@ const inputConfig = opts.nodemon
     await run()
       bindNodemonEvents(nodemon)
     ;(nodemon as any)
-      .on('readable', () => {
-        taxi.emit('nodemon:config', config)
-        taxi.emit(`stdout`, nodemon.stdout)
-        nodemon.stdout?.on('data', (data) => {
-          console.log(`[Nodemon Output]: ${data.toString()}`);
-        });
-      })
-     
-    
-    nodemon.on('log',(log)=>{
-      //console.warn('log',log)
-    })
+      .on('readable', () => taxi.emit('nodemon:config', nodemon.config))
+    reject()
   })
 }
 function bindNodemonEvents(nodemonEvent: typeof nodemon) {
-  const events = ['start', 'quit', 'restart', 'readable', 'crash','exit','stdout','removeAllListeners'];
+  const events = ['start', 'quit', 'restart', 'readable', 'crash','exit','stdout'];
 
   events.forEach(event => (nodemonEvent as any).on(event, (...args: any[]) => taxi.emit(`nodemon:${event}`, ...args)
 ));
-  
+  taxi.emit('nodemon:reset', nodemonEvent.reset)
 }
-async function eventPreStart(scriptPath: string, opts: FileWatcherOptions) {
-  opts.scriptPath = scriptPath
-
+async function eventPreStart(opts: FileWatcherOptions) {
+const scriptPath = opts.scriptPath || ''
   const chackedPathes = await exists(scriptPath)
-  if (chackedPathes && validExtensionsFile(scriptPath)) {
-    t.log(
-      t.prefixCli,
-      t.toolIcon,
-      t
-        .text('#F46036')
-        .dim(
-          `The project will be run in the directory: ${t.textWhit(scriptPath)}.`
-        )
-    )
-  } else {
+
+  if (!chackedPathes && !validExtensionsFile(scriptPath)) {
     utils.log.error(
       t.textRed(`error`) +
       t.textWhit.dim(`: file not found "${scriptPath}" please check the path.`)
@@ -122,7 +103,7 @@ async function eventPreStart(scriptPath: string, opts: FileWatcherOptions) {
     process.exit(2)
   }
   await handleOptions(scriptPath, opts)
-  utils.log.info(`to restart at any time, enter 'rl'`)
+  utils.log.info(`to restart at any time, enter '${opts.nodemon?.restart || 're'}'`)
     utils.log.info(`watching path(s): ${opts ? opts.watchPaths?.join(', ') : 'all'}`)
     utils.log.info('watching extensions: ' + opts.nodemon?.ext || '')
 }
@@ -157,7 +138,7 @@ const processExtensionsFile=  (opts: FileWatcherOptions ): {watches: string[], e
       watches.push(`${baseDir}/**/*.${_ext}`);
     }
   }
-  return {watches,ext: ext.join(',')}
+  return { watches,ext: ext.join(',') }
 }
 async function handleOptions(scriptPath: string, opts: FileWatcherOptions) {
   const isIgnore = opts.ignore ?? true
@@ -167,12 +148,15 @@ async function handleOptions(scriptPath: string, opts: FileWatcherOptions) {
   if (opts.watchAll ?? false) {
       utils.log.info(`Watching all files`)
   }
-  opts.fullPath = resolvePath(process.cwd(), scriptPath)
+  opts.fullPath = resolvePath(opts.cwd ?? process.cwd(), scriptPath)
   const { watches, ext } = processExtensionsFile(opts)
-  opts.nodemon = {
+  
+    
+  opts.nodemon = opts.nodemon ??  {
     watch: watches,
-    ext: ext
-  }
+    ext: ext,
+    restart: 'rl'
+  } 
   
  
   opts.watchPaths = opts.nodemon?.watch

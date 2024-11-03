@@ -4,7 +4,7 @@ import { executeCommand } from './lib/executeCommand.js'
 import which from 'which'
 import { tools as t } from './lib/help.js'
 import examples from './bin/examples.js'
-import {monitorChanges} from './lib/watch/fileWatcher.js'
+import { monitorChanges } from './lib/watch/fileWatcher.js'
 import utils from './lib/utils/main.js'
 import { type Command } from 'commander'
 
@@ -34,9 +34,8 @@ const findMatchingScript = async (
     }
     return { result: MatchResult.NO_MATCH, commandArgs }
   } catch (error) {
-    throw new Error(
-      `Failed to read or process the package.json file: ${error instanceof Error ? error.message : 'Unknown error'}`
-    )
+    utils.log.error((error as Error).message)
+    process.exit(1)
   }
 }
 const prepareScriptCommand = async (
@@ -45,10 +44,10 @@ const prepareScriptCommand = async (
 ): Promise<void> => {
   const command = commandArgs[0]
 
-    const validExtensions = ['ts', 'js', 'cjs', 'mjs']
-    const isValidCommand = validExtensions.some(ext => command.endsWith(ext))
+  const validExtensions = ['ts', 'js', 'cjs', 'mjs']
+  const isValidCommand = validExtensions.some(ext => command.endsWith(ext))
 
-    if (!isValidCommand) {
+  if (!isValidCommand) {
     throw TypeError('Invalid prepareScriptCommand')
   }
   // Some users encountered 'ERR_UNKNOWN_FILE_EXTENSION' errors when using ts-node with ESModule projects.
@@ -58,10 +57,9 @@ const prepareScriptCommand = async (
 
   // If the file ends with .ts, use ts-node or bun based on the project type.
   // For other file extensions (.js, .cjs, .mjs), use node to execute the script.
-const execCommand = await findLocalBinaryPath('bun')
+  const execCommand = await findLocalBinaryPath('bun')
   commandArgs.unshift(execCommand)
 }
-
 
 // follwing is the main function Try it nyrenx dev or nyrenx --watch index.ts
 export async function executeScriptDynamic(
@@ -79,15 +77,17 @@ export async function executeScriptDynamic(
   // construct the full command line manually including flags
   const commandIndex = rawArgs.indexOf(script)
   const forwardedArgs = rawArgs.slice(commandIndex + 1)
-  if (forwardedArgs.includes('--watch')){
+  if (forwardedArgs.includes('--watch')) {
     options.watch = true
   }
+  const cwd = options.prefix
+    ? resolvePath(process.cwd(), options.prefix)
+    : process.cwd()
   const directoryPackageJson = options.prefix
-    ? resolvePath(options.prefix, 'package.json')
-    : 'package.json'
-  const pkj: Record<string, string> = readPackageJson(
-    resolvePath(process.cwd(), directoryPackageJson)
-  )
+    ? resolvePath(cwd, 'package.json')
+    : resolvePath(cwd, 'package.json')
+
+  const pkj: Record<string, string> = readPackageJson(directoryPackageJson)
   const commandArgsResult: Array<string> = []
   const messageRunners: Array<string> = []
   const { result: scriptMatchResult, commandArgs } = await findMatchingScript(
@@ -98,9 +98,13 @@ export async function executeScriptDynamic(
     // nyrenx [script for package.json] Suppose there is nyrenx test
     if (scriptMatchResult === MatchResult.MATCH_FOUND) {
       if (options.watch) {
-        return await monitorChanges(commandArgs[1], options)
-        }
-      
+        return await monitorChanges({
+          cwd: cwd,
+          scriptPath: commandArgs[1],
+          ...options,
+        })
+      }
+
       commandArgsResult.push(...commandArgs, ...forwardedArgs)
       commandArgs[0] = 'nyrenx'
       messageRunners.push(
@@ -113,7 +117,11 @@ export async function executeScriptDynamic(
       await prepareScriptCommand(commandArgs, pkj.type)
       // nyrenx --watch ./path/to/file.<ts,js | cjs | mjs>
       if (options.watch) {
-      return await monitorChanges(commandArgs[1], options)
+        return await monitorChanges({
+          cwd: cwd,
+          scriptPath: commandArgs[1],
+          ...options,
+        })
       }
 
       commandArgsResult.push(...commandArgs, ...forwardedArgs)
@@ -129,7 +137,7 @@ export async function executeScriptDynamic(
     process.exit(1)
   }
 
-    utils.log.info(`${t.text('d7d7ff').dim(messageRunners.join(' '))}`)
+  utils.log.info(`${t.text('d7d7ff').dim(messageRunners.join(' '))}`)
 
   await executeCommand(commandArgsResult, options)
 }
@@ -143,20 +151,19 @@ function handleCommandError(error: Error | unknown, commandArgs: string[]) {
   const command = commandArgs.join(' ')
   if (err === 'Invalid prepareScriptCommand') {
     utils.log.fail(
-      
       utils.icon.error +
-      utils.color
-        .hex('#EF3054')
-        .visible(
-          ` The command: ${command} is not a valid script. Please provide a valid script file: ${t.textWhit(`path/to/file.<ts | js | cjs | mjs>`)}`
-        )
+        utils.color
+          .hex('#EF3054')
+          .visible(
+            ` The command: ${command} is not a valid script. Please provide a valid script file: ${t.textWhit(`path/to/file.<ts | js | cjs | mjs>`)}`
+          )
     )
-      utils.log.fail(
+    utils.log.fail(
       utils.icon.tool +
-      t.textWhit.dim(` Script not found "${t.textWhit(command)}"`)
+        t.textWhit.dim(` Script not found "${t.textWhit(command)}"`)
     )
-          utils.log.fail( t.idea + t.textWhit.dim(` Try it:`))
-      utils.log.fail(examples.dynamicCommand)
+    utils.log.fail(t.idea + t.textWhit.dim(` Try it:`))
+    utils.log.fail(examples.dynamicCommand)
     process.exit(2)
   }
   process.exit(1)

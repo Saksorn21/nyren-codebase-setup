@@ -10,7 +10,7 @@ import { trimCwd, resolvePath } from '../pathHelper.js'
 import { watch as watchFiles, type WatchOptions } from 'chokidar'
 let watchedFiles: string[] = []
 let watchers: any[] = []
-
+let nodemonConfig: any = config
 
 
 export function resetWatchers() {
@@ -21,11 +21,10 @@ export function resetWatchers() {
 }
 
 export function watch() {
-  const dirs: string[] = [].slice.call(config.dirs);
+  const dirs: string[] = [].slice.call(nodemonConfig.dirs);
  
-  const rootIgnores = config.options.ignore
+  const rootIgnores = nodemonConfig.options.ignore
   let watchReady: boolean = false
- // const rootIgnored = config.options.ignore;
   
   const promise = new Promise((resolve) => {
     const dotFilePattern = /[/\\]\./;
@@ -47,8 +46,8 @@ export function watch() {
     ignorePermissionErrors: true,
       ignored,
     persistent: true,
-    usePolling: false,
-    interval: undefined
+    usePolling: nodemonConfig.options.legacyWatch || false,
+    interval: nodemonConfig.options.pollingInterval
   }; 
 
 
@@ -80,7 +79,7 @@ export function watch() {
       resolve(total);
     });
 
-    watcher.on('error', (error: Error) => {
+    watcher.on('error', (error: any) => {
       if (error.code === 'EINVAL') {
         utils.log.error(
           'Internal watch failed. Likely cause: too many ' +
@@ -100,9 +99,7 @@ export function watch() {
   return promise.catch(e => {
       // this is a core error and it should break nodemon - so I have to break
       // out of a promise using the setTimeout
-      setTimeout(() => {
-        throw e;
-      })
+      setTimeout(() => {throw e})
       
       
     }).then(function () {
@@ -170,7 +167,7 @@ function filterAndRestart(files: string | string[]) {
 
     if(matched.result.length){
       utils.log.trace('restarting due to changes...');
-      matched.result.map(file => {
+      matched.result.map((file: string) => {
         utils.log.trace(relative(process.cwd(), file));
       })
     }

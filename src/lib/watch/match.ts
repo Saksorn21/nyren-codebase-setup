@@ -1,7 +1,7 @@
 
 import path,{ sep } from 'node:path'
 import fs from 'node:fs'
-import { minimatch, type MinimatchOptions } from 'minimatch'
+import minimatch from 'minimatch'
 
 import log from '../utils/log.js'
 import type {NodemonSettings} from 'nodemon'
@@ -149,7 +149,7 @@ export function filterFilesByMonitorRules(files: string[], monitor: string[], ex
   let ignored = 0;
   let watched = 0;
   const usedRules: string[] = [];
-  const minimatchOpts: MinimatchOptions = { dot: true };
+  const minimatchOpts: minimatch.IOptions = { dot: true };
 
   if (process.platform === 'win32') {
     minimatchOpts.nocase = true;
