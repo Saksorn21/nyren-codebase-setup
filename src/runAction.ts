@@ -5,7 +5,7 @@ export async function runAction(this: Command) {
   const args = this.args
   const opts = {
     ...this.parent?.opts(),
-...this.opts()
+    ...this.opts(),
   }
 
   const commandArgs = args

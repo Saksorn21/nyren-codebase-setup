@@ -1,8 +1,8 @@
-import {tools as t} from '../help.js'
+import { tools as t } from '../help.js'
 import taxi from './taxi.js'
 import color from './color.js'
 import utils from './main.js'
-const levels: Record<string,Function> = {
+const levels: Record<string, Function> = {
   log: color.white.dim,
   info: color.lightSteelBlue,
   trace: color.hex('d7d7ff').dim,
@@ -11,49 +11,53 @@ const levels: Record<string,Function> = {
   error: color.red,
   fail: color.hex('FF0000'),
 }
-function _log(type:string, message?: string) {
+function _log(type: string, message?: string) {
   let msg = ''
-  if (typeof message === 'string'){
-   msg = `${utils.prefixCli} ${message ? levels[type](message) : ''}`
-    }else{
-    msg = `${utils.prefixCli} ${message ? levels[type](JSON.stringify(message,null,2)) : ''}`
-    }
-  process.nextTick(() => {
-    taxi.emit('log', { type: type, message, colour: msg });
-  })
-  if (type === 'error') {
-    console.error(msg);
+  if (typeof message === 'string') {
+    msg = `${utils.prefixCli} ${message ? levels[type](message) : ''}`
   } else {
-    console.log(msg || '');
+    msg = `${utils.prefixCli} ${message ? levels[type](JSON.stringify(message, null, 2)) : ''}`
+  }
+  process.nextTick(() => {
+    taxi.emit('log', { type: type, message, colour: msg })
+  })
+  if (type === 'log') {
+    // No prefix required.
+    console.log(message)
+  }else if (type === 'error') {
+    console.error(msg)
+  } else {
+    console.log(msg || '')
   }
 }
-class Logger { 
-  constructor(){
+class Logger {
+  constructor() {
     if (!(this instanceof Logger)) {
-      return new Logger();
+      return new Logger()
     }
-  
   }
-  info(message: string){
+  info(message: string) {
     _log('info', message)
   }
-  trace( message: string){
+  trace(message: string) {
     _log('trace', message)
   }
-  detail( message: string){
+  detail(message: string) {
     _log('detail', message)
   }
-  warn(message: string){
-    _log('warn',message)
+  warn(message: string) {
+    _log('warn', message)
   }
-  error(message: string){
+  error(message: string) {
     _log('error', message)
   }
-  fail(message: string){
+  fail(message: string) {
     _log('fail', message)
   }
+  _log(type: string, message?: string) {
+    _log(type, message)
+  }
 }
-
 
 const log = new Logger()
 

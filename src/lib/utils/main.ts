@@ -2,6 +2,7 @@ import log from './log.js'
 import taxi from './taxi.js'
 import color from './color.js'
 import symbol from './symbols.js'
+import clone from './clone.js'
 import {
   dirname,
   join,
@@ -12,12 +13,13 @@ import {
   sep,
 } from 'node:path'
 import { readFile, writeFile, readFileSync, readdir, mkdir } from 'node:fs'
-
 import { access } from 'node:fs/promises'
+
 interface UtilsModules {
   log: typeof log
   taxi: typeof taxi
   color: typeof color
+  clone: typeof clone
   prefixCli: string
   isWindows: boolean
   path: PathModules
@@ -80,12 +82,14 @@ const modulesIcon: ModulesIcon = {
 const utils: UtilsModules = {
   log,
   taxi,
+  color,
+  clone,
   path: ModulesPath,
   fs: ModulesFs,
-  color: color,
   icon: modulesIcon,
   prefixCli: `${color.white('[')}${color.nyren('nyrenx')}${color.white(']')}`,
   isWindows: process.platform === 'win32',
+  
 }
 
 export default utils

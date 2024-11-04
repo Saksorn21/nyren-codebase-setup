@@ -3,7 +3,7 @@ import execa, { ExecaError, type ResultPromise } from './exec.js' // lib execa f
 // import onetime from 'onetime'
 import type { SignalConstants } from 'node:os'
 import { resolvePath, basename } from './pathHelper.js'
-import { readPackageJson} from './packageJsonUtils.js'
+import { readPackageJson } from './packageJsonUtils.js'
 import { tools as t } from './help.js'
 interface InputOptions {
   prefix?: string
@@ -85,7 +85,7 @@ export async function executeCommand(
     await expandCommands(commandArgs)
 
     // Execute the command
-    subProcess = execa(commandArgs[0], commandArgs.slice(1), {
+    subProcess = execa(commandArgs[0].toLowerCase(), commandArgs.slice(1), {
       stdio: silentMode,
       detached: true,
       preferLocal: true,
@@ -98,7 +98,7 @@ export async function executeCommand(
     process.on('SIGUSR2', () => signalHandler('SIGUSR2', subProcess))
 
     const { exitCode: subProcessExitCode } = await subProcess
-    exitCode = subProcessExitCode 
+    exitCode = subProcessExitCode
     // Handle exit code
     if (exitCode !== 0) throw new Error(messages.exitCodeMessage(exitCode))
   } catch (e: unknown) {
@@ -109,21 +109,25 @@ export async function executeCommand(
     process.removeListener('SIGTERM', () =>
       signalHandler('SIGTERM', subProcess)
     )
-t.log()
+    t.log()
     process.on('exit', (code: number) => {
       handleOnExited(code)
-  })
+    })
     process.exit(exitCode)
   }
 }
 
 function handleOnExited(exitCode: number) {
-   const userScript = normalizedArgumentScript()
-     const packageJsonScripts = readPackageJson(resolvePath(process.cwd(), 'package.json')).scripts
-       const matchScript = packageJsonScripts[userScript] ? true : false
-   if(matchScript && exitCode !== 0){
-     t.log(`${t.textRed(`error`)}${t.textWhit.dim(`: script "${userScript}" exited with code ${exitCode}`)}`)
-   }
+  const userScript = normalizedArgumentScript()
+  const packageJsonScripts = readPackageJson(
+    resolvePath(process.cwd(), 'package.json')
+  ).scripts
+  const matchScript = packageJsonScripts[userScript] ? true : false
+  if (matchScript && exitCode !== 0) {
+    t.log(
+      `${t.textRed(`error`)}${t.textWhit.dim(`: script "${userScript}" exited with code ${exitCode}`)}`
+    )
+  }
 }
 
 // Handles errors during execution
@@ -131,13 +135,9 @@ function handleCommandError(error: ExecaError, commandArgs: string[]) {
   if (error.signal !== 'SIGINT' && error.signal !== 'SIGTERM') {
     if (error.code === 'ENOENT') {
       t.log(t.textRed(`Unknown command: ${t.textWhit(error.command)}`))
-    } else if (
-      error.message.includes(`Command failed with exit code 1`)
-    ) {
+    } else if (error.message.includes(`Command failed with exit code 1`)) {
       t.log(
-        t.textRed(`Command failed with exit code ${error.exitCode}: ${t.textWhit(normalizedCommand(commandArgs).join(' '))}
-  ${t.textWhit('debugger: ')}${t.error} ${t.textWhit.dim(error.originalMessage ? error.originalMessage : error.message)}
-      `)
+        t.textRed(`Command failed with exit code ${error.exitCode}: ${t.textWhit(normalizedCommand(commandArgs).join(' ').trim())}`)
       )
     } else if (
       error.message.includes('Attempted to assign to readonly property.')
@@ -146,8 +146,7 @@ function handleCommandError(error: ExecaError, commandArgs: string[]) {
         t.warning,
         t.textRed(
           `Check command syntax
-    ${t.textWhit('debugger: ')}${t.error} ${t.textWhit.dim(error.message)}
-      `
+    ${t.textWhit('debugger: ')}${t.error} ${t.textWhit.dim(error.message)}`
         )
       )
     } else {
@@ -158,40 +157,50 @@ function handleCommandError(error: ExecaError, commandArgs: string[]) {
 // Change back to the original script: node_modules/.bin/nyrenx init => init
 function normalizedArgumentScript(rawArgs: string[] = process.argv) {
   const command = normalizedCommand(rawArgs)
-   const commandIndex = command.indexOf('nyrenx')
-   const forwardedArgs = command.slice(commandIndex + 1)
+  const commandIndex = command.indexOf('nyrenx')
+  const forwardedArgs = command.slice(commandIndex + 1)
 
   return forwardedArgs[0]
 }
 
 // Change back to the original command: node_modules/.bin/cwd init  => cwd init
-  function normalizedCommand(fileCommand: string[]): string[] {
-    let expandNext = false;
+function normalizedCommand(fileCommand: string[]): string[] {
+  let expandNext = false
 
-    const removeExtensions = (files: string[]) => files.map(file => file.split('.')[0]);
-    const firstCommand = basename(fileCommand[0]).split('.')[0]
-    for (let i = 0; i < fileCommand.length; i++) {
-      // If the first command is a script, remove the extension
-      if (firstCommand === 'node' || firstCommand === 'nodemon' || firstCommand ==='bun') {
-        
-        fileCommand.shift();
-      }
+  const removeExtensions = (files: string[]) =>
+    files.map(file => file.split('.')[0])
+  const firstCommand = basename(fileCommand[0]).split('.')[0]
+  for (let i = 0; i < fileCommand.length; i++) {
+    // If the first command is a script, remove the extension
+    if (
+      firstCommand === 'node' ||
+      firstCommand === 'bun'
+    ) {
+      fileCommand.shift()
+    }
     if (i === 0 || expandNext) {
-      fileCommand[i] = basename(fileCommand[i]);
+      fileCommand[i] = basename(fileCommand[i])
     }
     if (fileCommand[i] === '--') {
-      expandNext = true;
+      expandNext = true
     }
-    }
-    
-    return removeExtensions(fileCommand);
+  }
+
+  return removeExtensions(fileCommand)
 }
 async function handleCommandOptions(opts: InputOptions) {
-   if (opts.silent){
-     t.log(t.prefixCli, t.toolIcon, t.text('#F46036')(`Silent mode`))
-   }
-  if (opts.prefix){
-    t.log(t.prefixCli, t.toolIcon, t.text('#F46036').dim(`The project will be run in the directory: ${t.textWhit(opts.prefix)}.`))
+  if (opts.silent) {
+    t.log(t.prefixCli, t.toolIcon, t.text('#F46036')(`Silent mode`))
+  }
+  if (opts.prefix) {
+    t.log(
+      t.prefixCli,
+      t.toolIcon,
+      t
+        .text('#F46036')
+        .dim(
+          `The project will be run in the directory: ${t.textWhit(opts.prefix)}.`
+        )
+    )
   }
 }
-

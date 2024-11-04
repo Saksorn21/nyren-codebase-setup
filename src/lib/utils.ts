@@ -19,7 +19,10 @@ export async function fetchToJson(
     return {}
   }
 }
-export const validExtensionsFile = (file: string,ext: string[] = ['ts', 'js', 'cjs', 'mjs']): boolean => ext.some(ext => file.endsWith(ext))
+export const validExtensionsFile = (
+  file: string,
+  ext: string[] = ['ts', 'js', 'cjs', 'mjs']
+): boolean => ext.some(ext => file.endsWith(ext))
 export const validUserDirectoryPath = (
   path: string = process.cwd(),
   directoryName?: string
@@ -45,39 +48,37 @@ export const clearAnsiCodes = (str: string): string =>
     : (() => {
         throw new TypeError(`Expected a 'string', got '${typeof str}'`)
       })()
-const isBrowser = ((globalThis) as any).window?.document !== undefined
+const isBrowser = (globalThis as any).window?.document !== undefined
 const isWindows = !isBrowser && process.platform === 'win32'
 export const clearConsole = async (title: string) => {
   const ESC = '\u001B['
   const clearScreen = '\u001Bc'
   const eraseScreen = ESC + '2J'
   const terminal = process.stdout
-   if(process.stdout.isTTY){
-     const blank = '\n'.repeat(process.stdout.rows)
-     //console.log(blank)
-     //
-     
-     //readline.cursorTo(process.stdout, 0, 0)
-     //readline.clearScreenDown(process.stdout)
-     //process.stdout.write(blank)
-     //
-     const clearTerminal = isWindows
-     ? `${eraseScreen}${ESC}0f`
-     // 1. Erases the screen (Only done in case `2` is not supported)
-     // 2. Erases the whole screen including scrollback buffer
-     // 3. Moves cursor to the top-left position
-     // More info: https://www.real-world-systems.com/docs/ANSIcode.html
-     : `${eraseScreen}${ESC}3J${ESC}H`;
-     if (title){
-        console.log(title)
-        //process.stdout.write(clearScreen);
-       terminal.write(title)
-       
-      }
-     process.on('beforeExit', (code) => {
-        terminal.write(clearTerminal)
-       console.log(code)
-      })
-     
-   }
+  if (process.stdout.isTTY) {
+    const blank = '\n'.repeat(process.stdout.rows)
+    //console.log(blank)
+    //
+
+    //readline.cursorTo(process.stdout, 0, 0)
+    //readline.clearScreenDown(process.stdout)
+    //process.stdout.write(blank)
+    //
+    const clearTerminal = isWindows
+      ? `${eraseScreen}${ESC}0f`
+      : // 1. Erases the screen (Only done in case `2` is not supported)
+        // 2. Erases the whole screen including scrollback buffer
+        // 3. Moves cursor to the top-left position
+        // More info: https://www.real-world-systems.com/docs/ANSIcode.html
+        `${eraseScreen}${ESC}3J${ESC}H`
+    if (title) {
+      console.log(title)
+      //process.stdout.write(clearScreen);
+      terminal.write(title)
+    }
+    process.on('beforeExit', code => {
+      terminal.write(clearTerminal)
+      console.log(code)
+    })
+  }
 }

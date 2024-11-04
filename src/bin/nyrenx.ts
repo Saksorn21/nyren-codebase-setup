@@ -33,13 +33,10 @@ program
   .hook('preAction', () => {
     chackNodeVersion(readPackageJson().engines.node, readPackageJson().name)
     cursor.hide()
-    
   })
   .hook('postAction', async () => {
-
     await checkForUpdate()
     cursor.show()
-    
   })
 
 program
@@ -76,7 +73,8 @@ const initCommand = program
       : await createProject()
   })
 
-initCommand.command('quick')
+initCommand
+  .command('quick')
   .alias('fast')
   .usage('[options] -- [project-name target | module]')
   .summary('Quick Start project')
@@ -86,10 +84,10 @@ initCommand.command('quick')
 
   .addHelpText('after', examples.init)
   .action(async function (this: Command) {
-    await fastCreateProject( this.args,{
+    await fastCreateProject(this.args, {
       ...initCommand.parent?.opts(),
-        ...this.parent?.opts(),
-        ...this.opts()
+      ...this.parent?.opts(),
+      ...this.opts(),
     })
   })
 
@@ -115,9 +113,13 @@ program
 program
   .command('help [command]')
   .description('Display help for [command]')
-  .action((command) => command ? program.commands.find(c => c.name() === command)?.outputHelp() : program.outputHelp())
+  .action(command =>
+    command
+      ? program.commands.find(c => c.name() === command)?.outputHelp()
+      : program.outputHelp()
+  )
 
-function removeDynamicHelpSection (lines: string[]) {
+function removeDynamicHelpSection(lines: string[]) {
   let argumentsHelpIndex
   for (let i = 0; i < lines.length; i++) {
     if (lines[i] === 'Arguments:') {
@@ -128,7 +130,6 @@ function removeDynamicHelpSection (lines: string[]) {
   if (argumentsHelpIndex) {
     lines.splice(argumentsHelpIndex, 4) // remove Arguments and the following 3 lines
   }
-
 }
 program.addHelpText('after', ' ')
 program.addHelpText('before', 'Advanced: ')
@@ -143,9 +144,7 @@ program.helpInformation = function () {
   removeDynamicHelpSection(lines)
 
   // Filter out the hidden command from the help output
-  const filteredLines = lines.filter(line =>
-    !line.includes('help [command]') 
-  )
+  const filteredLines = lines.filter(line => !line.includes('help [command]'))
 
   return filteredLines.join('\n')
 }

@@ -113,20 +113,21 @@ function updatePackageField(
 
 export function readPackageJson(src?: string): Record<string, any> {
   try {
-  
-  let packageJsonPath: string
-  if (src) {
-    packageJsonPath = src
-  } else {
-    packageJsonPath = resolvePath(__dirname, '../..', 'package.json')
-  }
-  return JSON.parse(rfSync(packageJsonPath, 'utf-8'))
-    } catch (error: unknown) {
-    if(error.code === 'ENOENT'){
-      utils.log.error(`Failed to read or process the package.json file: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    let packageJsonPath: string
+    if (src) {
+      packageJsonPath = src
+    } else {
+      packageJsonPath = resolvePath(__dirname, '../..', 'package.json')
+    }
+    return JSON.parse(rfSync(packageJsonPath, 'utf-8'))
+  } catch (error: unknown) {
+    if (error.code === 'ENOENT') {
+      utils.log.error(
+        `Failed to read or process the package.json file: ${error instanceof Error ? error.message : 'Unknown error'}`
+      )
       process.exit(1)
     }
-    }
+  }
 }
 
 export function formatDataPackageJson(dataPackage: Record<string, string>) {

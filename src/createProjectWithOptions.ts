@@ -46,10 +46,10 @@ async function createProjectWithOptions(options: InitOpts) {
 async function fastCreateProject(_argument: string[], options: InitOpts = {}) {
   const args = _argument
   const opts = options
- 
+
   await parseAndSetDefaultArgs(args)
   await finalizeOptions(args, opts)
-  
+
   tools.log(
     tools.textOrange(
       `${tools.fast} Turbocharge your project builds with ${tools.textWhit(opts.target)}, using the module ${tools.textWhit(opts.module)}, in the directory: ${tools.textWhit(opts.directory)}! ${tools.fast}`
@@ -67,97 +67,98 @@ async function fastCreateProject(_argument: string[], options: InitOpts = {}) {
     templateCode.baseFilesName,
     userDirectoryName
   )
-  
 }
-const analysisProcess = async (context: string): Promise<string > => await matchLanguage(context) || await matchModule(context) || context
+const analysisProcess = async (context: string): Promise<string> =>
+  (await matchLanguage(context)) || (await matchModule(context)) || context
 
 async function parseAndSetDefaultArgs(args: string[]) {
-  
   if (args.length > 3) {
     tools.log(
       tools.prefixCli,
       tools.error,
-      tools.textRed(`Incompatible arguments: ${tools.textWhit('-- ' + args.join(' '))}. Expected up to 3 arguments, but got ${tools.textWhit(args.length)}.`)
+      tools.textRed(
+        `Incompatible arguments: ${tools.textWhit('-- ' + args.join(' '))}. Expected up to 3 arguments, but got ${tools.textWhit(args.length)}.`
+      )
     )
-    process.exit(2);
+    process.exit(2)
   }
   if (args.length === 0) {
-    args.push('my-project', 'typescript', 'module');
+    args.push('my-project', 'typescript', 'module')
   }
   const uniqueArgs = new Set<string>()
-   
-for await (const arg of args) {
-  const processedArg = await analysisProcess(arg);
-  if (uniqueArgs.has('commonjs') && processedArg === 'module' || 
-    uniqueArgs.has('module') && processedArg === 'commonjs') {
-  tools.log(
-    tools.prefixCli,
-    tools.error,
-    tools.textRed(`Conflicting module types: Cannot use both ${tools.textWhit('commonjs')} and ${tools.textWhit('esmodule')} together.`)
-  );
-    tools.log(examples.init)
-  process.exit(2);
-    }
-  uniqueArgs.add(processedArg as string);
-}
 
-  args.length = 0;
-  args.push(
-    ...Array.from(
-    uniqueArgs
-    )
-  )
+  for await (const arg of args) {
+    const processedArg = await analysisProcess(arg)
+    if (
+      (uniqueArgs.has('commonjs') && processedArg === 'module') ||
+      (uniqueArgs.has('module') && processedArg === 'commonjs')
+    ) {
+      tools.log(
+        tools.prefixCli,
+        tools.error,
+        tools.textRed(
+          `Conflicting module types: Cannot use both ${tools.textWhit('commonjs')} and ${tools.textWhit('esmodule')} together.`
+        )
+      )
+      tools.log(examples.init)
+      process.exit(2)
+    }
+    uniqueArgs.add(processedArg as string)
+  }
+
+  args.length = 0
+  args.push(...Array.from(uniqueArgs))
 }
-async function finalizeOptions(args: string[], opts: InitOpts = {}){
-  let projectName, language, moduleType;
+async function finalizeOptions(args: string[], opts: InitOpts = {}) {
+  let projectName, language, moduleType
   // Added flexibility in passing the “-- any” argument.
   // $ nyrenx init fast -- my-project typescript module
   // $ nyrenx init fast -- node my-project
   // $ nyrenx init fast -- js esm
   // $ nyrenx init fast -- cjs
-  
+
   for await (const arg of args) {
     switch (arg) {
       case 'typescript':
-        language = arg;
-        opts.target = arg;
-        break;
+        language = arg
+        opts.target = arg
+        break
       case 'javascript':
-        language = arg;
-        opts.target = arg;
-        break;
+        language = arg
+        opts.target = arg
+        break
       case 'commonjs':
-        moduleType = arg;
-        opts.module = arg;
-        break;
+        moduleType = arg
+        opts.module = arg
+        break
       case 'module':
-        moduleType = arg;
-        opts.module = arg;
-        break;
+        moduleType = arg
+        opts.module = arg
+        break
       default:
-        projectName = arg;
-        opts.projectName = arg;
-        break;
+        projectName = arg
+        opts.projectName = arg
+        break
     }
   }
   // get default values type: module  with typescript
   // $ nyrenx init fast -- common -> language: javascript
   if (!language) {
-    console.log('language', language, moduleType);
-    language = moduleType === 'module' ? 'typescript' : 'javascript';
+    console.log('language', language, moduleType)
+    language = moduleType === 'module' ? 'typescript' : 'javascript'
   }
   // get default values language: typescript  with module
   // $ nyrenx init fast -- js -> type: commonjs
   if (!moduleType) {
-    moduleType = language === 'typescript' ? 'module' : 'commonjs';
+    moduleType = language === 'typescript' ? 'module' : 'commonjs'
   }
 
-  opts.projectName = projectName || 'my-project';
-  opts.target = language || 'typescript';
-  opts.module = moduleType || 'module';
-  opts.directory = opts.prefix || opts.projectName || 'my-project';
+  opts.projectName = projectName || 'my-project'
+  opts.target = language || 'typescript'
+  opts.module = moduleType || 'module'
+  opts.directory = opts.prefix || opts.projectName || 'my-project'
 
-  console.log('opts', opts);
+  console.log('opts', opts)
 }
 
 const presetSpinnerMatch = async <T>(match: string, callFn: PromiseLike<T>) =>
@@ -168,8 +169,10 @@ const presetSpinnerMatch = async <T>(match: string, callFn: PromiseLike<T>) =>
     callAction: callFn,
   })
 
-async function matchLanguage(target: string): Promise<'javascript' | 'typescript' | null> {
-  if(!target) return null
+async function matchLanguage(
+  target: string
+): Promise<'javascript' | 'typescript' | null> {
+  if (!target) return null
   const languageVariants = [
     'js',
     'javascript',
@@ -188,8 +191,10 @@ async function matchLanguage(target: string): Promise<'javascript' | 'typescript
 
   return null
 }
-async function matchModule(moduleType: string): Promise<'commonjs' | 'module' | null> {
-  if(!moduleType) return null
+async function matchModule(
+  moduleType: string
+): Promise<'commonjs' | 'module' | null> {
+  if (!moduleType) return null
   const esmVariants = [
     'es',
     'esm',

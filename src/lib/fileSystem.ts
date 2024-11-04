@@ -15,8 +15,10 @@ const FS = {
 } as const
 const readFile = (path: fs.PathOrFileDescriptor): Promise<string> =>
   new Promise((res, rej) =>
-    utils.fs.readFile(path, { encoding: FS.ENCODEING, flag: 'r' }, (err, data) =>
-      err ? rej(err) : res(data)
+    utils.fs.readFile(
+      path,
+      { encoding: FS.ENCODEING, flag: 'r' },
+      (err, data) => (err ? rej(err) : res(data))
     )
   )
 const createFile = (
@@ -24,8 +26,11 @@ const createFile = (
   data: string | NodeJS.ArrayBufferView
 ): Promise<void> =>
   new Promise((res, rej) =>
-    utils.fs.writeFile(path, data, { encoding: FS.ENCODEING, flag: 'w' }, err =>
-      err ? rej(err) : res()
+    utils.fs.writeFile(
+      path,
+      data,
+      { encoding: FS.ENCODEING, flag: 'w' },
+      err => (err ? rej(err) : res())
     )
   )
 
@@ -36,7 +41,10 @@ const readdir = (path: fs.PathLike): Promise<fs.Dirent[]> =>
     )
   )
 const exists = (path: fs.PathLike): Promise<boolean> =>
-  utils.fs.access(path).then(() => true).catch(() => false);
+  utils.fs
+    .access(path)
+    .then(() => true)
+    .catch(() => false)
 const mkdir = (
   path: fs.PathLike,
   options?:
@@ -85,5 +93,5 @@ export {
   createJsonFile,
   createFile,
   createDirectory,
-  exists
+  exists,
 }
