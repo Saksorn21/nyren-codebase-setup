@@ -50,6 +50,7 @@ taxi.on('nodemon:stdout', data => {
   console.log(data.toString())
 })
 taxi.on('nodemon:stderr', data => {
+  
   let str = data.toString().split('\n')
 
   str.forEach((item: string, index: number) => {
@@ -64,7 +65,7 @@ taxi.on('nodemon:stderr', data => {
     }
   })
 
-  console.log(str.join('\n'))
+ // console.log(str.join('\n'))
 })
 taxi.on('nodemon:exit', (code: NodemonEventExit) => eventExitedAndQuit(code))
 

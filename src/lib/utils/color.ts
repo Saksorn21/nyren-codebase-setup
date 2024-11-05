@@ -10,6 +10,7 @@ interface Color {
   grey: ChalkInstance
   green: ChalkInstance
   red: ChalkInstance
+  purple: ChalkInstance
   amber: ChalkInstance
   slateBlue: ChalkInstance
   lightSteelBlue: ChalkInstance
@@ -31,6 +32,7 @@ const color: Color = {
   grey: _color('626262'),
   green: _color('87ffaf'),
   red: _color('E53935'), // #FF0000
+  purple: _color('#800080'),
   amber: _color('FFC107'),
   slateBlue: _color('5f5faf'),
   lightSteelBlue: _color('d7d7ff'),

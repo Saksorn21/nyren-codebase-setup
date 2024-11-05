@@ -3,6 +3,7 @@ import taxi from './taxi.js'
 import color from './color.js'
 import symbol from './symbols.js'
 import clone from './clone.js'
+import modifyStderr from './modifyStderr.js'
 import {
   dirname,
   join,
@@ -20,6 +21,7 @@ interface UtilsModules {
   taxi: typeof taxi
   color: typeof color
   clone: typeof clone
+  modifyStderr: typeof modifyStderr
   prefixCli: string
   isWindows: boolean
   path: PathModules
@@ -84,6 +86,7 @@ const utils: UtilsModules = {
   taxi,
   color,
   clone,
+  modifyStderr,
   path: ModulesPath,
   fs: ModulesFs,
   icon: modulesIcon,

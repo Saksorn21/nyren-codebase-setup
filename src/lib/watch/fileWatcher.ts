@@ -74,9 +74,10 @@ export async function monitorChanges(opts: FileWatcherOptions): Promise<void> {
     await run()
     
     bindNodemonEvents(nodemon)
-    ;(nodemon as any).on('readable', () => taxi.emit('nodemon:config', nodemon.config)
-      
-    )
+    ;(nodemon as any).on('readable', () =>{ taxi.emit('nodemon:config', nodemon.config)
+                                           utils.modifyStderr(nodemon.stderr)
+   } )
+    
     
   })
 }
