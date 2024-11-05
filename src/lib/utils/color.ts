@@ -14,6 +14,7 @@ interface Color {
   amber: ChalkInstance
   slateBlue: ChalkInstance
   lightSteelBlue: ChalkInstance
+  chalk: typeof chalk
   bg: ColorForChalk
   reset: {
     all: ChalkInstance
@@ -29,13 +30,14 @@ const color: Color = {
   orange: _color('ffaf00'),
   deepBlue: _color('00afff'),
   white: _color('ffffff'),
-  grey: _color('626262'),
+  grey: _color('c0c0c0'),
   green: _color('87ffaf'),
   red: _color('E53935'), // #FF0000
   purple: _color('#800080'),
   amber: _color('FFC107'),
   slateBlue: _color('5f5faf'),
   lightSteelBlue: _color('d7d7ff'),
+  chalk,
   bg: (bgHex: string, hex: string = 'ffffff') =>
     chalk.bgHex(bgHex).hex(hex).bold,
   reset: {

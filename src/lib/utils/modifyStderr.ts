@@ -1,5 +1,6 @@
 import process from 'node:process'
 import parseCode, { tokTypes, isIdentifierChar, isNewLine, keywordTypes, lineBreak, lineBreakG, nonASCIIwhitespace, parseExpressionAt, tokContexts,} from '../acorn.js'
+import { clearAnsiCodes } from './main.js'
 
 import color from './color.js'
 import clone from './clone.js'
@@ -73,7 +74,7 @@ const highlightSyntax = (ast) => {
             if (value.label === token.value || value.token === token.value) {
                 highlighted = true;
                 if (value.label === '^' && token.value !== undefined) {
-                      outputSyntax.push(color.grey(token.value));
+                      outputSyntax.push(color.red(token.value));
                 } else if (value.token) {
                       outputSyntax.push(color.green('"' + token.value + '"'));
                 } else {
@@ -102,17 +103,16 @@ const highlightSyntax = (ast) => {
             if (keywordTypes[token.value]) {
                   outputSyntax.push(color.purple(token.value));
             } else if (label === 'name') {
-                  outputSyntax.push(color.reset.style(color.grey(token.value)))
+                  outputSyntax.push(color.grey(token.value))
             } else if (label === 'string') {
               
-                  outputSyntax.push( color.deepBlue('"' +token.value + '"'));
+                  outputSyntax.push( color.lightSteelBlue.dim('"' +token.value + '"'));
             } else if (label === 'num') {
-                  outputSyntax.push(color.amber(token.value) );
+                  outputSyntax.push(color.amber.italic(token.value) );
             } else if (token.value === undefined) {
-                  outputSyntax.push(color.amber(label));
+                  outputSyntax.push(color.chalk.green(label));
             } else {
-              console.log(token.value)
-                  outputSyntax.push(token.value);  // ใช้สีปกติสำหรับโทเค็นอื่นๆ
+              outputSyntax.push(color.grey(token.value))  // ใช้สีปกติสำหรับโทเค็นอื่นๆ
             }
         }
 
@@ -125,26 +125,38 @@ errorMessageAndPaths(outputSyntax)
       // เพิ่มบรรทัดใหม่หลังจากจบการแสดงผล
 };
 const errorMessageAndPaths = (outputSyntax: Array<string>) =>{
-  console.log(color.white('Error:'));
-  let msg = '', str = outputSyntax.join('')
-  const match = str.match(/at (.+):(\d+):(\d+)/);
+
+  let str: any = outputSyntax.join('')
+  
+  const atPath = (path: string) =>{ 
+   const match = path.match(/at (.+)/);
   if (match) {
-      const [filePath, line, column] = match;
-    msg = `at ${color.hex('5fafaf')(color.reset.style(`${filePath}:${parseInt(line)}:${parseInt(column)}\n`))}`;
+      const [filePath] = match;
+    const path = filePath.split(':')
+    const line = color.chalk.yellow(parseInt(path[1]))
+    const column = color.chalk.yellow(parseInt(path[2]))
+    
+    // parseInt
+  return  `    ${color.hex('008080').italic(`${path[0]}:${line}:${column}\n`)}`;
     }
+  return
+  }
       str = str.split('\n')
   
         str.forEach((item: string, index: number) => {
-       if (item.includes('Bun')) {
-            str.splice(index, str.length)
+       if (item.includes(color.grey('at'))) {
+         console.log(item)
          
-          }else if (item.includes(color.red('error'))){
+         str[index] = atPath(clearAnsiCodes(item))
+
+         
+          }else if (item.includes(color.grey('error'))){
          //str.splice(index, str.length)
-         const override = str[index].split('error')
+         const override = str[index].split(':')
          //console.log(override)
          str[index] =
            
-           color.red('error:') + color.grey(override.slice())
+           color.red('error') + color.chalk.bold(':'+override.slice(1))
           }
     })
       process.stdout.write(str.join('\n'))

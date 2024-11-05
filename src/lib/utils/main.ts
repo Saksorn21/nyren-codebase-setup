@@ -4,6 +4,8 @@ import color from './color.js'
 import symbol from './symbols.js'
 import clone from './clone.js'
 import modifyStderr from './modifyStderr.js'
+import ansiRegex from 'ansi-regex'
+
 import {
   dirname,
   join,
@@ -94,5 +96,11 @@ const utils: UtilsModules = {
   isWindows: process.platform === 'win32',
   
 }
+export const clearAnsiCodes = (str: string): string =>
+  typeof str === 'string'
+    ? (() => str.replace(ansiRegex(), ''))()
+    : (() => {
+        throw new TypeError(`Expected a 'string', got '${typeof str}'`)
+      })()
 
 export default utils
