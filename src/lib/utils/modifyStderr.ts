@@ -1,22 +1,18 @@
 import process from 'node:process'
-import parseCode, { tokTypes, isIdentifierChar, isNewLine, keywordTypes, lineBreak, lineBreakG, nonASCIIwhitespace, parseExpressionAt, tokContexts,} from '../acorn.js'
+import parseCode, { tokTypes, Token, isNewLine, keywordTypes, lineBreak, lineBreakG, nonASCIIwhitespace, parseExpressionAt, tokContexts,} from '../acorn.js'
 import { clearAnsiCodes } from './main.js'
 
 import color from './color.js'
 import clone from './clone.js'
-if (process.stderr.setRawMode) {
-  process.stderr.setRawMode(true); // เปิดใช้งาน raw mode
-}
+
 
 const modifyStderr = (stderr: typeof process.stderr) => stderr.on('data', data => {
   let str = data.toString().split('\n')
+  let cloneData = clone(str)
   str.forEach((item: string, index: number) => {
  if (item.includes('Bun')) {
       str.splice(index, str.length)
-    }else if (item.includes('error:')){
-   //str.splice(index, str.length)
     }
-   
   })
   //console.log(tokTypes)
   str = str.join('\n')
@@ -28,31 +24,55 @@ const modifyStderr = (stderr: typeof process.stderr) => stderr.on('data', data =
     sourceType: 'module',
     locations: true,
     preserveParens: true,
-    //allowAwaitOutsideFunction: true,
-    //onToken: handleToken,
-    onComment: (block, text, start, end) => console.log(text)
+    allowAwaitOutsideFunction: true,
+
   }
     try {
-    const ast = [...parseCode(str,optionsAcorn)]
+    const ast: Token[] = [...parseCode(str,optionsAcorn)]
+    
     //console.log(ast);
       highlightSyntax(ast)
 
-      console.log();
   } catch (error: unknown) {
-     console.log(error)
+     //console.log(error)
+       cloneData.forEach((item: string, index: number) => {
+         
+         if (item.includes('^')) {
+           cloneData[index] = color.red(item)
+         } else if (item.includes('error')) {
+           const override = cloneData[index].split('error:')
+           cloneData[index] =
+             color.red('error:') + color.grey(override.slice(1))
+         } else if (item.includes('at ')){
+           cloneData[index] = atPath(item)
+         }else if (item.includes('Bun')) {
+             cloneData.splice(index, cloneData.length)
+         }
+         
+           const override = cloneData.join('\n').split(' ')
+            override.forEach((item: string, index: number) =>{
+            if (keywordTypes[item]){
+              
+              override[index] = color.hex('A78CFA')(item)
+            }
+          })
+           cloneData = override.join(' ')
+         
+        })
+      console.log(cloneData.join('\n'))
   }
   
   // console.log(str.join('\n'))
 })
-const highlightSyntax = (ast) => {
+const highlightSyntax = (ast: Token[]) => {
   const outputSyntax: Array<string> = []
     let currentLine = 1;  // เริ่มบรรทัดที่ 1
     let currentColumn = 0;  // เริ่มคอลัมน์ที่ 0
 
-    ast.forEach(token => {
+    ast.forEach((token: any) => {
         const { label } = token.type;
-        const { line: startLine, column: startColumn } = token.loc.start;
-        const { line: endLine, column: endColumn } = token.loc.end;
+        const { line: startLine, column: startColumn } = token.loc?.start;
+        const { line: endLine, column: endColumn } = token.loc?.end;
 
         // แทรกการขึ้นบรรทัดใหม่หากบรรทัดเปลี่ยน
         while (currentLine < startLine) {
@@ -71,11 +91,14 @@ const highlightSyntax = (ast) => {
 
         // ตรวจสอบโทเค็นใน tokTypes และ tokContexts
         for (const [_, value] of Object.entries({ ...tokTypes, ...tokContexts })) {
-            if (value.label === token.value || value.token === token.value) {
+          const {label: tokLabel, token: tok } = value as any
+            if (tokLabel === token.value || tok === token.value) {
                 highlighted = true;
-                if (value.label === '^' && token.value !== undefined) {
-                      outputSyntax.push(color.red(token.value));
-                } else if (value.token) {
+                if (label === '^' && token.value !== undefined) {
+                  
+                      outputSyntax.push(color.hex('f14c4c')(token.value));
+                } else if (tok) {
+                  
                       outputSyntax.push(color.green('"' + token.value + '"'));
                 } else {
                   highlighted = false
@@ -101,7 +124,7 @@ const highlightSyntax = (ast) => {
         // กำหนดสีสำหรับประเภทโทเค็นหลัก หากยังไม่ได้ไฮไลต์
         if (!highlighted) {
             if (keywordTypes[token.value]) {
-                  outputSyntax.push(color.purple(token.value));
+                  outputSyntax.push(color.hex('A78CFA')(token.value));
             } else if (label === 'name') {
                   outputSyntax.push(color.grey(token.value))
             } else if (label === 'string') {
@@ -110,9 +133,10 @@ const highlightSyntax = (ast) => {
             } else if (label === 'num') {
                   outputSyntax.push(color.amber.italic(token.value) );
             } else if (token.value === undefined) {
-                  outputSyntax.push(color.chalk.green(label));
+                  outputSyntax.push(color.chalk.green.bold(label));
             } else {
-              outputSyntax.push(color.grey(token.value))  // ใช้สีปกติสำหรับโทเค็นอื่นๆ
+              //console.log(token.value)
+              outputSyntax.push(color.chalk.green.bold.visible(token.value))  // ใช้สีปกติสำหรับโทเค็นอื่นๆ
             }
         }
 
@@ -124,44 +148,41 @@ const highlightSyntax = (ast) => {
 errorMessageAndPaths(outputSyntax)
       // เพิ่มบรรทัดใหม่หลังจากจบการแสดงผล
 };
-const errorMessageAndPaths = (outputSyntax: Array<string>) =>{
-
-  let str: any = outputSyntax.join('')
-  
-  const atPath = (path: string) =>{ 
+const atPath = (path: string) =>{ 
    const match = path.match(/at (.+)/);
   if (match) {
       const [filePath] = match;
     const path = filePath.split(':')
     const line = color.chalk.yellow(parseInt(path[1]))
     const column = color.chalk.yellow(parseInt(path[2]))
-    
+
     // parseInt
-  return  `    ${color.hex('008080').italic(`${path[0]}:${line}:${column}\n`)}`;
+  return  `    ${color.chalk.cyan.visible(`${path[0]}:${line}:${column}\n`)}`;
     }
   return
   }
+const errorMessageAndPaths = (outputSyntax: Array<string>) =>{
+
+  let str: any = outputSyntax.join('')
+  
       str = str.split('\n')
   
-        str.forEach((item: string, index: number) => {
-       if (item.includes(color.grey('at'))) {
-         console.log(item)
-         
-         str[index] = atPath(clearAnsiCodes(item))
+str.forEach((item, index) => {
+  // ตรวจจับเฉพาะ "error:" และทำสีโดยไม่กระทบสีที่ทำไฮไลต์ไว้
+  if (item.includes(clearAnsiCodes("error"))) {
+    const override = clearAnsiCodes(item).split(':'); // ใช้ clearAnsiCodes แค่กับส่วนที่เป็น "error:"
+    str[index] = color.red('error') + color.chalk.bold.visible(`:${override.slice(1).join(':')}`);
 
-         
-          }else if (item.includes(color.grey('error'))){
-         //str.splice(index, str.length)
-         const override = str[index].split(':')
-         //console.log(override)
-         str[index] =
-           
-           color.red('error') + color.chalk.bold(':'+override.slice(1))
-          }
-    })
-      process.stdout.write(str.join('\n'))
-    console.log()
-}
+  // ตรวจจับเฉพาะ "at" และจัดการ path โดยไม่กระทบไฮไลต์ที่เหลือ
+  } else if (item.includes(clearAnsiCodes("at"))) {
+    str[index] = atPath(clearAnsiCodes(item));
+  }
+});
+
+// รวมข้อความและแสดงผล
+process.stdout.write(str.join('\n'));
+console.log();
+};
 
 process.stdout.on('data',(data)=>console.log(data.toString()))
 process.stderr.on('data',(data)=>console.log(data.toString()))
