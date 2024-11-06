@@ -37,6 +37,8 @@ const modifyStderr = (stderr: typeof process.stderr) => stderr.on('data', data =
   #hgg(){
   return this.#home
   }
+  const f = new sod('sod')
+  f.namep
   }
   `
     try {
@@ -148,7 +150,7 @@ const highlightSyntax = (ast: Token[]) => {
         if (prevToken && prevToken.type.label === '.') {
           outputSyntax.push(color.hex('f14c4c')(token.value));
         } else {
-          outputSyntax.push(color.grey(token.value));
+          outputSyntax.push(color.hex('B0B7C3')(token.value));
         }
       } else if (label === 'string') {
         outputSyntax.push(color.hex('98C379').visible('"' + token.value + '"'));
