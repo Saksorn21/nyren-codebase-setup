@@ -8,11 +8,13 @@ let watchedFiles: string[] = []
 let watchers: any[] = []
 let nodemonConfig: any = config
 
-export function resetWatchers() {
+export function resetWatchers(done?: Function) {
   watchers.forEach(watcher => watcher.close())
   watchers = []
   watchedFiles = []
-  console.log('All watchers have been reset.')
+  nodemonConfig = {}
+  if (done) done()
+  
 }
 
 export function watch() {

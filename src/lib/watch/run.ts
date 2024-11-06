@@ -35,9 +35,6 @@ export const run = async () =>
     processResume(config)
   })
 
-run.kill = () => {
-  resetWatchers()
-}
 
 // Customize the start nodemon event to not send anything to use.
 taxi.on('start', config =>
@@ -46,9 +43,9 @@ taxi.on('start', config =>
   )
 )
 
-taxi.on('nodemon:stdout', data => {
+taxi.on('nodemon:stdout', data => 
   console.log(data.toString())
-})
+)
 taxi.on('nodemon:stderr', data => {
   
   let str = data.toString().split('\n')
@@ -97,8 +94,7 @@ function eventExitedAndQuit(code?: NodemonEventExit | NodemonEventQuit) {
   
   
 }
-//immediately try to stop any polling
-config.run = false
+
 function processResume(
   config: NodemonEventConfig,
   stdin: typeof process.stdin = process.stdin
@@ -109,49 +105,32 @@ function processResume(
     stdin.on('data', checkExitCommand)
   }
 }
+run.kill = () => {
+  resetWatchers()
+  config.run = false
+  nodemon.reset(()=>utils.log.info('Cleanup done.'))
+  taxi.emit('nodemon:quit',143)
+}
 function checkExitCommand(data: Buffer) {
   const str = data.toString().trim().toLowerCase()
 
-  if (str === '.exit') emitExitSignal()
+  if (str === '.exit' || str === 'exit') run.kill()
   else if (str === '.clean') console.clear()
 }
-const emitExitSignal = () => {
-  //taxi.emit('nodemon:quit');
-  process.kill(process.pid)
-  // process.exit()
-}
 // ฟังก์ชันสำหรับการทำความสะอาด
-function gracefulShutdown(callback) {
-  console.log('Cleaning up before shutdown...')
-  nodemon.reset(()=>console.log('Cleanup done.'))
-  run.kill()
-  // taxi.on('nodemon:reset', reset => {
-  //   run.kill()
-  //   reset()
-  // })
-  // ทำการทำความสะอาด เช่น ปิดการเชื่อมต่อฐานข้อมูล
-  // เมื่อเสร็จสิ้นเรียก callback
-  
-}
 
-// จับสัญญาณ SIGUSR2
-process.on('SIGUSR2', function () {
-  gracefulShutdown(function () {
-    //process.kill(process.pid, 'SIGTERM') // ปิดโปรเซส
-  })
-})
 
+if(!utils.isWindows){
+  taxi.once('boot', () => {
 process.on('SIGTERM', () => {
-  gracefulShutdown(function () {
+  console.log('SIGTERM')
+  run.kill()
     process.kill(process.pid, 'SIGTERM') // ปิดโปรเซส
   })
-})
 process.on('SIGINT', () => {
-  gracefulShutdown(function () {
+  console.log('SIGINT')
+run.kill()
     process.kill(process.pid, 'SIGTERM') // ปิดโปรเซส
-  })
 })
-process.on('exit', function (code: number, signal: string) {
-  console.log('exiting')
-  console.log(code, signal)
 })
+}

@@ -16,7 +16,7 @@ const modifyStderr = (stderr: typeof process.stderr) => stderr.on('data', data =
   })
   //console.log(tokTypes)
   str = str.join('\n')
-  console.log(str)
+  //console.log(str)
   
   
   const optionsAcorn = {
@@ -27,10 +27,28 @@ const modifyStderr = (stderr: typeof process.stderr) => stderr.on('data', data =
     allowAwaitOutsideFunction: true,
 
   }
-    try {
-    const ast: Token[] = [...parseCode(str,optionsAcorn)]
+  const code = `
+  interface Sos {
+    name: string;
+    age: number;
     
-    //console.log(ast);
+  }
+  
+  const name: string = 'nyrenx';
+  class sos {
+  static pname: string = 'nyrenx';
+  #this.boat = 'boat'
+  constructor(public name: string){
+  this.name = name;
+  }
+  }
+  
+  `
+    try {
+    const ast: Token[] = [...parseCode(code,optionsAcorn)]
+    
+    console.log(ast);
+      return
       highlightSyntax(ast)
 
   } catch (error: unknown) {
@@ -40,7 +58,7 @@ const modifyStderr = (stderr: typeof process.stderr) => stderr.on('data', data =
          if (item.includes('^')) {
            cloneData[index] = color.red(item)
          } else if (item.includes('error')) {
-           const override = cloneData[index].split('error:')
+           let override = cloneData[index].split('error:')
            cloneData[index] =
              color.red('error:') + color.grey(override.slice(1))
          } else if (item.includes('at ')){
@@ -56,10 +74,10 @@ const modifyStderr = (stderr: typeof process.stderr) => stderr.on('data', data =
               override[index] = color.hex('A78CFA')(item)
             }
           })
-           cloneData = override.join(' ')
+           str = override.join(' ')
          
         })
-      console.log(cloneData.join('\n'))
+      console.log(str)
   }
   
   // console.log(str.join('\n'))
@@ -102,7 +120,7 @@ const highlightSyntax = (ast: Token[]) => {
                       outputSyntax.push(color.green('"' + token.value + '"'));
                 } else {
                   highlighted = false
-                    //process.stdout.write(color.white(label));
+                      
                 }
                 break;
             }
@@ -129,14 +147,14 @@ const highlightSyntax = (ast: Token[]) => {
                   outputSyntax.push(color.grey(token.value))
             } else if (label === 'string') {
               
-                  outputSyntax.push( color.lightSteelBlue.dim('"' +token.value + '"'));
+                  outputSyntax.push( color.lightSteelBlue('"' +token.value + '"'));
             } else if (label === 'num') {
                   outputSyntax.push(color.amber.italic(token.value) );
             } else if (token.value === undefined) {
                   outputSyntax.push(color.chalk.green.bold(label));
             } else {
               //console.log(token.value)
-              outputSyntax.push(color.chalk.green.bold.visible(token.value))  // ใช้สีปกติสำหรับโทเค็นอื่นๆ
+              outputSyntax.push(color.chalk.bold.visible(token.value))  // ใช้สีปกติสำหรับโทเค็นอื่นๆ
             }
         }
 
@@ -148,19 +166,20 @@ const highlightSyntax = (ast: Token[]) => {
 errorMessageAndPaths(outputSyntax)
       // เพิ่มบรรทัดใหม่หลังจากจบการแสดงผล
 };
-const atPath = (path: string) =>{ 
-   const match = path.match(/at (.+)/);
-  if (match) {
-      const [filePath] = match;
-    const path = filePath.split(':')
-    const line = color.chalk.yellow(parseInt(path[1]))
-    const column = color.chalk.yellow(parseInt(path[2]))
+const atPath = (path: string) => { 
+  const match = path.match(/at\s+([^\s]+)?\s?([^\s:]+):(\d+):(\d+)/);
 
-    // parseInt
-  return  `    ${color.chalk.cyan.visible(`${path[0]}:${line}:${column}\n`)}`;
-    }
-  return
+  if (match) {
+    const method = match[1] || ' '; // กรณีไม่มีชื่อเมธอด
+    const filePath = match[2];
+    const line = color.chalk.yellow(parseInt(match[3]));
+    const column = color.chalk.yellow(parseInt(match[4]));
+
+    return `    as ${color.chalk.cyan(`${method} ${filePath}:${line}:${column}\n`)}`;
   }
+
+  return '';
+};
 const errorMessageAndPaths = (outputSyntax: Array<string>) =>{
 
   let str: any = outputSyntax.join('')
@@ -173,8 +192,9 @@ str.forEach((item, index) => {
     const override = clearAnsiCodes(item).split(':'); // ใช้ clearAnsiCodes แค่กับส่วนที่เป็น "error:"
     str[index] = color.red('error') + color.chalk.bold.visible(`:${override.slice(1).join(':')}`);
 
-  // ตรวจจับเฉพาะ "at" และจัดการ path โดยไม่กระทบไฮไลต์ที่เหลือ
-  } else if (item.includes(clearAnsiCodes("at"))) {
+
+  } else if (/at\s+[^\s]+(?:\s?\([^\)]+\))?:\d+:\d+/.test(clearAnsiCodes(item))) {
+    
     str[index] = atPath(clearAnsiCodes(item));
   }
 });

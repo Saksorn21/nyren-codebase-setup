@@ -51,7 +51,8 @@ export async function getIgnorePatterns(): Promise<string[]> {
 }
 
 export async function monitorChanges(opts: FileWatcherOptions): Promise<void> {
-  
+  taxi.emit('boot')
+  nodemon.reset(()=>{})
 
   await eventPreStart(opts)
 
