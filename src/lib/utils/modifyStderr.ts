@@ -20,6 +20,7 @@ import clone from './clone.js'
 
 class AddKeywordTypes {
   readonly variableName: string[] = []
+  
   keyword: Object = {}
   private newKw: Record<string, any> = {} // ใช้ Record เพื่อให้รองรับ key-value แบบ dynamic
 
@@ -61,43 +62,34 @@ class AddKeywordTypes {
     // ส่งคืน object ที่มี keywordTypes + newKw รวมกัน
     return this.newKw
   }
-  getKeywordNames() {
-    [this.newKw].map(kw => {
-      for (const key in kw) {
-        this.variableName.push(key)
-      }
-      
-    })
+  getKeysName() {
+    [this.newKw].map(kw => this.variableName.push(...Object.keys(kw)))
     return this.variableName
   }
 }
-
+const startsExpr: boolean = true
+const beforeExpr: boolean = true
 const newType = new AddKeywordTypes(key)
-  .on('let')
+  .on('let',{startsExpr})
   .on('from')
   .on('of', { isLoop: true })
   .del('true')
   .del('false')
   newType.on(
-  'as', 'implements', 'declare', 'readonly', 'private', 'protected', 'public', 'abstract',
-  'namespace', 'module', 'require', 'infer', 'keyof', 'is', 'asserts', 'type',
-  'interface', 'enum', 'unique', 'readonly', 'override','static',
+  'as', 'implements',
+  'require', 'infer', 'keyof', 'is','typeof', 'instanceof', 'extends',
   {
     keyword: 'TsKeyword', // ระบุประเภทเป็นคีย์เวิร์ดของ TypeScript
   }
 );
+newType.on('assert','asserts', 'global', 'keyof', 'readonly', 'private', 'protected', 'public', 'abstract', 'namespace', 'declare', 'enum', 'interface', 'type', 'unique','static', {
+  keyword: 'TsKeyword',startsExpr})
 
-// คีย์เวิร์ดสำหรับการจัดการประเภทข้อมูล
-  newType.on(
-  'infer', 'keyof', 'typeof', 'instanceof', 'extends',
-  {
-    keyword: 'TsKeyword', // TypeManipulation
-  }
-);
 let keywordTypes = newType.emit()
 
 const modifyStderr = (stderr: typeof process.stderr) =>
   stderr.on('data', data => {
+    
     let str = data.toString().split('\n')
     let cloneData = clone(str)
     str.forEach((item: string, index: number) => {
@@ -110,14 +102,20 @@ const modifyStderr = (stderr: typeof process.stderr) =>
     //console.log(str)
 
     const optionsAcorn: Options = {
-      ecmaVersion: 2022,
+      ecmaVersion: "latest",
      // sourceType: 'module',
       locations: true,
       preserveParens: true,
+        checkPrivateFields: true,
+      allowHashBang: true,
+      allowReserved: true,
       allowAwaitOutsideFunction: true,
+      onInsertedSemicolon: (lastTokEnd: number, lastTokEndLoc) => console.log(lastTokEnd, lastTokEndLoc),
     }
     const code = `1 |
-    import type { ecmaVersion, Options } from 'acorn'
+    // test
+    const arr: Array<string> = []
+    const arrp: string[] = []
     import nae, { test } from 'acorn'
     const { label: tokLabel, keyWord } = value.on.l as any
 if(true){
@@ -150,7 +148,7 @@ var p = 1
     try {
       const ast = [...parseCode.tokenizer(code, optionsAcorn)]
       // const ast = full(parseCode.parse(code,optionsAcorn), node => console.log(node))
-      //console.log('ast',ast)
+     // console.log('ast',ast)
 
       highlightSyntax(ast)
     } catch (error: unknown) {
@@ -175,20 +173,42 @@ var p = 1
         })
         str = override.join(' ')
       })
-      console.log(str)
+    console.log(str)
     }
 
     // console.log(str.join('\n'))
   })
-const highlightSyntax = (ast: Token[]) => {
-  const outputSyntax: Array<string> = []
-  let currentLine = 1 // เริ่มบรรทัดที่ 1
-  let currentColumn = 0 // เริ่มคอลัมน์ที่ 0
-  let prevToken = null
+// color for syntax by. Eva Dark
+const colors = {
+  white: color.chalk.white,
+  whiteB: color.white,
+  cyan: color.chalk.cyan,
+  cyanB:  color.chalk.cyan.bold,
+  blue: (msg: string) => color.chalk.hex('6495EE'),
+  blueB: (msg: string) => color.hex('6495EE'),
+  green: (msg: string) => color.chalk.hex('98C379'),
+  greenB: (msg: string) => color.hex('98C379'),
+  orange: (msg: string) => color.chalk.hex('FF9070'),
+  orangeB: (msg: string) => color.hex('FF9070'),
+  purple: (msg: string) => color.hex('A78CFA')(msg),
+  purpleB: (msg: string) => color.chalk.hex('A78CFA'),
+  red: (msg: string) => color.chalk.hex('f14c4c'),
+  redB: (msg: string) => color.hex('f14c4c'),
+  yellow: (msg: string) => color.chalk.hex('E4BF7F'),
+  yellowB: (msg: string) => color.hex('E4BF7F').visible,
+  foreground: (msg: string) => color.hex('B0B7C3')(msg),
+  lines: (msg: string) => color.hex('454963')(msg),
+}
 
-  let keyword = [...newType.getKeywordNames()]
+const highlightSyntax = (ast: Token[]) => {
   
-  ast.forEach((token: any) => {
+  const outputSyntax: Array<string> = []
+  let currentLine = 1 
+  let currentColumn = 0 
+  let keyword = [...newType.getKeysName()]
+  let prevToken = null
+    ast.forEach((token: any, index: number) => {
+      const nextToken = ast[index + 1] || null; 
     let { label } = token.type
     const { line: startLine, column: startColumn } = token.loc?.start
     const { line: endLine, column: endColumn } = token.loc?.end
@@ -206,25 +226,21 @@ const highlightSyntax = (ast: Token[]) => {
       currentColumn++
     }
 
-    let highlighted = false
-    if (label === 'name') {
-      
-      if (prevToken && keyword.includes(prevToken.value) && !keywordTypes[prevToken.value].isLoop){
+    let highlighted = false 
+    const kw = keywordTypes[token.value]
+    
+      if (label === 'name' && prevToken && keyword.includes(prevToken.value) && !keywordTypes[prevToken.value].isLoop){
+     // token.type.label = 'variableName'
+        label = 'variableName'
         
-        if(true){
-        
-    label = 'variableName'
           }
-        }
-      
-
       if (keyword.includes(token.value) ){
 
-        token.type.keyword = token.value
-        //label = item
-       // console.log(token)
+        //token.type.keyword = kw.keyword
+        label = token.value
+        //token.type.label = token.value
+       
       }
-    }
    
     // ตรวจสอบโทเค็นใน tokTypes และ tokContexts
     for (const [_, value] of Object.entries({ ...tokTypes, ...tokContexts })) {
@@ -260,7 +276,6 @@ const highlightSyntax = (ast: Token[]) => {
     // กำหนดสีสำหรับประเภทโทเค็นหลัก หากยังไม่ได้ไฮไลต์
     
     if (!highlighted) {
-      const kw = keywordTypes[token.value]
       
      
      // console.log(token)
@@ -272,7 +287,7 @@ const highlightSyntax = (ast: Token[]) => {
         if(prevToken.value === ':') outputSyntax.push(color.hex('E4BF7F')(token.value))
           else outputSyntax.push(color.hex('E4BF7F')(token.value))
       }else{
-          outputSyntax.push(color.chalk.cyan.bold(token.value))
+          outputSyntax.push(color.hex('E4BF7F')(token.value))
           }
       }else if (label === 'privateId') {
         if (prevToken && prevToken.type.label === '.') {

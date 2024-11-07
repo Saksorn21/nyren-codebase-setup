@@ -8,7 +8,7 @@ import privateClassElements from 'acorn-private-class-elements'
 import tsPlugin from 'acorn-typescript'
 
 const acorn = Parser
-.extend(tsPlugin())
+.extend(tsPlugin({ dts: true }))
  // .extend(classFields)
  .extend(staticClassFeatures)
 // .extend(privateClassElements)
