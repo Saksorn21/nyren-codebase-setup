@@ -20,7 +20,7 @@ import clone from './clone.js'
 
 class AddKeywordTypes {
   readonly variableName: string[] = []
-  
+
   keyword: Object = {}
   private newKw: Record<string, any> = {} // ใช้ Record เพื่อให้รองรับ key-value แบบ dynamic
 
@@ -38,10 +38,13 @@ class AddKeywordTypes {
     return this
   }
   on(...args: [string, Record<string, any>?] | any) {
-   if(Array.isArray(args[0])){
-    throw new TypeError('on() only accepts individual arguments. Try: on(\'of\', \'if\', { keyword: \'TsKeyword\' })', {
-        cause: 'Array is not allowed as input',  // ค่าที่ใช้เพิ่มเติม
-      });
+    if (Array.isArray(args[0])) {
+      throw new TypeError(
+        "on() only accepts individual arguments. Try: on('of', 'if', { keyword: 'TsKeyword' })",
+        {
+          cause: 'Array is not allowed as input', // ค่าที่ใช้เพิ่มเติม
+        }
+      )
     }
     let options: any =
       args[args.length - 1] && typeof args[args.length - 1] === 'object'
@@ -63,33 +66,59 @@ class AddKeywordTypes {
     return this.newKw
   }
   getKeysName() {
-    [this.newKw].map(kw => this.variableName.push(...Object.keys(kw)))
+    ;[this.newKw].map(kw => this.variableName.push(...Object.keys(kw)))
     return this.variableName
   }
 }
 const startsExpr: boolean = true
 const beforeExpr: boolean = true
 const newType = new AddKeywordTypes(key)
-  .on('let',{startsExpr})
+  .on('let', { startsExpr })
   .on('from')
   .on('of', { isLoop: true })
   .del('true')
   .del('false')
-  newType.on(
-  'as', 'implements',
-  'require', 'infer', 'keyof', 'is','typeof', 'instanceof', 'extends',
+newType.on(
+  'as',
+  'implements',
+  'require',
+  'infer',
+  'keyof',
+  'is',
+  'typeof',
+  'instanceof',
+  'extends',
   {
     keyword: 'TsKeyword', // ระบุประเภทเป็นคีย์เวิร์ดของ TypeScript
   }
-);
-newType.on('assert','asserts', 'global', 'keyof', 'readonly', 'private', 'protected', 'public', 'abstract', 'namespace', 'declare', 'enum', 'interface', 'type', 'unique','static', {
-  keyword: 'TsKeyword',startsExpr})
+)
+newType.on(
+  'assert',
+  'asserts',
+  'global',
+  'keyof',
+  'readonly',
+  'private',
+  'protected',
+  'public',
+  'abstract',
+  'namespace',
+  'declare',
+  'enum',
+  'interface',
+  'type',
+  'unique',
+  'static',
+  {
+    keyword: 'TsKeyword',
+    startsExpr,
+  }
+)
 
 let keywordTypes = newType.emit()
 
 const modifyStderr = (stderr: typeof process.stderr) =>
   stderr.on('data', data => {
-    
     let str = data.toString().split('\n')
     let cloneData = clone(str)
     str.forEach((item: string, index: number) => {
@@ -102,15 +131,16 @@ const modifyStderr = (stderr: typeof process.stderr) =>
     //console.log(str)
 
     const optionsAcorn: Options = {
-      ecmaVersion: "latest",
-     // sourceType: 'module',
+      ecmaVersion: 'latest',
+      // sourceType: 'module',
       locations: true,
       preserveParens: true,
-        checkPrivateFields: true,
+      checkPrivateFields: true,
       allowHashBang: true,
       allowReserved: true,
       allowAwaitOutsideFunction: true,
-      onInsertedSemicolon: (lastTokEnd: number, lastTokEndLoc) => console.log(lastTokEnd, lastTokEndLoc),
+      onInsertedSemicolon: (lastTokEnd: number, lastTokEndLoc) =>
+        console.log(lastTokEnd, lastTokEndLoc),
     }
     const code = `1 |
     // test
@@ -138,17 +168,17 @@ var p = 1
   return this.#home
   }
   // test - pppp
-  const f = new sod('sod')
+  const f = new sod(\`\r\`)
   f.namep as string
   const as = 'n'
-  console.log(f.#hgg(),\`\${sod.b}\`)
+  console.log(f.#hgg(),\`name\${sod.b}\`)
   }
   `
-    
+
     try {
       const ast = [...parseCode.tokenizer(code, optionsAcorn)]
       // const ast = full(parseCode.parse(code,optionsAcorn), node => console.log(node))
-     // console.log('ast',ast)
+      // console.log('ast',ast)
 
       highlightSyntax(ast)
     } catch (error: unknown) {
@@ -173,42 +203,53 @@ var p = 1
         })
         str = override.join(' ')
       })
-    console.log(str)
+      console.log(str)
     }
 
     // console.log(str.join('\n'))
   })
 // color for syntax by. Eva Dark
 const colors = {
-  white: color.chalk.white,
-  whiteB: color.white,
-  cyan: color.chalk.cyan,
-  cyanB:  color.chalk.cyan.bold,
-  blue: (msg: string) => color.chalk.hex('6495EE'),
-  blueB: (msg: string) => color.hex('6495EE'),
-  green: (msg: string) => color.chalk.hex('98C379'),
-  greenB: (msg: string) => color.hex('98C379'),
-  orange: (msg: string) => color.chalk.hex('FF9070'),
-  orangeB: (msg: string) => color.hex('FF9070'),
-  purple: (msg: string) => color.hex('A78CFA')(msg),
-  purpleB: (msg: string) => color.chalk.hex('A78CFA'),
-  red: (msg: string) => color.chalk.hex('f14c4c'),
-  redB: (msg: string) => color.hex('f14c4c'),
-  yellow: (msg: string) => color.chalk.hex('E4BF7F'),
-  yellowB: (msg: string) => color.hex('E4BF7F').visible,
-  foreground: (msg: string) => color.hex('B0B7C3')(msg),
-  lines: (msg: string) => color.hex('454963')(msg),
+  white: color.chalk.white.visible,
+  whiteB: color.white.visible,
+  cyan: color.chalk.cyan.visible,
+  cyanB: color.chalk.cyan.bold.visible,
+  blue: color.chalk.hex('6495EE').visible,
+  blueB: color.hex('6495EE').visible,
+  green: color.chalk.hex('98C379').visible,
+  greenB: color.hex('98C379').visible,
+  orange: color.chalk.hex('FF9070').visible,
+  orangeB: color.hex('FF9070').visible,
+  purple: color.chalk.hex('A78CFA').visible,
+  purpleB: color.hex('A78CFA').visible,
+  red: color.chalk.hex('f14c4c').visible,
+  redB: color.hex('f14c4c').visible,
+  yellow: color.chalk.hex('E4BF7F').visible,
+  yellowB: color.hex('E4BF7F').visible,
+  fg: color.hex('B0B7C3').visible,
+  lines: color.hex('454963').visible,
 }
-
+const escapeControlCharacters = (str: string) =>
+  // ตรวจสอบค่าคำสั่งต่างๆ และแทนที่ให้เป็นรูปแบบที่แสดงในข้อความ
+  str
+    .replace(/\\n/g, '\\\\n')
+    .replace(/\\r/g, '\\\\r')
+    .replace(/\\t/g, '\\\\t')
+    .replace(/\\b/g, '\\\\b')
+    .replace(/\\f/g, '\\\\f')
+    .replace(/\n/g, '\\n')
+    .replace(/\r/g, '\\r')
+    .replace(/\t/g, '\\t')
+    .replace(/\b/g, '\\b')
+    .replace(/\f/g, '\\f')
 const highlightSyntax = (ast: Token[]) => {
-  
   const outputSyntax: Array<string> = []
-  let currentLine = 1 
-  let currentColumn = 0 
+  let currentLine = 1
+  let currentColumn = 0
   let keyword = [...newType.getKeysName()]
   let prevToken = null
-    ast.forEach((token: any, index: number) => {
-      const nextToken = ast[index + 1] || null; 
+  ast.forEach((token: any, index: number) => {
+    const nextToken = ast[index + 1] || null
     let { label } = token.type
     const { line: startLine, column: startColumn } = token.loc?.start
     const { line: endLine, column: endColumn } = token.loc?.end
@@ -226,32 +267,33 @@ const highlightSyntax = (ast: Token[]) => {
       currentColumn++
     }
 
-    let highlighted = false 
+    let highlighted = false
     const kw = keywordTypes[token.value]
-    
-      if (label === 'name' && prevToken && keyword.includes(prevToken.value) && !keywordTypes[prevToken.value].isLoop){
-     // token.type.label = 'variableName'
-        label = 'variableName'
-        
-          }
-      if (keyword.includes(token.value) ){
 
-        //token.type.keyword = kw.keyword
-        label = token.value
-        //token.type.label = token.value
-       
-      }
-   
+    if (
+      label === 'name' &&
+      prevToken &&
+      keyword.includes(prevToken.value) &&
+      !keywordTypes[prevToken.value].isLoop
+    ) {
+      // token.type.label = 'variableName'
+      label = 'variableName'
+    }
+    if (keyword.includes(token.value)) {
+      //token.type.keyword = kw.keyword
+      label = token.value
+      //token.type.label = token.value
+    }
+
     // ตรวจสอบโทเค็นใน tokTypes และ tokContexts
     for (const [_, value] of Object.entries({ ...tokTypes, ...tokContexts })) {
-      
       const { label: tokLabel, keyWord } = value as any
       if (tokLabel === token.value || keyWord === token.value) {
         highlighted = true
         if (label === '^' && token.value !== undefined) {
-          outputSyntax.push(color.hex('f14c4c')(token.value))
+          outputSyntax.push(colors.redB.overline(token.value))
         } else if (keyWord !== undefined && keyWord === token.type.keyword) {
-          outputSyntax.push(color.green('"' + token.value + '"'))
+          outputSyntax.push(colors.green('"' + token.value + '"'))
         } else {
           highlighted = false
         }
@@ -259,14 +301,19 @@ const highlightSyntax = (ast: Token[]) => {
       }
     }
 
-    if (!highlighted && (token.value === '""' || token.value === "''")) {
-      outputSyntax.push(color.deepBlue(token.value))
-      highlighted = true
+    if (!highlighted && label === 'template') {
+      if (token.value && !lineBreak.test(token.value)) {
+        outputSyntax.push(colors.greenB(token.value))
+        highlighted = true
+      } else highlighted = false
     }
 
     // ตรวจสอบการขึ้นบรรทัดใหม่และช่องว่าง non-ASCII
+
+    
     if (lineBreak.test(token.value)) {
-      outputSyntax.push('\\n')
+      
+      outputSyntax.push(escapeControlCharacters(token.value))
       highlighted = true
     } else if (nonASCIIwhitespace.test(token.value)) {
       outputSyntax.push(' ')
@@ -274,22 +321,20 @@ const highlightSyntax = (ast: Token[]) => {
     }
 
     // กำหนดสีสำหรับประเภทโทเค็นหลัก หากยังไม่ได้ไฮไลต์
-    
+
     if (!highlighted) {
-      
-     
-     // console.log(token)
+      // console.log(token)
       if (kw) {
         handledKeywordTypes(token, outputSyntax)
-        
-      } else if (label === 'variableName'){
-        if(prevToken && prevToken.value !== 'as' ){
-        if(prevToken.value === ':') outputSyntax.push(color.hex('E4BF7F')(token.value))
+      } else if (label === 'variableName') {
+        if (prevToken && prevToken.value !== 'as') {
+          if (prevToken.value === ':')
+            outputSyntax.push(color.hex('E4BF7F')(token.value))
           else outputSyntax.push(color.hex('E4BF7F')(token.value))
-      }else{
+        } else {
           outputSyntax.push(color.hex('E4BF7F')(token.value))
-          }
-      }else if (label === 'privateId') {
+        }
+      } else if (label === 'privateId') {
         if (prevToken && prevToken.type.label === '.') {
           outputSyntax.push(color.hex('f14c4c')('#' + token.value))
         } else {
@@ -297,27 +342,51 @@ const highlightSyntax = (ast: Token[]) => {
         }
       } else if (label === 'name') {
         const basicType = [
-          'string', 'number', 'boolean', 'symbol', 'bigint', 'undefined', 'null', 
-          'unknown', 'unique', 'object', 'string[]', 'any', 'any[]', 'void', 'never', 
-          'Array', 'Function', 'null[]', 'boolean[]', 'number[]', 'symbol[]', 
-          'object[]', 'unknown[]', 'tuple', 'record', 'Map', 'Set', 'Promise', 
-          'Date', 'RegExp'
-        ];
-          if (basicType.includes(token.value)) {
-            outputSyntax.push(color.chalk.cyan.bold(token.value));
-          
+          'string',
+          'number',
+          'boolean',
+          'symbol',
+          'bigint',
+          'undefined',
+          'null',
+          'unknown',
+          'unique',
+          'object',
+          'string[]',
+          'any',
+          'any[]',
+          'void',
+          'never',
+          'Array',
+          'Function',
+          'null[]',
+          'boolean[]',
+          'number[]',
+          'symbol[]',
+          'object[]',
+          'unknown[]',
+          'tuple',
+          'record',
+          'Map',
+          'Set',
+          'Promise',
+          'Date',
+          'RegExp',
+        ]
+        if (basicType.includes(token.value)) {
+          outputSyntax.push(colors.cyan(token.value))
         } else {
           // ตรวจสอบว่าโทเค็นก่อนหน้าเป็นจุด (.)
           if (prevToken && prevToken.type.label === '.') {
             outputSyntax.push(color.hex('6495EE')(token.value))
           } else if (prevToken && prevToken.type.label === '{') {
             outputSyntax.push(color.hex('f14c4c')(token.value))
-          }else if (prevToken && prevToken.type.label === ':') {
-              outputSyntax.push(color.hex('E4BF7F')(token.value))
-            }else if (prevToken && prevToken.type.label === ',') {
+          } else if (prevToken && prevToken.type.label === ':') {
+            outputSyntax.push(color.hex('E4BF7F')(token.value))
+          } else if (prevToken && prevToken.type.label === ',') {
             outputSyntax.push(color.hex('f14c4c')(token.value))
           } else {
-            outputSyntax.push(color.hex('B0B7C3')(token.value))
+            outputSyntax.push(colors.fg(token.value))
           }
         }
       } else if (label === 'string') {
@@ -330,14 +399,14 @@ const highlightSyntax = (ast: Token[]) => {
         }
       } else if (token.value === undefined) {
         if (label === ':' && token.type.beforeExpr) {
-          outputSyntax.push(color.hex('454963')(label))
+          outputSyntax.push(colors.lines(label))
         } else {
-          outputSyntax.push(color.hex('454963')(label))
+          outputSyntax.push(colors.lines(label))
         }
       } else {
-        if (label === 'true' || label === 'false'){
-        outputSyntax.push(color.hex('6495EE').visible(token.value))
-        }else{
+        if (label === 'true' || label === 'false') {
+          outputSyntax.push(colors.blueB(token.value))
+        } else {
           outputSyntax.push(color.chalk.bold.visible(token.value))
         }
       }
@@ -354,19 +423,17 @@ const highlightSyntax = (ast: Token[]) => {
   // แสดงผล
   errorMessageAndPaths(outputSyntax)
 }
-const handledKeywordTypes =(token: Token,outputSyntax) => {
+const handledKeywordTypes = (token: Token, outputSyntax) => {
   //console.log(token)
   const type = keywordTypes[token.value]
-  
-  
-  if (type.keyword === 'TsKeyword'){
-  outputSyntax.push(color.hex('A78CFA')(token.value));
 
-    }else if (token.type.label !== 'name'){
+  if (type.keyword === 'TsKeyword') {
+    outputSyntax.push(colors.purpleB(token.value))
+  } else if (token.type.label !== 'name') {
     console.log(token.value)
-    outputSyntax.push(color.hex('A78CFA')(token.value));
-  }else{
-    outputSyntax.push(color.hex('A78CFA')(token.value));
+    outputSyntax.push(colors.purpleB(token.value))
+  } else {
+    outputSyntax.push(colors.purpleB(token.value))
   }
 }
 const atPath = (path: string) => {
@@ -401,6 +468,7 @@ const errorMessageAndPaths = (outputSyntax: Array<string>) => {
       str[index] = atPath(clearAnsiCodes(item))
     }
   })
+  
 
   // รวมข้อความและแสดงผล
   process.stdout.write(str.join('\n'))
