@@ -163,7 +163,7 @@ var p = 1
   readonly y = 1
   #home = 'home'
   namep: string = 'sod'
-  constructor(p: string){}
+  constructor(private p: string){}
   #hgg(){
   return this.#home
   }
@@ -329,16 +329,16 @@ const highlightSyntax = (ast: Token[]) => {
       } else if (label === 'variableName') {
         if (prevToken && prevToken.value !== 'as') {
           if (prevToken.value === ':')
-            outputSyntax.push(color.hex('E4BF7F')(token.value))
-          else outputSyntax.push(color.hex('E4BF7F')(token.value))
+            outputSyntax.push(colors.yellowB(token.value))
+          else outputSyntax.push(colors.yellowB(token.value))
         } else {
-          outputSyntax.push(color.hex('E4BF7F')(token.value))
+          outputSyntax.push(colors.cyan(token.value))
         }
       } else if (label === 'privateId') {
         if (prevToken && prevToken.type.label === '.') {
-          outputSyntax.push(color.hex('f14c4c')('#' + token.value))
+          outputSyntax.push(colors.redB('#' + token.value))
         } else {
-          outputSyntax.push(color.hex('6495EE')('#' + token.value))
+          outputSyntax.push(colors.blueB('#' + token.value))
         }
       } else if (label === 'name') {
         const basicType = [
@@ -378,7 +378,9 @@ const highlightSyntax = (ast: Token[]) => {
         } else {
           // ตรวจสอบว่าโทเค็นก่อนหน้าเป็นจุด (.)
           if (prevToken && prevToken.type.label === '.') {
-            outputSyntax.push(color.hex('6495EE')(token.value))
+            if(nextToken.type.label === '.') outputSyntax.push(colors.redB(token.value))
+            
+            else outputSyntax.push(colors.blueB(token.value))
           } else if (prevToken && prevToken.type.label === '{') {
             outputSyntax.push(color.hex('f14c4c')(token.value))
           } else if (prevToken && prevToken.type.label === ':') {
@@ -393,9 +395,9 @@ const highlightSyntax = (ast: Token[]) => {
         outputSyntax.push(color.hex('98C379').visible("'" + token.value + "'"))
       } else if (label === 'num') {
         if (token.start !== 0 && token.loc.start.column !== 0) {
-          outputSyntax.push(color.hex('FF9070')(token.value))
+          outputSyntax.push(colors.orangeB(token.value))
         } else {
-          outputSyntax.push(color.chalk.bold.visible(token.value))
+          outputSyntax.push(colors.lines(token.value))
         }
       } else if (token.value === undefined) {
         if (label === ':' && token.type.beforeExpr) {
@@ -407,7 +409,7 @@ const highlightSyntax = (ast: Token[]) => {
         if (label === 'true' || label === 'false') {
           outputSyntax.push(colors.blueB(token.value))
         } else {
-          outputSyntax.push(color.chalk.bold.visible(token.value))
+          outputSyntax.push(colors.fg(token.value))
         }
       }
     }
