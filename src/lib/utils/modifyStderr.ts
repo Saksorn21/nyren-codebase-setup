@@ -14,10 +14,154 @@ import parseCode, {
   TokenType,
 } from '../acorn.js'
 import { clearAnsiCodes } from './main.js'
-import type { ecmaVersion, Options } from 'acorn'
+import type { Position, SourceLocation, Options } from 'acorn'
 import color from './color.js'
 import clone from './clone.js'
+enum colorType {
+  chalky = 'chalky',
+  coral = 'coral',
+  dark = 'dark',
+  error = 'error',
+  fountainBlue = 'fountainBlue',
+  green = 'green',
+  invalid = 'invalid',
+  lightDark = 'lightDark',
+  lightWhite = 'lightWhite',
+  malibu = 'malibu',
+  purple = 'purple',
+  whiskey = 'whiskey',
+  deepRed = 'deepRed',
+}
+const textColors = {
+  chalky: '#e5c07b',
+  coral: '#e06c75',
+  dark: '#5c6370',
+  error: '#f44747',
+  fountainBlue: '#56b6c2',
+  green: '#98c379',
+  invalid: '#ffffff',
+  lightDark: '#7f848e',
+  lightWhite: '#abb2bf',
+  malibu: '#61afef',
+  purple: '#c678dd',
+  whiskey: '#d19a66',
+  deepRed: '#BE5046',
+}
+import { supportsColorStderr,  supportsColor, chalkStderr } from 'chalk'
+class ThemeOneDarkPro {
+  textColors: typeof textColors = textColors
+  chalky!: ReturnType<typeof chalkStderr.hex>
+  chalkyB!: ReturnType<typeof chalkStderr.hex>
+  coral!: ReturnType<typeof chalkStderr.hex>
+  coralB!: ReturnType<typeof chalkStderr.hex>
+  dark!: ReturnType<typeof chalkStderr.hex>
+  darkB!: ReturnType<typeof chalkStderr.hex>
+  error!: ReturnType<typeof chalkStderr.hex>
+  errorB!: ReturnType<typeof chalkStderr.hex>
+  fountainBlue!: ReturnType<typeof chalkStderr.hex>
+  fountainBlueB!: ReturnType<typeof chalkStderr.hex>
+  green!: ReturnType<typeof chalkStderr.hex>
+  greenB!: ReturnType<typeof chalkStderr.hex>
+  invalid!: ReturnType<typeof chalkStderr.hex>
+  invalidB!: ReturnType<typeof chalkStderr.hex>
+  lightDark!: ReturnType<typeof chalkStderr.hex>
+  lightDarkB!: ReturnType<typeof chalkStderr.hex>
+  lightWhite!: ReturnType<typeof chalkStderr.hex>
+  lightWhiteB!: ReturnType<typeof chalkStderr.hex>
+  malibu!: ReturnType<typeof chalkStderr.hex>
+  malibuB!: ReturnType<typeof chalkStderr.hex>
+  purple!: ReturnType<typeof chalkStderr.hex>
+  purpleB!: ReturnType<typeof chalkStderr.hex>
+  whiskey!: ReturnType<typeof chalkStderr.hex>
+  whiskeyB!: ReturnType<typeof chalkStderr.hex>
+  deepRed!: ReturnType<typeof chalkStderr.hex>
+  deepRedB!: ReturnType<typeof chalkStderr.hex>
+  constructor(){
 
+    for (const [colorName, hexColor] of Object.entries(this.textColors)){
+       ((this) as any)[colorName] = chalkStderr.hex(hexColor as string).visible
+       ;((this) as any)[colorName +'B'] = chalkStderr.hex(hexColor as string).bold.visible
+         }
+
+     return this
+    }
+}
+
+const colors = new ThemeOneDarkPro()
+type KeywordType = 'keyword' | 'operator' | 'punctuation' | 'constants' | 'comment' | 'string' | 'numbers' | 'boolean'| 'types' | 'typeAssertions'| 'variable' | 'property' | 'method' | 'other' 
+
+
+class ColorizeSyntax {
+  readonly syntaxColorPairs = {
+    keyword: colorType.purple,
+    operator: colorType.lightWhite,
+    punctuation: colorType.lightWhite,
+    constants: colorType.malibu,
+    string: colorType.green,
+    numbers: colorType.whiskey,
+    boolean: colorType.whiskey,
+    types: colorType.coral,
+    typeAssertions: colorType.chalky,
+    variable: colorType .lightDark,
+    propety: colorType.coral,
+    method: colorType.malibu,
+    other: colorType.lightDark,
+  } as const
+  isBold: boolean = false
+  constructor(
+    private colorsTheme: ThemeOneDarkPro , 
+    private result: Array<string>){
+    
+    }
+  private bulidColor(keywordType: KeywordType, colorName: string = 'lightDark'){
+    
+    if (keywordType === colorName) return (this.colorsTheme as any)[colorName]
+    
+    for (const [kw, color] of Object.entries(this.syntaxColorPairs)){
+if (kw === keywordType) {
+  if (this.isBold) return (this.colorsTheme as any)[color + 'B']
+  else return this.colorsTheme[color]
+ }
+      continue
+    }
+  }
+  on(keywordType: KeywordType = null, newResult: string, colorName?: string){ 
+    if(!keywordType && !newResult) throw new TypeError('keywordType and message is required')
+    if (keywordType !== 'other' && colorName) throw new TypeError('no need for the 3rd parameter',  {
+          cause: 'need keywordType and message', 
+        })
+    let msg = ''
+    if(colorName) msg = this.bulidColor(keywordType, colorName)(newResult) 
+   else msg = this.bulidColor(keywordType)(newResult)
+    
+    this.result.push(msg)
+    return this
+  }
+  emit(){
+    return this.result.join('')
+  }
+}
+
+const EvaDark = {
+  white: color.chalk.white.visible,
+  whiteB: color.white.visible,
+  cyan: color.chalk.hex('5fd7d7').visible, // 5fd7d7 5fafaf
+  cyanB: color.chalk.cyan.bold.visible,
+  blue: color.chalk.hex('6495EE').visible,
+  blueB: color.hex('6495EE').visible,
+  green: color.chalk.hex('98C379').visible,
+  greenB: color.hex('98C379').visible,
+  orange: color.chalk.hex('FF9070').visible,
+  orangeB: color.hex('FF9070').visible,
+  purple: color.chalk.hex('A78CFA').visible,
+  purpleB: color.hex('A78CFA').visible,
+  red: color.chalk.hex('f14c4c').visible,
+  redB: color.hex('f14c4c').visible,
+  yellow: color.chalk.hex('E4BF7F').visible,
+  yellowB: color.hex('E4BF7F').visible,
+  fg: color.hex('B0B7C3').visible,
+  lines: color.hex('454963').visible,
+}
 class AddKeywordTypes {
   readonly variableName: string[] = []
 
@@ -55,7 +199,7 @@ class AddKeywordTypes {
     args.forEach((type: string) => {
       if (!this.keywordTypes[type]) {
         options = { keyword: type, ...options }
-        this.newKw[type] = new TokenType(type, options || { keyword: type })
+        this.newKw[type] = new TokenType(type, options || { keyword: type }) as any
       }
     })
 
@@ -176,7 +320,9 @@ var p = 1
   `
 
     try {
-      const ast = [...parseCode.tokenizer(code, optionsAcorn)]
+
+      const codeWithPlaceholders = code.replace(/\r/g, '[CR]');
+      const ast = [...parseCode.tokenizer(codeWithPlaceholders, optionsAcorn)]
       // const ast = full(parseCode.parse(code,optionsAcorn), node => console.log(node))
       // console.log('ast',ast)
 
@@ -209,54 +355,47 @@ var p = 1
     // console.log(str.join('\n'))
   })
 // color for syntax by. Eva Dark
-const colors = {
-  white: color.chalk.white.visible,
-  whiteB: color.white.visible,
-  cyan: color.chalk.cyan.visible,
-  cyanB: color.chalk.cyan.bold.visible,
-  blue: color.chalk.hex('6495EE').visible,
-  blueB: color.hex('6495EE').visible,
-  green: color.chalk.hex('98C379').visible,
-  greenB: color.hex('98C379').visible,
-  orange: color.chalk.hex('FF9070').visible,
-  orangeB: color.hex('FF9070').visible,
-  purple: color.chalk.hex('A78CFA').visible,
-  purpleB: color.hex('A78CFA').visible,
-  red: color.chalk.hex('f14c4c').visible,
-  redB: color.hex('f14c4c').visible,
-  yellow: color.chalk.hex('E4BF7F').visible,
-  yellowB: color.hex('E4BF7F').visible,
-  fg: color.hex('B0B7C3').visible,
-  lines: color.hex('454963').visible,
+
+const escapeControlCharacters = (str: String) => str
+    .replace(/\\/g, '\\\\')     // แทนที่ backslash (\\) ให้เป็น \\\\
+    .replace(/\n/g, '\\n')      // แทนที่ newline ให้เป็น \\n
+    .replace(/\r/g, '\\r')      // แทนที่ carriage return ให้เป็น \\r
+    .replace(/\t/g, '\\t')      // แทนที่ tab ให้เป็น \\t
+   .replace(/\x08/g, '\\b')  // ใช้ \\x08 เพื่อระบุ backspace ตัวจริง
+    .replace(/\f/g, '\\f');     // แทนที่ form feed ให้เป็น \\f
+const restoreControlCharacters = (tokenValue: string) => typeof tokenValue === 'string' ? tokenValue.replace(/\[CR\]/g, '\r') : tokenValue;
+/**
+ *@ interface SyntaxHighlight 
+ *@ dscription - Acorn's Token class doesn't have a property value, so we need to create one.
+ * of acorn Token {
+type: TokenType
+start: number
+end: number
+loc?: SourceLocation
+range?: [number, number]
 }
-const escapeControlCharacters = (str: string) =>
-  // ตรวจสอบค่าคำสั่งต่างๆ และแทนที่ให้เป็นรูปแบบที่แสดงในข้อความ
-  str
-    .replace(/\\n/g, '\\\\n')
-    .replace(/\\r/g, '\\\\r')
-    .replace(/\\t/g, '\\\\t')
-    .replace(/\\b/g, '\\\\b')
-    .replace(/\\f/g, '\\\\f')
-    .replace(/\n/g, '\\n')
-    .replace(/\r/g, '\\r')
-    .replace(/\t/g, '\\t')
-    .replace(/\b/g, '\\b')
-    .replace(/\f/g, '\\f')
-const highlightSyntax = (ast: Token[]) => {
+ */
+interface SyntaxHighlight extends Token {
+  value: string
+}
+const highlightSyntax = (ast: SyntaxHighlight[]) => {
   const outputSyntax: Array<string> = []
+  const collectData = new ColorizeSyntax(colors, outputSyntax)
   let currentLine = 1
   let currentColumn = 0
   let keyword = [...newType.getKeysName()]
-  let prevToken = null
-  ast.forEach((token: any, index: number) => {
-    const nextToken = ast[index + 1] || null
+  let prevToken: SyntaxHighlight | null  = null
+  ast.forEach((token: SyntaxHighlight, index: number) => {
+    
+    const nextToken: SyntaxHighlight | null = ast[index + 1] || null
     let { label } = token.type
-    const { line: startLine, column: startColumn } = token.loc?.start
-    const { line: endLine, column: endColumn } = token.loc?.end
+    const { line: startLine, column: startColumn } = token.loc?.start as Position
+    const { line: endLine, column: endColumn } = token.loc?.end as Position
 
     // แทรกการขึ้นบรรทัดใหม่หากบรรทัดเปลี่ยน
     while (currentLine < startLine) {
       outputSyntax.push('\n')
+      collectData.on('other', '\n')
       currentLine++
       currentColumn = 0
     }
@@ -264,6 +403,7 @@ const highlightSyntax = (ast: Token[]) => {
     // แทรกช่องว่างเพื่อให้คอลัมน์ตรงกับต้นฉบับ
     while (currentColumn < startColumn) {
       outputSyntax.push(' ')
+      collectData.on('other', ' ')
       currentColumn++
     }
 
@@ -286,24 +426,29 @@ const highlightSyntax = (ast: Token[]) => {
     }
 
     // ตรวจสอบโทเค็นใน tokTypes และ tokContexts
-    for (const [_, value] of Object.entries({ ...tokTypes, ...tokContexts })) {
-      const { label: tokLabel, keyWord } = value as any
-      if (tokLabel === token.value || keyWord === token.value) {
+    for (const [_, tokenType] of Object.entries({ ...tokTypes, ...tokContexts })) {
+      const { label: tokLabel, keyword } = tokenType as TokenType
+      if (tokLabel === token.value || keyword === token.value) {
         highlighted = true
         if (label === '^' && token.value !== undefined) {
-          outputSyntax.push(colors.redB.overline(token.value))
-        } else if (keyWord !== undefined && keyWord === token.type.keyword) {
-          outputSyntax.push(colors.green('"' + token.value + '"'))
-        } else {
+          outputSyntax.push(colors.error.overline(token.value))
+          collectData.on('other', token.value, 'error')
+        } else if (label === '=' && token.value !== undefined){
+          outputSyntax.push(colors.fountainBlueB(token.value))
+          collectData.on('operator', token.value)
+        } else  {
           highlighted = false
         }
         break
       }
     }
 
+    const controlCharacterRegex = /[\x0A\x0D\x09\x0C\x08]/;  // \x0A = \n, \x0D = \r, \x09 = \t, \x0C = \f, \x08 = backspace
+const tokenValue = restoreControlCharacters(token.value)
     if (!highlighted && label === 'template') {
-      if (token.value && !lineBreak.test(token.value)) {
+      if (token.value && !controlCharacterRegex.test(tokenValue)) {
         outputSyntax.push(colors.greenB(token.value))
+        collectData.on('string', token.value)
         highlighted = true
       } else highlighted = false
     }
@@ -311,12 +456,14 @@ const highlightSyntax = (ast: Token[]) => {
     // ตรวจสอบการขึ้นบรรทัดใหม่และช่องว่าง non-ASCII
 
     
-    if (lineBreak.test(token.value)) {
-      
-      outputSyntax.push(escapeControlCharacters(token.value))
+    if (!highlighted && controlCharacterRegex.test(tokenValue)) {
+
+      outputSyntax.push(escapeControlCharacters(String(tokenValue)));
+      collectData.on('other', escapeControlCharacters(String(tokenValue)))
       highlighted = true
-    } else if (nonASCIIwhitespace.test(token.value)) {
+    } else if (nonASCIIwhitespace.test(tokenValue)) {
       outputSyntax.push(' ')
+      collectData.on('other', ' ')
       highlighted = true
     }
 
@@ -328,19 +475,31 @@ const highlightSyntax = (ast: Token[]) => {
         handledKeywordTypes(token, outputSyntax)
       } else if (label === 'variableName') {
         if (prevToken && prevToken.value !== 'as') {
-          if (prevToken.value === ':')
-            outputSyntax.push(colors.yellowB(token.value))
-          else outputSyntax.push(colors.yellowB(token.value))
-        } else {
-          outputSyntax.push(colors.cyan(token.value))
-        }
+          if (prevToken.value === ':'){
+            outputSyntax.push(colors.chalky(token.value))
+            collectData.on('typeAssertions', token.value)}
+          else {outputSyntax.push(colors.malibuB(token.value))
+        collectData.on('variable', token.value)}
+        }else{
+          outputSyntax.push(colors.chalky(token.value))
+      collectData.on('typeAssertions', token.value)}
       } else if (label === 'privateId') {
         if (prevToken && prevToken.type.label === '.') {
-          outputSyntax.push(colors.redB('#' + token.value))
-        } else {
-          outputSyntax.push(colors.blueB('#' + token.value))
-        }
-      } else if (label === 'name') {
+          
+            outputSyntax.push(colors.coralB('#' + token.value))
+                    collectData.on('method', '#' + token.value)
+            
+          }else {
+          if (nextToken.type.label === '('){
+                    outputSyntax.push(colors.coralB('#' + token.value))
+           collectData.on('method', '#' + token.value)
+          }else {
+                    outputSyntax.push(colors.coralB('#' + token.value))
+                  collectData.on('propety', '#' + token.value)
+          }
+  }
+        
+    } else if (label === 'name') {
         const basicType = [
           'string',
           'number',
@@ -374,42 +533,69 @@ const highlightSyntax = (ast: Token[]) => {
           'RegExp',
         ]
         if (basicType.includes(token.value)) {
-          outputSyntax.push(colors.cyan(token.value))
-        } else {
+          outputSyntax.push(colors.chalky(token.value))
+          collectData.on('typeAssertions', token.value)}
+         else 
           // ตรวจสอบว่าโทเค็นก่อนหน้าเป็นจุด (.)
           if (prevToken && prevToken.type.label === '.') {
-            if(nextToken.type.label === '.') outputSyntax.push(colors.redB(token.value))
+            if(nextToken.type.label === '.'){ outputSyntax.push(colors.chalkyB(token.value))
             
-            else outputSyntax.push(colors.blueB(token.value))
-          } else if (prevToken && prevToken.type.label === '{') {
+          collectData.on('propety', token.value)
+   
+              }else if (nextToken.type.label === '(') {
+            outputSyntax.push(colors.malibuB(token.value))
+                                                       collectData.on('method', token.value)
+            
+            }else{ outputSyntax.push(colors.coralB(token.value))
+                  collectData.on('propety', token.value)
+          }       
+          }else if (prevToken && prevToken.type.label === '{'){outputSyntax.push(color.hex('f14c4c')(token.value))
+                                                               collectData.on('propety', token.value)
+                                                              
+         }else if (prevToken && prevToken.type.label === '['){
             outputSyntax.push(color.hex('f14c4c')(token.value))
-          } else if (prevToken && prevToken.type.label === ':') {
+                                                           collectData.on('propety', token.value)
+
+     } else if (prevToken && prevToken.type.label === ':') {
             outputSyntax.push(color.hex('E4BF7F')(token.value))
-          } else if (prevToken && prevToken.type.label === ',') {
+                                                                collectData.on('constants', token.value)
+           }else if (prevToken && prevToken.type.label === ',') {
             outputSyntax.push(color.hex('f14c4c')(token.value))
-          } else {
-            outputSyntax.push(colors.fg(token.value))
-          }
-        }
+                                                                 collectData.on('propety', token.value)
+           
+           } else if (prevToken && prevToken.value === '('){ outputSyntax.push(colors.chalkyB(token.value))
+                                                             collectData.on('method', token.value)
+          }else {
+            outputSyntax.push(colors.lightWhiteB(token.value))
+                 collectData.on('other', token.value)
+         } 
+        
       } else if (label === 'string') {
-        outputSyntax.push(color.hex('98C379').visible("'" + token.value + "'"))
+        outputSyntax.push(colors.greenB("'" + token.value + "'"))
+        collectData.on('string', "'" + token.value + "'")
       } else if (label === 'num') {
-        if (token.start !== 0 && token.loc.start.column !== 0) {
-          outputSyntax.push(colors.orangeB(token.value))
+        if (token.start !== 0 && token.loc?.start.column !== 0) {
+          outputSyntax.push(colors.whiskeyB(token.value))
+          collectData.on('numbers', token.value)
         } else {
-          outputSyntax.push(colors.lines(token.value))
+          outputSyntax.push(colors.lightWhite(token.value))
+          collectData.on('other', token.value)
         }
       } else if (token.value === undefined) {
         if (label === ':' && token.type.beforeExpr) {
-          outputSyntax.push(colors.lines(label))
+          outputSyntax.push(colors.invalidB(label))
+          collectData.on('operator', label)
         } else {
-          outputSyntax.push(colors.lines(label))
+          outputSyntax.push(colors.lightDarkB(label))
+          collectData.on('operator', label)
         }
       } else {
         if (label === 'true' || label === 'false') {
-          outputSyntax.push(colors.blueB(token.value))
+          outputSyntax.push(colors.whiskeyB(token.value))
+          collectData.on('boolean', token.value)
         } else {
-          outputSyntax.push(colors.fg(token.value))
+          outputSyntax.push(colors.lightDark(token.value))
+          collectData.on('other', token.value)
         }
       }
     }
@@ -421,11 +607,12 @@ const highlightSyntax = (ast: Token[]) => {
     // อัปเดต prevToken ให้เป็นโทเค็นปัจจุบัน
     prevToken = token
   })
-
+console.log(collectData.emit())
   // แสดงผล
+  return
   errorMessageAndPaths(outputSyntax)
 }
-const handledKeywordTypes = (token: Token, outputSyntax) => {
+const handledKeywordTypes = (token: SyntaxHighlight, outputSyntax) => {
   //console.log(token)
   const type = keywordTypes[token.value]
 
