@@ -164,7 +164,17 @@ const modifyStderr = (stderr: typeof process.stderr) =>
         console.log(lastTokEnd, lastTokEndLoc),
     }
     const code = `
-  const ppp: string = 'nyrenx'
+    import t from 'test'
+    import * as t from 'test'
+    import { t } from 'test'
+    class T{
+    #test: string = 'test'
+    
+    }
+    // test
+    /**
+     * @param {string} a
+    */ 
   let sos: boolean = false
   var jan = 'jan' as string
   `

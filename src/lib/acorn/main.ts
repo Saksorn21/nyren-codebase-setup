@@ -1,18 +1,19 @@
 import  { TokContext, Token, TokenType, Parser, defaultOptions, getLineInfo, isIdentifierChar, isIdentifierStart, isNewLine, keywordTypes, lineBreak, lineBreakG, nonASCIIwhitespace, parse, parseExpressionAt, tokContexts, tokTypes, tokenizer, version, parse } from 'acorn'
 import type { ecmaVersion, Options } from 'acorn'
 //ts-no-check
+import {importAttributes}  from 'acorn-import-attributes'
 import classFields from 'acorn-class-fields'
 import staticClassFeatures from 'acorn-static-class-features'
 import privateClassElements from 'acorn-private-class-elements'
 
 import tsPlugin from 'acorn-typescript'
-
+//import * as acorn from 'acorn'
 const acorn = Parser.extend(tsPlugin({ dts: true }))
-// .extend(classFields({ acorn: Parser}))
- //.extend(staticClassFeatures)
+ .extend(classFields)
+ .extend(staticClassFeatures)
 
 const parseCode = {
-  tokenizer: (code: string, options: Options) => tokenizer(code, options),
+  tokenizer: (code: string, options: Options) => acorn.tokenizer(code, options),
   parse: (code: string, options: Options) => acorn.parse(code, options)
   }
 class AddKeywordTypes {

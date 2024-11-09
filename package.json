@@ -68,6 +68,7 @@
     "@inquirer/prompts": "^6.0.1",
     "acorn": "^8.14.0",
     "acorn-class-fields": "^1.0.0",
+    "acorn-import-attributes": "^1.9.5",
     "acorn-private-class-elements": "^1.0.0",
     "acorn-static-class-features": "^1.0.0",
     "acorn-typescript": "^1.4.13",
