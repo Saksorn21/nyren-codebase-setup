@@ -1,5 +1,5 @@
 import process from 'node:process'
-import parseCode, {
+import parseCode, { AddKeywordTypes,
   tokTypes,
   Token,
   isNewLine,
@@ -15,12 +15,10 @@ import { clearAnsiCodes } from './main.js'
 import type { Position, SourceLocation, Options } from 'acorn'
 import color from './color.js'
 import clone from './clone.js'
-import Teme from '../acorn/Themes.js'
+import Themes, { colorType } from '../acorn/Themes.js'
 
-const colors = new ThemeOneDarkPro()
+const colors = new Themes()
 type KeywordType = 'keyword' | 'operator' | 'punctuation' | 'constants' | 'comment' | 'string' | 'numbers' | 'boolean'| 'types' | 'typeAssertions'| 'variable' | 'property' | 'method' | 'other' | null
-
-
 class ColorizeSyntax {
   readonly syntaxColorPairs = {
     keyword: colorType.purple,
@@ -39,7 +37,7 @@ class ColorizeSyntax {
   } as const
   isBold: boolean = false
   constructor(
-    private colorsTheme: ThemeOneDarkPro , 
+    private colorsTheme: Themes , 
     private result: Array<string>){
     
     }
@@ -67,8 +65,9 @@ if (kw === keywordType) {
     this.result.push(msg)
     return this
   }
-  emit(){
-    return this.result.join('')
+  emit(need: 'string' | 'array' = 'string'){
+    if(need === 'string') return this.result.join('')
+    else return this.result
   }
 }
 
@@ -91,59 +90,7 @@ const EvaDark = {
   yellowB: color.hex('E4BF7F').visible,
   fg: color.hex('B0B7C3').visible,
   lines: color.hex('454963').visible,
-}
-class AddKeywordTypes {
-  readonly variableName: string[] = []
-
-  keyword: Object = {}
-  private newKw: Record<string, any> = {} // ใช้ Record เพื่อให้รองรับ key-value แบบ dynamic
-
-  constructor(private keywordTypes: Record<string, any>) {
-    this.newKw = { ...keywordTypes } // เริ่มต้นด้วยการก็อปข้อมูลของ keywordTypes
-  }
-  get(type: string) {
-    return this.newKw[type]
-  }
-  del(type: string) {
-    // ลบ key จาก newKw ถ้ามี key นี้อยู่
-    if (type in this.newKw) {
-      delete this.newKw[type]
-    }
-    return this
-  }
-  on(...args: [string, Record<string, any>?] | any) {
-    if (Array.isArray(args[0])) {
-      throw new TypeError(
-        "on() only accepts individual arguments. Try: on('of', 'if', { keyword: 'TsKeyword' })",
-        {
-          cause: 'Array is not allowed as input', // ค่าที่ใช้เพิ่มเติม
-        }
-      )
-    }
-    let options: any =
-      args[args.length - 1] && typeof args[args.length - 1] === 'object'
-        ? args.pop()!
-        : {} // ใช้ options หากส่งมา
-
-    // รับค่าที่ส่งมาเป็นหลายๆ type
-    args.forEach((type: string) => {
-      if (!this.keywordTypes[type]) {
-        options = { keyword: type, ...options }
-        this.newKw[type] = new TokenType(type, options || { keyword: type }) as any
-      }
-    })
-
-    return this // รองรับ chain
-  }
-  emit() {
-    // ส่งคืน object ที่มี keywordTypes + newKw รวมกัน
-    return this.newKw
-  }
-  getKeysName() {
-    ;[this.newKw].map(kw => this.variableName.push(...Object.keys(kw)))
-    return this.variableName
-  }
-}
+} 
 const startsExpr: boolean = true
 const beforeExpr: boolean = true
 const newType = new AddKeywordTypes(key)
@@ -225,10 +172,10 @@ const modifyStderr = (stderr: typeof process.stderr) =>
     try {
 
       const codeWithPlaceholders = code.replace(/\r/g, '[CR]');
-      const ast = [...parseCode.tokenizer(codeWithPlaceholders, optionsAcorn)]
+      const ast = [...parseCode.tokenizer(codeWithPlaceholders, optionsAcorn)] as SyntaxHighlight[]
       // const ast = full(parseCode.parse(code,optionsAcorn), node => console.log(node))
-     // console.log('ast',ast)
-
+     console.log('ast',ast)
+return
       highlightSyntax(ast)
     } catch (error: unknown) {
       console.log(error)
