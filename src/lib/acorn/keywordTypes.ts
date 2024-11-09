@@ -8,6 +8,12 @@ import { keywordTypes as kwTypes, AddKeywordTypes } from './main.js'
 •	postfix: หมายถึงว่า token นี้สามารถอยู่หลังตัวแปรหรือไม่ สำหรับ regexp จะเป็น false
 •	binop: แสดงถึงการดำเนินการทางคณิตศาสตร์หรือไม่ สำหรับ regexp จะเป็น null เพราะ regexp ไม่ได้ใช้ในการคำนวณ
 */
+const startsExpr: boolean = true;
+const beforeExpr: boolean = true;
+const isLoop: boolean = true;
+const isAssign: boolean = true;
+const prefix: boolean = true;
+const postfix: boolean = true;
 const keywordTypes = new AddKeywordTypes(kwTypes)
 keywordTypes
   .on('let', { startsExpr })

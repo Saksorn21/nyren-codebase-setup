@@ -63,7 +63,7 @@ class AddKeywordTypes {
     // ส่งคืน object ที่มี keywordTypes + newKw รวมกัน
     return this.newKw
   }
-  getKeysName() {
+  getKeys() {
     ;[this.newKw].map(kw => this.variableName.push(...Object.keys(kw)))
     return this.variableName
   }

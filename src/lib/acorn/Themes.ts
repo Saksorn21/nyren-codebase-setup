@@ -67,4 +67,25 @@ class Themes {
      return this
     }
 }
+const color = chalkStderr
+const EvaDark = {
+  white: color.white.visible,
+  whiteB: color.white.visible,
+  cyan: color.hex('5fd7d7').visible, // 5fd7d7 5fafaf
+  cyanB: color.cyan.bold.visible,
+  blue: color.hex('6495EE').visible,
+  blueB: color.hex('6495EE').visible,
+  green: color.hex('98C379').visible,
+  greenB: color.hex('98C379').visible,
+  orange: color.hex('FF9070').visible,
+  orangeB: color.hex('FF9070').visible,
+  purple: color.hex('A78CFA').visible,
+  purpleB: color.hex('A78CFA').visible,
+  red: color.hex('f14c4c').visible,
+  redB: color.hex('f14c4c').visible,
+  yellow: color.hex('E4BF7F').visible,
+  yellowB: color.hex('E4BF7F').visible,
+  fg: color.hex('B0B7C3').visible,
+  lines: color.hex('454963').visible,
+} 
 export default Themes

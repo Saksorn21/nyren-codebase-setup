@@ -11,132 +11,17 @@ import parseCode, { AddKeywordTypes,
   TokContext,
   TokenType,
 } from '../acorn/main.js'
+import Labels from '../acorn/labels/main.js'
 import { clearAnsiCodes } from './main.js'
 import type { Position, SourceLocation, Options } from 'acorn'
 import color from './color.js'
 import clone from './clone.js'
 import Themes, { colorType } from '../acorn/Themes.js'
-
+import ColorizeSyntax, { type KeywordType} from '../acorn/ColorizeSyntax.js'
+import kwTypes  from '../acorn/keywordTypes.js'
 const colors = new Themes()
-type KeywordType = 'keyword' | 'operator' | 'punctuation' | 'constants' | 'comment' | 'string' | 'numbers' | 'boolean'| 'types' | 'typeAssertions'| 'variable' | 'property' | 'method' | 'other' | null
-class ColorizeSyntax {
-  readonly syntaxColorPairs = {
-    keyword: colorType.purple,
-    operator: colorType.lightWhite,
-    punctuation: colorType.lightWhite,
-    constants: colorType.malibu,
-    string: colorType.green,
-    numbers: colorType.whiskey,
-    boolean: colorType.whiskey,
-    types: colorType.coral,
-    typeAssertions: colorType.chalky,
-    variable: colorType .lightWhite,
-    propety: colorType.coral,
-    method: colorType.malibu,
-    other: colorType.lightDark,
-  } as const
-  isBold: boolean = false
-  constructor(
-    private colorsTheme: Themes , 
-    private result: Array<string>){
-    
-    }
-  private bulidColor(keywordType: KeywordType, colorName: string = 'lightDark'){
-    
-    if (keywordType === 'other' && colorName) return (this.colorsTheme as any)[colorName]
-    
-    for (const [kw, color] of Object.entries(this.syntaxColorPairs)){
-if (kw === keywordType) {
-  if (this.isBold) return (this.colorsTheme as any)[color + 'B']
-  else return this.colorsTheme[color]
- }
-      continue
-    }
-  }
-  on(keywordType: KeywordType = null, newResult: string, colorName?: string){ 
-    if(!keywordType && !newResult) throw new TypeError('keywordType and message is required')
-    if (keywordType !== 'other' && colorName) throw new TypeError('no need for the 3rd parameter',  {
-          cause: 'need keywordType and message', 
-        })
-    let msg = ''
-    if(colorName) msg = this.bulidColor(keywordType, colorName)(newResult) 
-   else msg = this.bulidColor(keywordType)(newResult)
-    
-    this.result.push(msg)
-    return this
-  }
-  emit(need: 'string' | 'array' = 'string'){
-    if(need === 'string') return this.result.join('')
-    else return this.result
-  }
-}
 
-const EvaDark = {
-  white: color.chalk.white.visible,
-  whiteB: color.white.visible,
-  cyan: color.chalk.hex('5fd7d7').visible, // 5fd7d7 5fafaf
-  cyanB: color.chalk.cyan.bold.visible,
-  blue: color.chalk.hex('6495EE').visible,
-  blueB: color.hex('6495EE').visible,
-  green: color.chalk.hex('98C379').visible,
-  greenB: color.hex('98C379').visible,
-  orange: color.chalk.hex('FF9070').visible,
-  orangeB: color.hex('FF9070').visible,
-  purple: color.chalk.hex('A78CFA').visible,
-  purpleB: color.hex('A78CFA').visible,
-  red: color.chalk.hex('f14c4c').visible,
-  redB: color.hex('f14c4c').visible,
-  yellow: color.chalk.hex('E4BF7F').visible,
-  yellowB: color.hex('E4BF7F').visible,
-  fg: color.hex('B0B7C3').visible,
-  lines: color.hex('454963').visible,
-} 
-const startsExpr: boolean = true
-const beforeExpr: boolean = true
-const newType = new AddKeywordTypes(key)
-  .on('let', { startsExpr })
-  .on('from')
-  .on('of', { isLoop: true })
-  .del('true')
-  .del('false')
-newType.on(
-  'as',
-  'implements',
-  'require',
-  'infer',
-  'keyof',
-  'is',
-  'typeof',
-  'instanceof',
-  'extends',
-  {
-    keyword: 'TsKeyword', // ระบุประเภทเป็นคีย์เวิร์ดของ TypeScript
-  }
-)
-newType.on(
-  'assert',
-  'asserts',
-  'global',
-  'keyof',
-  'readonly',
-  'private',
-  'protected',
-  'public',
-  'abstract',
-  'namespace',
-  'declare',
-  'enum',
-  'interface',
-  'type',
-  'unique',
-  'static',
-  {
-    keyword: 'TsKeyword',
-    startsExpr,
-  }
-)
-
-let keywordTypes = newType.emit()
+let keywordTypes = kwTypes.emit()
 
 const modifyStderr = (stderr: typeof process.stderr) =>
   stderr.on('data', data => {
@@ -164,19 +49,7 @@ const modifyStderr = (stderr: typeof process.stderr) =>
         console.log(lastTokEnd, lastTokEndLoc),
     }
     const code = `
-    import t from 'test'
-    import * as t from 'test'
-    import { t } from 'test'
-    class T{
-    #test: string = 'test'
-    
-    }
-    // test
-    /**
-     * @param {string} a
-    */ 
-  let sos: boolean = false
-  var jan = 'jan' as string
+    const arr = (sme: string) => console.log(\`test\${\sme\}\`))
   `
 
     try {
@@ -184,7 +57,11 @@ const modifyStderr = (stderr: typeof process.stderr) =>
       const codeWithPlaceholders = code.replace(/\r/g, '[CR]');
       const ast = [...parseCode.tokenizer(codeWithPlaceholders, optionsAcorn)] as SyntaxHighlight[]
       // const ast = full(parseCode.parse(code,optionsAcorn), node => console.log(node))
-     console.log('ast',ast)
+     // console.log('ast',ast)
+      const labels = new Labels(ast)
+      labels.build()
+      console.log('yes',labels.result)
+     
 return
       highlightSyntax(ast)
     } catch (error: unknown) {
@@ -243,7 +120,7 @@ const highlightSyntax = (ast: SyntaxHighlight[]) => {
   const collectData = new ColorizeSyntax(colors, [])
   let currentLine = 1
   let currentColumn = 0
-  let keyword = [...newType.getKeysName()]
+  let keyword = [...kwTypes.getKeys()]
   let prevToken: SyntaxHighlight | null  = null
   ast.forEach((token: SyntaxHighlight, index: number) => {
     
