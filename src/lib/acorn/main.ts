@@ -9,9 +9,9 @@ import tsPlugin from 'acorn-typescript'
 
 const acorn = Parser
 .extend(tsPlugin({ dts: true }))
- .extend(classFields)
+ .extend(classFields(Parser))
  .extend(staticClassFeatures)
-.extend(privateClassElements)
+.extend(privateClassElements(Parser))
 const parseCode = {
   tokenizer: (code: string, options: Options) => tokenizer(code, options),
   parse: (code: string, options: Options) => acorn.parse(code, options)
