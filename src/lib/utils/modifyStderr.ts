@@ -7,12 +7,10 @@ import parseCode, {
   lineBreak,
   lineBreakG,
   nonASCIIwhitespace,
-  parseExpressionAt,
   tokContexts,
   TokContext,
-  Token,
   TokenType,
-} from '../acorn.js'
+} from '../acorn/main.js'
 import { clearAnsiCodes } from './main.js'
 import type { Position, SourceLocation, Options } from 'acorn'
 import color from './color.js'
@@ -102,7 +100,7 @@ class ColorizeSyntax {
     boolean: colorType.whiskey,
     types: colorType.coral,
     typeAssertions: colorType.chalky,
-    variable: colorType .lightDark,
+    variable: colorType .lightWhite,
     propety: colorType.coral,
     method: colorType.malibu,
     other: colorType.lightDark,
@@ -115,7 +113,7 @@ class ColorizeSyntax {
     }
   private bulidColor(keywordType: KeywordType, colorName: string = 'lightDark'){
     
-    if (keywordType === colorName) return (this.colorsTheme as any)[colorName]
+    if (keywordType === 'other' && colorName) return (this.colorsTheme as any)[colorName]
     
     for (const [kw, color] of Object.entries(this.syntaxColorPairs)){
 if (kw === keywordType) {
@@ -286,37 +284,10 @@ const modifyStderr = (stderr: typeof process.stderr) =>
       onInsertedSemicolon: (lastTokEnd: number, lastTokEndLoc) =>
         console.log(lastTokEnd, lastTokEndLoc),
     }
-    const code = `1 |
-    // test
-    const arr: Array<string> = []
-    const arrp: string[] = []
-    import nae, { test } from 'acorn'
-    const { label: tokLabel, keyWord } = value.on.l as any
-if(true){
-for (let [_, value] of Object.entries({ ...tokTypes, ...tokContexts })) {
-   ;
-}
-outputSyntax.push(\`\n\`)
-}
-let n = 1
-var p = 1
-  const plp: boolean = true as boolean
-  const ppp: string = 'nyrenx';
-  class sod{
-  static b = 0
-  readonly y = 1
-  #home = 'home'
-  namep: string = 'sod'
-  constructor(private p: string){}
-  #hgg(){
-  return this.#home
-  }
-  // test - pppp
-  const f = new sod(\`\r\`)
-  f.namep as string
-  const as = 'n'
-  console.log(f.#hgg(),\`name\${sod.b}\`)
-  }
+    const code = `
+  const ppp: string = 'nyrenx'
+  let sos: boolean = false
+  var jan = 'jan' as string
   `
 
     try {
@@ -324,7 +295,7 @@ var p = 1
       const codeWithPlaceholders = code.replace(/\r/g, '[CR]');
       const ast = [...parseCode.tokenizer(codeWithPlaceholders, optionsAcorn)]
       // const ast = full(parseCode.parse(code,optionsAcorn), node => console.log(node))
-      // console.log('ast',ast)
+     // console.log('ast',ast)
 
       highlightSyntax(ast)
     } catch (error: unknown) {
@@ -380,7 +351,7 @@ interface SyntaxHighlight extends Token {
 }
 const highlightSyntax = (ast: SyntaxHighlight[]) => {
   const outputSyntax: Array<string> = []
-  const collectData = new ColorizeSyntax(colors, outputSyntax)
+  const collectData = new ColorizeSyntax(colors, [])
   let currentLine = 1
   let currentColumn = 0
   let keyword = [...newType.getKeysName()]
@@ -416,6 +387,7 @@ const highlightSyntax = (ast: SyntaxHighlight[]) => {
       keyword.includes(prevToken.value) &&
       !keywordTypes[prevToken.value].isLoop
     ) {
+      console.log(token.value)
       // token.type.label = 'variableName'
       label = 'variableName'
     }
@@ -472,17 +444,28 @@ const tokenValue = restoreControlCharacters(token.value)
     if (!highlighted) {
       // console.log(token)
       if (kw) {
-        handledKeywordTypes(token, outputSyntax)
+        handledKeywordTypes(token, collectData)
       } else if (label === 'variableName') {
         if (prevToken && prevToken.value !== 'as') {
           if (prevToken.value === ':'){
             outputSyntax.push(colors.chalky(token.value))
             collectData.on('typeAssertions', token.value)}
-          else {outputSyntax.push(colors.malibuB(token.value))
-        collectData.on('variable', token.value)}
+          else if (prevToken.value === 'let' || prevToken.value === 'var'){
+            console.log(token.value)
+              outputSyntax.push(colors.chalky(token.value))
+              collectData.on('other', token.value, 'coral')
+            }else{
+            outputSyntax.push(colors.malibuB(token.value))
+        collectData.on('variable', token.value)
+        }
+                
+       
         }else{
+          
           outputSyntax.push(colors.chalky(token.value))
-      collectData.on('typeAssertions', token.value)}
+      collectData.on('typeAssertions', token.value)
+        }
+        
       } else if (label === 'privateId') {
         if (prevToken && prevToken.type.label === '.') {
           
@@ -548,7 +531,8 @@ const tokenValue = restoreControlCharacters(token.value)
             
             }else{ outputSyntax.push(colors.coralB(token.value))
                   collectData.on('propety', token.value)
-          }       
+          }
+            
           }else if (prevToken && prevToken.type.label === '{'){outputSyntax.push(color.hex('f14c4c')(token.value))
                                                                collectData.on('propety', token.value)
                                                               
@@ -615,15 +599,17 @@ console.log(collectData.emit())
 const handledKeywordTypes = (token: SyntaxHighlight, outputSyntax) => {
   //console.log(token)
   const type = keywordTypes[token.value]
+  outputSyntax.isBold = true
 
   if (type.keyword === 'TsKeyword') {
-    outputSyntax.push(colors.purpleB(token.value))
+    outputSyntax.on('keyword',token.value)
   } else if (token.type.label !== 'name') {
-    console.log(token.value)
-    outputSyntax.push(colors.purpleB(token.value))
+    //console.log(token.value)
+    outputSyntax.on('keyword',token.value)
   } else {
-    outputSyntax.push(colors.purpleB(token.value))
+    outputSyntax.on('keyword',token.value)
   }
+  outputSyntax.isBold = false
 }
 const atPath = (path: string) => {
   const match = path.match(/at\s+([^\s]+)?\s?([^\s:]+):(\d+):(\d+)/)
