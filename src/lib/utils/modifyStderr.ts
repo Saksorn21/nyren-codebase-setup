@@ -68,10 +68,9 @@ const modifyStderr = (stderr: typeof process.stderr) =>
      //console.log('ast',ast)
       const labels = new Labels(ast)
       labels.build()
-      console.log('yes',labels.result)
+      //console.log('yes',labels.result)
      
-return
-      highlightSyntax(ast)
+      highlightSyntax(labels.result)
     } catch (error: unknown) {
       console.log(error)
       cloneData.forEach((item: string, index: number) => {

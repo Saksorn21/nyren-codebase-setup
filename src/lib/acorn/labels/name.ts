@@ -18,7 +18,41 @@ class TFName extends TokenTransformer {
         }else if(this.prevContext.includes(this.valueToString(prevToken.type.label))){
           this.transform(token, 'property')
         }else if(prevToken.type.label === ':'){
+          const basicType = [
+            'string',
+            'number',
+            'boolean',
+            'symbol',
+            'bigint',
+            'undefined',
+            'null',
+            'unknown',
+            'unique',
+            'object',
+            'string[]',
+            'any',
+            'any[]',
+            'void',
+            'never',
+            'Array',
+            'Function',
+            'null[]',
+            'boolean[]',
+            'number[]',
+            'symbol[]',
+            'object[]',
+            'unknown[]',
+            'tuple',
+            'record',
+            'Map',
+            'Set',
+            'Promise',
+            'Date',
+            'RegExp',
+          ]
+          if (basicType.includes(token.value)) {
         this.transform(token, 'typeAnnotation')
+   }
     }
         const { label: nextLabel } = nextToken.type
      
