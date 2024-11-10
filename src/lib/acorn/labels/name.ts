@@ -1,6 +1,7 @@
 import AbstractLabel, {KeywordType} from './abstract.js'
 
-class Numbers extends AbstractLabel{
+class Name extends AbstractLabel{
+  readonly result: CustomToken[] = []
   constructor(private token: CustomToken,
                 private readonly prevToken: CustomToken,
                 private readonly nextToken: CustomToken,){
@@ -8,4 +9,4 @@ class Numbers extends AbstractLabel{
     
   }
 }
-export default Numbers
+export default Name

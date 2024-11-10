@@ -3,9 +3,7 @@ import type { Position } from 'acorn'
 import ColorizeSyntax, { type KeywordType} from '../ColorizeSyntax.js'
 import kwTypes  from '../keywordTypes.js'
 import utils from '../../utils/main.js'
-interface LabelsTypes {
-  [key: string]: string
-}
+
 /**
  *@ interface SyntaxHighlight 
  *@ dscription - Acorn's Token class doesn't have a property value, so we need to create one.
