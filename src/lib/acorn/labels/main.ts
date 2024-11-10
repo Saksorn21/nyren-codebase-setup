@@ -49,23 +49,30 @@ class Labels {
   prevToken: CustomToken | null
   nextToken: CustomToken | null
   result!: CustomToken[] 
-  constructor(private readonly tok: CustomToken[]) {
+  private transformer: CompositeTransformer;
+
+  
+  constructor(private readonly rawToken: CustomToken[]) {
     this.result = []
     this.prevToken = null
     this.nextToken = null
-    
+    this.transformer = new CompositeTransformer()
   }
   build() {
     let currentLine = 1
     let currentColumn = 0
-    let keysword = [...kwTypes.getKeys()]
+    let keysword = [...this.kwTypes.getKeys()]
     const keywordType = this.kwTypes.emit()
     let isCustomtolen = false
 console.log(utils.color.red('build'))
-    this.tok.forEach((token: CustomToken, index: number) => {
+    this.rawToken.forEach((token: CustomToken, index: number) => {
       const cloneToken = utils.clone(token)
-      this.nextToken = this.tok[index + 1] || null
-      const parse = new ParseLabels(cloneToken, this.nextToken, this.prevToken)
+      this.nextToken = this.rawToken[index + 1] || null
+      token = this.transformer.build(cloneToken, this.prevToken, this.nextToken);
+            this.result.push(token);
+      this.prevToken = token
+      return
+      const parse = new ParseLabels(cloneToken, this.prevToken,this.nextToken )
       switch (token.type.label) {
         case 'name':
           if(typeof token.value === 'string'){
@@ -124,9 +131,6 @@ console.log(utils.color.red('build'))
       this.prevToken = token
     })
   }
-  public on(keyword: string, label?: string) {
-    const bus = taxi.on('label:' + keyword, me => {})
-  }
   
 }
 class ParseLabels {
@@ -135,7 +139,7 @@ class ParseLabels {
   label: string
   constructor(
     private tok: CustomToken,
-    private readonly prevToken: CustomToken,
+    private readonly prevToken: CustomToken | null,
   private readonly nextToken: CustomToken , ) {
     this.kw = this.tok.type.keyword
     this.label = this.tok.type.label
@@ -156,7 +160,7 @@ class ParseLabels {
     }
     return this.tok
   }
-  keywordUndefined(keyword: KeywordType){
+  keywordUndefined(keyword: string){
     if (this.kw === undefined) {
       this.tok.type.keyword = keyword as string
       }
@@ -172,4 +176,45 @@ class ParseLabels {
     return this.tok
   }
 }
+import TFKeyword from './keywords.js'
+import TFName from './name.js'
+import TFNumbers from './numbers.js'
+import TFString from './strings.js'
+import TFTemplate from './template.js'
+import TFOperators from './operators.js'
+class CompositeTransformer {
+  private transformers: any[] = [];
+
+  constructor() {
+    // เพิ่มคลาสย่อยที่ต้องการใช้
+    this.transformers.push(new TFKeyword());
+    this.transformers.push(new TFName());
+    this.transformers.push(new TFNumbers());
+    this.transformers.push(new TFString());
+    this.transformers.push(new TFTemplate());
+    this.transformers.push(new TFOperators());
+  }
+
+  build(token: CustomToken, prevToken: CustomToken | null, nextToken: CustomToken): CustomToken {
+    for (const transformer of this.transformers) {
+      token = transformer.parse(token, prevToken, nextToken);
+    }
+    return token;
+  }
+}
+// class Labels {
+//   private transformer: CompositeTransformer;
+
+//   constructor() {
+//     this.transformer = new CompositeTransformer();
+//   }
+
+//   build() {
+//     this.rawToken.forEach((token: CustomToken) => {
+//       // ใช้ CompositeTransformer เพื่อแปลง token
+//       token = this.transformer.transform(token);
+//       this.result.push(token);
+//     });
+//   }
+// }
 export default Labels

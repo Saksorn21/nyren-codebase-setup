@@ -1,11 +1,18 @@
-import AbstractLabel, {KeywordType} from './abstract.js'
+import TokenTransformer, {KeywordType, CustomToken } from './abstract.js'
 
-class Numbers extends AbstractLabel{
-  constructor(private token: CustomToken,
-                private readonly prevToken: CustomToken,
-                private readonly nextToken: CustomToken,){
-    super(token, prevToken, nextToken)
+class TFNumbers extends TokenTransformer {
+  
+  parse(token: CustomToken, prevToken: CustomToken, nextToken: CustomToken): CustomToken{
+
+    if(token.type.label === 'num'){
+      if (token.start !== 0 && token.loc?.start.column !== 0) {
+        this.transform(token, 'number')
+      }
     
-  }
+    }
+    return token
 }
-export default Numbers
+}
+
+
+export default TFNumbers

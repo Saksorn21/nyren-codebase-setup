@@ -1,7 +1,7 @@
 import { Token,tokContexts, tokTypes  } from 'acorn'
 import type { Position } from 'acorn'
-export type KeywordType = 'keyword' | 'operator' | 'punctuation' | 'constants' | 'comment' | 'string' | 'numbers' | 'boolean'| 'types' | 'typeAssertions'| 'variable' | 'property' | 'method' | 'other' | null
-
+import keywordTypes  from '../keywordTypes.js'
+import utils from '../../utils/main.js'
 /**
  *@ interface SyntaxHighlight 
  *@ dscription - Acorn's Token class doesn't have a property value, so we need to create one.
@@ -18,24 +18,58 @@ interface CustomRegExp {
   flags: string
   value: RegExp
 }
-interface CustomToken extends Token {
+export interface CustomToken extends Token {
   value: string | CustomRegExp 
 }
-abstract class AbstractLabel {
+export type KeywordType = 'keyword' | 'operator' | 'punctuation' | 'constants' | 'comment' | 'string' | 'numbers' | 'boolean'| 'types' | 'typeAssertion'| 'variable' | 'property' | 'method' | 'object' | 'regex' | 'class' | 'interface' | 'typeAnnotation' | 'typeParameterDeclaration' 
 
-  abstract result!: CustomToken[]
-  constructor(
-   private token: CustomToken,
-   private readonly prevToken: CustomToken,
-   private readonly nextToken: CustomToken,
-  ){
+
+abstract class TokenTransformer {
+  abstract parse(token: CustomToken, prevToken: CustomToken, nextToken: CustomToken): CustomToken;
+
+  transform(token: CustomToken, keyword: string): CustomToken {
+    // สามารถใช้การแปลงที่เหมือนกันในหลายๆ คลาสลูก
     
+      
+    const value = this.valueToString(token.value)
+    const kwType = keywordTypes.emit()[value]
+      if(kwType && this.isKeyword(keywordTypes, value)){
+        console.log(this.utils.color.white.dim('transform: keyword'))
+        console.log(this.utils.color.amber.dim('transform: '+ token.value))
+       if(token.type.label === 'class') return token
+    if (token.type.keyword === undefined) {
+      token.type.label = 'keyword'
+      token.type.keyword = kwType.label
+      }else{
+       token.type.label = 'keyword'
+      }
+     if(kwType.keyword === 'TsKeyword') token.type.label = kwType.keyword
+        return token
+      }else{
+        
+        console.log(utils.color.deepBlue('transform: Debug', JSON.stringify({keyword, tokenValue: token.value})))
+        token.type.label = keyword 
+        return token
+      }
+    
+}
+  get utils(){
+    return utils
   }
-  normalized(token: Token, prevToken: Token, nextToken: Token){
-    
+get keywordType(): typeof keywordTypes{
+  return keywordTypes
+}
+ isKeyword(keywordType: typeof keywordTypes, value: string): boolean {
+    return [...keywordType.getKeys()].includes(value);
   }
-  undefined(token: Token, prevToken: Token, nextToken: Token){
-    
+  isValue(token: CustomToken): boolean {
+    return typeof token.value === 'string'
+  }
+  // แปลง token เป็น string
+  valueToString(value: string | CustomRegExp): string   {
+    if (typeof value === 'string') return value
+    else if (typeof value === 'object') return value.pattern
+    else return ''
   }
 }
-export default AbstractLabel
+export default TokenTransformer

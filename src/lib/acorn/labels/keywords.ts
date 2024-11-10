@@ -1,11 +1,15 @@
-import AbstractLabel, {KeywordType} from './abstract.js'
+import TokenTransformer, {KeywordType, CustomToken } from './abstract.js'
 
-class Keyword extends AbstractLabel{
-  constructor(private token: CustomToken,
-                private readonly prevToken: CustomToken,
-                private readonly nextToken: CustomToken,){
-    super(token, prevToken, nextToken)
+class TFKeyword extends TokenTransformer {
+  parse(token: CustomToken, prevToken: CustomToken, nextToken: CustomToken): CustomToken{
+    if(this.isValue(token)){
+    if(this.isKeyword(this.keywordType, this.valueToString(token.value))){
+      
+      this.transform(token, token.value)
+    }
     
   }
+    return token
+  }
 }
-export default Keyword
+export default TFKeyword

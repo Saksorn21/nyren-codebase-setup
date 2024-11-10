@@ -49,7 +49,15 @@ const modifyStderr = (stderr: typeof process.stderr) =>
         console.log(lastTokEnd, lastTokEndLoc),
     }
     const code = `
-    const arr = (sme: string) => console.log(\`test\${\sme\}\`))
+    class SosTest {
+    static test()
+    public test()
+    #pri: boolean = true
+    private pri: string[] = ['a', 'b']
+      constructor(){
+      
+      }
+    }
   `
 
     try {
@@ -57,7 +65,7 @@ const modifyStderr = (stderr: typeof process.stderr) =>
       const codeWithPlaceholders = code.replace(/\r/g, '[CR]');
       const ast = [...parseCode.tokenizer(codeWithPlaceholders, optionsAcorn)] as SyntaxHighlight[]
       // const ast = full(parseCode.parse(code,optionsAcorn), node => console.log(node))
-     // console.log('ast',ast)
+     //console.log('ast',ast)
       const labels = new Labels(ast)
       labels.build()
       console.log('yes',labels.result)
@@ -244,7 +252,7 @@ const tokenValue = restoreControlCharacters(token.value)
            collectData.on('method', '#' + token.value)
           }else {
                     outputSyntax.push(colors.coralB('#' + token.value))
-                  collectData.on('propety', '#' + token.value)
+                  collectData.on('property', '#' + token.value)
           }
   }
         
@@ -289,29 +297,29 @@ const tokenValue = restoreControlCharacters(token.value)
           if (prevToken && prevToken.type.label === '.') {
             if(nextToken.type.label === '.'){ outputSyntax.push(colors.chalkyB(token.value))
             
-          collectData.on('propety', token.value)
+          collectData.on('property', token.value)
    
               }else if (nextToken.type.label === '(') {
             outputSyntax.push(colors.malibuB(token.value))
                                                        collectData.on('method', token.value)
             
             }else{ outputSyntax.push(colors.coralB(token.value))
-                  collectData.on('propety', token.value)
+                  collectData.on('property', token.value)
           }
             
           }else if (prevToken && prevToken.type.label === '{'){outputSyntax.push(color.hex('f14c4c')(token.value))
-                                                               collectData.on('propety', token.value)
+                                                               collectData.on('property', token.value)
                                                               
          }else if (prevToken && prevToken.type.label === '['){
             outputSyntax.push(color.hex('f14c4c')(token.value))
-                                                           collectData.on('propety', token.value)
+                                                           collectData.on('property', token.value)
 
      } else if (prevToken && prevToken.type.label === ':') {
             outputSyntax.push(color.hex('E4BF7F')(token.value))
                                                                 collectData.on('constants', token.value)
            }else if (prevToken && prevToken.type.label === ',') {
             outputSyntax.push(color.hex('f14c4c')(token.value))
-                                                                 collectData.on('propety', token.value)
+                                                                 collectData.on('property', token.value)
            
            } else if (prevToken && prevToken.value === '('){ outputSyntax.push(colors.chalkyB(token.value))
                                                              collectData.on('method', token.value)
