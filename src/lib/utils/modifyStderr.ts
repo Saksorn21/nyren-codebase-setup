@@ -49,18 +49,18 @@ const modifyStderr = (stderr: typeof process.stderr) =>
         console.log(lastTokEnd, lastTokEndLoc),
     }
     const code = `
-    
-    class SosTest {
-    static test()
-    public test()
-    #pri: boolean = true
-    private pri: string[] = ['a', 'b']
-      constructor(){
-      
-      }
+    class Bun{
+    jjj: string = 'sos'
+    private a: number = 1
+    static b: number = 2
+    constructor(private readonly nom: string){}
     }
-    const face = (kok: string) => console.log(kok))
-    fack('Tot')
+    function functionName(jan: string, agr) {
+       let { n , p } = agr.sos.kkk()
+      return n + p.ii
+    }
+    
+    
   `
 
     try {
@@ -127,6 +127,8 @@ range?: [number, number]
 interface SyntaxHighlight extends Token {
   value: string
 }
+import HighlightSyntax from '../acorn/HighlightSyntax.js'
+
 const highlightSyntax = (ast: SyntaxHighlight[]) => {
   const outputSyntax: Array<string> = []
   const collectData = new ColorizeSyntax(colors, [])
@@ -134,6 +136,15 @@ const highlightSyntax = (ast: SyntaxHighlight[]) => {
   let currentColumn = 0
   let keyword = [...kwTypes.getKeys()]
   let prevToken: SyntaxHighlight | null  = null
+ // ast.map(item => console.log(item))
+  
+ const highlight = new HighlightSyntax(ast)
+  
+  highlight.parse()
+  console.log(highlight.result)
+  return
+
+  
   ast.forEach((token: SyntaxHighlight, index: number) => {
     
     const nextToken: SyntaxHighlight | null = ast[index + 1] || null
@@ -143,7 +154,7 @@ const highlightSyntax = (ast: SyntaxHighlight[]) => {
 
     // แทรกการขึ้นบรรทัดใหม่หากบรรทัดเปลี่ยน
     while (currentLine < startLine) {
-      outputSyntax.push('\n')
+     // outputSyntax.push('\n')
       collectData.on('other', '\n')
       currentLine++
       currentColumn = 0
@@ -151,7 +162,7 @@ const highlightSyntax = (ast: SyntaxHighlight[]) => {
 
     // แทรกช่องว่างเพื่อให้คอลัมน์ตรงกับต้นฉบับ
     while (currentColumn < startColumn) {
-      outputSyntax.push(' ')
+     // outputSyntax.push(' ')
       collectData.on('other', ' ')
       currentColumn++
     }
@@ -209,11 +220,11 @@ const tokenValue = restoreControlCharacters(token.value)
     if (!highlighted && controlCharacterRegex.test(tokenValue)) {
 
       outputSyntax.push(escapeControlCharacters(String(tokenValue)));
-      collectData.on('other', escapeControlCharacters(String(tokenValue)))
+     collectData.on('other', escapeControlCharacters(String(tokenValue)))
       highlighted = true
     } else if (nonASCIIwhitespace.test(tokenValue)) {
       outputSyntax.push(' ')
-      collectData.on('other', ' ')
+     collectData.on('other', ' ')
       highlighted = true
     }
 
@@ -369,8 +380,8 @@ const tokenValue = restoreControlCharacters(token.value)
     // อัปเดต prevToken ให้เป็นโทเค็นปัจจุบัน
     prevToken = token
   })
-  debug(color.chalk.bgGreen.bold.white.bold('Result:') + '%s', collectData.emit())
-
+  debug(color.chalk.bgGreen.bold.white.bold('Result:') + '%s', collectData.emit('string'))
+console.log(collectData.emit('string'))
   // แสดงผล
   return
   errorMessageAndPaths(outputSyntax)
