@@ -52,7 +52,7 @@ export async function getIgnorePatterns(): Promise<string[]> {
 
 export async function monitorChanges(opts: FileWatcherOptions): Promise<void> {
   taxi.emit('boot')
-  nodemon.reset(()=>{})
+  nodemon.reset(() => {})
 
   await eventPreStart(opts)
 
@@ -73,13 +73,12 @@ export async function monitorChanges(opts: FileWatcherOptions): Promise<void> {
 
   return new Promise(async () => {
     await run()
-    
+
     bindNodemonEvents(nodemon)
-    ;(nodemon as any).on('readable', () =>{ taxi.emit('nodemon:config', nodemon.config)
-                                           utils.modifyStderr(nodemon.stderr)
-   } )
-    
-    
+    ;(nodemon as any).on('readable', () => {
+      taxi.emit('nodemon:config', nodemon.config)
+      utils.modifyStderr(nodemon.stderr)
+    })
   })
 }
 function bindNodemonEvents(nodemonEvent: typeof nodemon) {

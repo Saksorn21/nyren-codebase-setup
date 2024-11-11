@@ -14,7 +14,6 @@ export function resetWatchers(done?: Function) {
   watchedFiles = []
   nodemonConfig = {}
   if (done) done()
-  
 }
 
 export function watch() {

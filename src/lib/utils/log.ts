@@ -24,7 +24,7 @@ function _log(type: string, message?: string) {
   if (type === 'log') {
     // No prefix required.
     console.log(message)
-  }else if (type === 'error') {
+  } else if (type === 'error') {
     console.error(msg)
   } else {
     console.log(msg || '')

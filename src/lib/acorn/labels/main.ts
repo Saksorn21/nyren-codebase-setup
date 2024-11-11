@@ -1,13 +1,13 @@
-import { Token,tokContexts, tokTypes  } from 'acorn'
+import { Token, tokContexts, tokTypes } from 'acorn'
 import type { Position } from 'acorn'
-import ColorizeSyntax, { type KeywordType} from '../ColorizeSyntax.js'
-import kwTypes  from '../keywordTypes.js'
+import ColorizeSyntax, { type KeywordType } from '../ColorizeSyntax.js'
+import kwTypes from '../keywordTypes.js'
 import utils from '../../utils/main.js'
 
 export function onDebug(namespace: string = 'nyren:*') {
   console.log('onDebug is called')
   if (!process.env.DEBUG) {
-    process.env.DEBUG = namespace;
+    process.env.DEBUG = namespace
   }
 }
 onDebug()
@@ -29,7 +29,7 @@ interface CustomRegExp {
   value: RegExp
 }
 interface CustomToken extends Token {
-  value: string | CustomRegExp 
+  value: string | CustomRegExp
 }
 type ContractType = 'data' | 'error'
 export const debug = createDebug(process.env.DEBUG || 'nyren:acorn-labels')
@@ -58,17 +58,18 @@ class Labels {
   private kwTypes: typeof kwTypes = kwTypes
   prevToken: CustomToken | null
   nextToken: CustomToken | null
-  result!: CustomToken[] 
-  private listeners: { [key in ContractType]?: ((data: CustomToken[]) => void)[] } = {};
-  
-  private transformer: CompositeTransformer;
- readonly debug: typeof debug = debug
+  result!: CustomToken[]
+  private listeners: {
+    [key in ContractType]?: ((data: CustomToken[]) => void)[]
+  } = {}
+
+  private transformer: CompositeTransformer
+  readonly debug: typeof debug = debug
   constructor(private readonly rawToken: CustomToken[]) {
     this.result = []
     this.prevToken = null
     this.nextToken = null
     this.transformer = new CompositeTransformer()
-    
   }
   build() {
     let currentLine = 1
@@ -76,51 +77,61 @@ class Labels {
     let keysword = [...this.kwTypes.getKeys()]
     const keywordType = this.kwTypes.emit()
     let isCustomtolen = false
-    
-       debug(utils.color.white('<<<===Parses Token===>>>')) 
+
+    debug(utils.color.white('<<<===Parses Token===>>>'))
     this.rawToken.forEach((token: CustomToken, index: number) => {
       let cloneToken = utils.clone(token)
-      
 
       debug(utils.color.red('rawToken: ') + '%o', {
-        label: token.type.label, 
-                             keyword: token.type.keyword || null, value: token.value || null})
+        label: token.type.label,
+        keyword: token.type.keyword || null,
+        value: token.value || null,
+      })
       this.nextToken = this.rawToken[index + 1] || null
-           
-        cloneToken = this.transformer.pasesToken(cloneToken, this.prevToken, this.nextToken);
-            this.result.push(cloneToken);
+
+      cloneToken = this.transformer.pasesToken(
+        cloneToken,
+        this.prevToken,
+        this.nextToken
+      )
+      this.result.push(cloneToken)
       //this.prevToken = cloneToken
 
       this.prevToken = token
     })
   }
   onDebug = onDebug
-  
 
   // ฟังก์ชันที่ใช้เรียก callbacks เมื่อผลลัพธ์ใหม่ถูกอัพเดต
-  emit(contract: ContractType){
+  emit(contract: ContractType) {
     switch (cloneToken.type.label) {
-        case 'method':
+      case 'method':
         console.log(utils.color.white('parse: keyword'))
 
         break
-        case 'keyword': case 'TsKeyword':
+      case 'keyword':
+      case 'TsKeyword':
         console.log(utils.color.white('parse: keyword and TsKeyword'))
 
         break
-        case 'class': case 'typeAnnotation': case 'types':
-        console.log(utils.color.white('parse: class and typeAnnotation and types'))
+      case 'class':
+      case 'typeAnnotation':
+      case 'types':
+        console.log(
+          utils.color.white('parse: class and typeAnnotation and types')
+        )
 
         break
       case 'variable':
         console.log(utils.color.white('parse: variable'))
 
         break
-        case 'property': case 'object':
+      case 'property':
+      case 'object':
         console.log(utils.color.white('parse: property and object'))
 
         break
-        case 'booleans':
+      case 'booleans':
         console.log(utils.color.white('parse: boolean'))
         break
       case 'number':
@@ -129,31 +140,32 @@ class Labels {
       case 'string':
         console.log(utils.color.white('parse: string'))
         break
-      case 'template': case 'templateExpressionStart':
+      case 'template':
+      case 'templateExpressionStart':
         console.log(utils.color.white('parse: template and templateExpression'))
         break
       case 'regexp':
         //value ? pattern flags value | string | undefined
         console.log(utils.color.white('parse: regexp'))
         break
-        case 'operator': case 'punctuation':
+      case 'operator':
+      case 'punctuation':
         console.log(utils.color.white('parse: operator and punctuation'))
         break
-      case 'privateId': case 'privateIdentifier':
+      case 'privateId':
+      case 'privateIdentifier':
         console.log(utils.color.white('parse: privateId'))
         break
-      case 'eof':  //End of File
+      case 'eof': //End of File
         console.log(utils.color.white('parse: eof'))
         break
       default:
         console.log(utils.color.white('parse: default'))
 
-
         break
-    }}
+    }
   }
-  
-
+}
 
 import TFKeyword from './keywords.js'
 import TFName from './name.js'
@@ -162,26 +174,27 @@ import TFString from './strings.js'
 import TFTemplate from './template.js'
 import TFOperators from './operators.js'
 class CompositeTransformer {
-  private transformers: any[] = [];
+  private transformers: any[] = []
 
   constructor() {
     // เพิ่มคลาสย่อยที่ต้องการใช้
-    this.transformers.push(new TFKeyword());
-    this.transformers.push(new TFName());
-    this.transformers.push(new TFNumbers());
-    this.transformers.push(new TFString());
-    this.transformers.push(new TFTemplate());
-    this.transformers.push(new TFOperators());
+    this.transformers.push(new TFKeyword())
+    this.transformers.push(new TFName())
+    this.transformers.push(new TFNumbers())
+    this.transformers.push(new TFString())
+    this.transformers.push(new TFTemplate())
+    this.transformers.push(new TFOperators())
   }
 
-  pasesToken(token: CustomToken, prevToken: CustomToken | null, nextToken: CustomToken): CustomToken {
-
+  pasesToken(
+    token: CustomToken,
+    prevToken: CustomToken | null,
+    nextToken: CustomToken
+  ): CustomToken {
     for (const transformer of this.transformers) {
-      
-    
-      token = transformer.parse(token, prevToken, nextToken);
+      token = transformer.parse(token, prevToken, nextToken)
     }
-    return token;
+    return token
   }
 }
 // class Labels {

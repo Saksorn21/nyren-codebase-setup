@@ -1,5 +1,5 @@
 import log from '../utils/log.js'
-import nodemon,{ config as nodemonConfig } from 'nodemon'
+import nodemon, { config as nodemonConfig } from 'nodemon'
 import utils from '../utils/main.js'
 import { watch, resetWatchers } from './changed.js'
 import { trimCwd } from '../pathHelper.js'
@@ -35,7 +35,6 @@ export const run = async () =>
     processResume(config)
   })
 
-
 // Customize the start nodemon event to not send anything to use.
 taxi.on('start', config =>
   utils.log.trace(
@@ -43,11 +42,8 @@ taxi.on('start', config =>
   )
 )
 
-taxi.on('nodemon:stdout', data => 
-  console.log(data.toString())
-)
+taxi.on('nodemon:stdout', data => console.log(data.toString()))
 taxi.on('nodemon:stderr', data => {
-  
   let str = data.toString().split('\n')
 
   str.forEach((item: string, index: number) => {
@@ -62,7 +58,7 @@ taxi.on('nodemon:stderr', data => {
     }
   })
 
- // console.log(str.join('\n'))
+  // console.log(str.join('\n'))
 })
 taxi.on('nodemon:exit', (code: NodemonEventExit) => eventExitedAndQuit(code))
 
@@ -91,8 +87,6 @@ function eventExitedAndQuit(code?: NodemonEventExit | NodemonEventQuit) {
       log.detail('exited with code: ' + code)
     }
   }
-  
-  
 }
 
 function processResume(
@@ -108,8 +102,8 @@ function processResume(
 run.kill = () => {
   resetWatchers()
   config.run = false
-  nodemon.reset(()=>utils.log.info('Cleanup done.'))
-  taxi.emit('nodemon:quit',143)
+  nodemon.reset(() => utils.log.info('Cleanup done.'))
+  taxi.emit('nodemon:quit', 143)
 }
 function checkExitCommand(data: Buffer) {
   const str = data.toString().trim().toLowerCase()
@@ -119,18 +113,17 @@ function checkExitCommand(data: Buffer) {
 }
 // ฟังก์ชันสำหรับการทำความสะอาด
 
-
-if(!utils.isWindows){
+if (!utils.isWindows) {
   taxi.once('boot', () => {
-process.on('SIGTERM', () => {
-  console.log('SIGTERM')
-  run.kill()
-    process.kill(process.pid, 'SIGTERM') // ปิดโปรเซส
+    process.on('SIGTERM', () => {
+      console.log('SIGTERM')
+      run.kill()
+      process.kill(process.pid, 'SIGTERM') // ปิดโปรเซส
+    })
+    process.on('SIGINT', () => {
+      console.log('SIGINT')
+      run.kill()
+      process.kill(process.pid, 'SIGTERM') // ปิดโปรเซส
+    })
   })
-process.on('SIGINT', () => {
-  console.log('SIGINT')
-run.kill()
-    process.kill(process.pid, 'SIGTERM') // ปิดโปรเซส
-})
-})
 }

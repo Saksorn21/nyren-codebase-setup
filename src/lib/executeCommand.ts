@@ -137,7 +137,9 @@ function handleCommandError(error: ExecaError, commandArgs: string[]) {
       t.log(t.textRed(`Unknown command: ${t.textWhit(error.command)}`))
     } else if (error.message.includes(`Command failed with exit code 1`)) {
       t.log(
-        t.textRed(`Command failed with exit code ${error.exitCode}: ${t.textWhit(normalizedCommand(commandArgs).join(' ').trim())}`)
+        t.textRed(
+          `Command failed with exit code ${error.exitCode}: ${t.textWhit(normalizedCommand(commandArgs).join(' ').trim())}`
+        )
       )
     } else if (
       error.message.includes('Attempted to assign to readonly property.')
@@ -172,10 +174,7 @@ function normalizedCommand(fileCommand: string[]): string[] {
   const firstCommand = basename(fileCommand[0]).split('.')[0]
   for (let i = 0; i < fileCommand.length; i++) {
     // If the first command is a script, remove the extension
-    if (
-      firstCommand === 'node' ||
-      firstCommand === 'bun'
-    ) {
+    if (firstCommand === 'node' || firstCommand === 'bun') {
       fileCommand.shift()
     }
     if (i === 0 || expandNext) {

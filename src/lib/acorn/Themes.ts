@@ -1,4 +1,4 @@
-import { supportsColorStderr,  supportsColor, chalkStderr } from 'chalk'
+import { supportsColorStderr, supportsColor, chalkStderr } from 'chalk'
 export enum colorType {
   chalky = 'chalky',
   coral = 'coral',
@@ -57,15 +57,16 @@ class Themes {
   whiskeyB!: ReturnType<typeof chalkStderr.hex>
   deepRed!: ReturnType<typeof chalkStderr.hex>
   deepRedB!: ReturnType<typeof chalkStderr.hex>
-  constructor(){
-
-    for (const [colorName, hexColor] of Object.entries(this.textColors)){
-       ((this) as any)[colorName] = chalkStderr.hex(hexColor as string).visible
-       ;((this) as any)[colorName +'B'] = chalkStderr.hex(hexColor as string).bold.visible
-         }
-
-     return this
+  constructor() {
+    for (const [colorName, hexColor] of Object.entries(this.textColors)) {
+      ;(this as any)[colorName] = chalkStderr.hex(hexColor as string).visible
+      ;(this as any)[colorName + 'B'] = chalkStderr.hex(
+        hexColor as string
+      ).bold.visible
     }
+
+    return this
+  }
 }
 const color = chalkStderr
 const EvaDark = {
@@ -87,5 +88,5 @@ const EvaDark = {
   yellowB: color.hex('E4BF7F').visible,
   fg: color.hex('B0B7C3').visible,
   lines: color.hex('454963').visible,
-} 
+}
 export default Themes

@@ -1,5 +1,6 @@
 import process from 'node:process'
-import parseCode, { AddKeywordTypes,
+import parseCode, {
+  AddKeywordTypes,
   tokTypes,
   Token,
   isNewLine,
@@ -17,8 +18,8 @@ import type { Position, SourceLocation, Options } from 'acorn'
 import color from './color.js'
 import clone from './clone.js'
 import Themes, { colorType } from '../acorn/Themes.js'
-import ColorizeSyntax, { type KeywordType} from '../acorn/ColorizeSyntax.js'
-import kwTypes  from '../acorn/keywordTypes.js'
+import ColorizeSyntax, { type KeywordType } from '../acorn/ColorizeSyntax.js'
+import kwTypes from '../acorn/keywordTypes.js'
 const colors = new Themes()
 
 let keywordTypes = kwTypes.emit()
@@ -50,12 +51,18 @@ const modifyStderr = (stderr: typeof process.stderr) =>
     }
     const code = `
     class Bun{
-    jjj: string = 'sos'
+    jjj: Array<string> = ['sos','kk',1]
     private a: number = 1
     static b: number = 2
     constructor(private readonly nom: string){}
     }
     function functionName(jan: string, agr) {
+    var isTrue = true
+    if (isTrue) {
+    }
+    for (var i = 0; i < 10; i++) {
+    }
+    }
        let { n , p } = agr.sos.kkk()
       return n + p.ii
     }
@@ -64,16 +71,17 @@ const modifyStderr = (stderr: typeof process.stderr) =>
   `
 
     try {
-
-      const codeWithPlaceholders = code.replace(/\r/g, '[CR]');
-      const ast = [...parseCode.tokenizer(codeWithPlaceholders, optionsAcorn)] as SyntaxHighlight[]
+      const codeWithPlaceholders = code.replace(/\r/g, '[CR]')
+      const ast = [
+        ...parseCode.tokenizer(codeWithPlaceholders, optionsAcorn),
+      ] as SyntaxHighlight[]
       // const ast = full(parseCode.parse(code,optionsAcorn), node => console.log(node))
-     //console.log('ast',ast)
+      //console.log('ast',ast)
       const labels = new Labels(ast)
       labels.build()
-      labels.debug(color.white('<<<===HighLight Syntax===>>>')) 
+      labels.debug(color.white('<<<===HighLight Syntax===>>>'))
       //console.log('yes',labels.result)
-     
+
       highlightSyntax(labels.result)
     } catch (error: unknown) {
       debug(`Error caught: ${error.message}`)
@@ -105,14 +113,18 @@ const modifyStderr = (stderr: typeof process.stderr) =>
   })
 // color for syntax by. Eva Dark
 
-const escapeControlCharacters = (str: String) => str
-    .replace(/\\/g, '\\\\')     // แทนที่ backslash (\\) ให้เป็น \\\\
-    .replace(/\n/g, '\\n')      // แทนที่ newline ให้เป็น \\n
-    .replace(/\r/g, '\\r')      // แทนที่ carriage return ให้เป็น \\r
-    .replace(/\t/g, '\\t')      // แทนที่ tab ให้เป็น \\t
-   .replace(/\x08/g, '\\b')  // ใช้ \\x08 เพื่อระบุ backspace ตัวจริง
-    .replace(/\f/g, '\\f');     // แทนที่ form feed ให้เป็น \\f
-const restoreControlCharacters = (tokenValue: string) => typeof tokenValue === 'string' ? tokenValue.replace(/\[CR\]/g, '\r') : tokenValue;
+const escapeControlCharacters = (str: String) =>
+  str
+    .replace(/\\/g, '\\\\') // แทนที่ backslash (\\) ให้เป็น \\\\
+    .replace(/\n/g, '\\n') // แทนที่ newline ให้เป็น \\n
+    .replace(/\r/g, '\\r') // แทนที่ carriage return ให้เป็น \\r
+    .replace(/\t/g, '\\t') // แทนที่ tab ให้เป็น \\t
+    .replace(/\x08/g, '\\b') // ใช้ \\x08 เพื่อระบุ backspace ตัวจริง
+    .replace(/\f/g, '\\f') // แทนที่ form feed ให้เป็น \\f
+const restoreControlCharacters = (tokenValue: string) =>
+  typeof tokenValue === 'string'
+    ? tokenValue.replace(/\[CR\]/g, '\r')
+    : tokenValue
 /**
  *@ interface SyntaxHighlight 
  *@ dscription - Acorn's Token class doesn't have a property value, so we need to create one.
@@ -135,26 +147,25 @@ const highlightSyntax = (ast: SyntaxHighlight[]) => {
   let currentLine = 1
   let currentColumn = 0
   let keyword = [...kwTypes.getKeys()]
-  let prevToken: SyntaxHighlight | null  = null
- // ast.map(item => console.log(item))
-  
- const highlight = new HighlightSyntax(ast)
-  
+  let prevToken: SyntaxHighlight | null = null
+  // ast.map(item => console.log(item))
+
+  const highlight = new HighlightSyntax(ast)
+
   highlight.parse()
   console.log(highlight.result)
   return
 
-  
   ast.forEach((token: SyntaxHighlight, index: number) => {
-    
     const nextToken: SyntaxHighlight | null = ast[index + 1] || null
     let { label } = token.type
-    const { line: startLine, column: startColumn } = token.loc?.start as Position
+    const { line: startLine, column: startColumn } = token.loc
+      ?.start as Position
     const { line: endLine, column: endColumn } = token.loc?.end as Position
 
     // แทรกการขึ้นบรรทัดใหม่หากบรรทัดเปลี่ยน
     while (currentLine < startLine) {
-     // outputSyntax.push('\n')
+      // outputSyntax.push('\n')
       collectData.on('other', '\n')
       currentLine++
       currentColumn = 0
@@ -162,7 +173,7 @@ const highlightSyntax = (ast: SyntaxHighlight[]) => {
 
     // แทรกช่องว่างเพื่อให้คอลัมน์ตรงกับต้นฉบับ
     while (currentColumn < startColumn) {
-     // outputSyntax.push(' ')
+      // outputSyntax.push(' ')
       collectData.on('other', ' ')
       currentColumn++
     }
@@ -187,25 +198,28 @@ const highlightSyntax = (ast: SyntaxHighlight[]) => {
     }
 
     // ตรวจสอบโทเค็นใน tokTypes และ tokContexts
-    for (const [_, tokenType] of Object.entries({ ...tokTypes, ...tokContexts })) {
+    for (const [_, tokenType] of Object.entries({
+      ...tokTypes,
+      ...tokContexts,
+    })) {
       const { label: tokLabel, keyword } = tokenType as TokenType
       if (tokLabel === token.value || keyword === token.value) {
         highlighted = true
         if (label === '^' && token.value !== undefined) {
           outputSyntax.push(colors.error.overline(token.value))
           collectData.on('other', token.value, 'error')
-        } else if (label === '=' && token.value !== undefined){
+        } else if (label === '=' && token.value !== undefined) {
           outputSyntax.push(colors.fountainBlueB(token.value))
           collectData.on('operator', token.value)
-        } else  {
+        } else {
           highlighted = false
         }
         break
       }
     }
 
-    const controlCharacterRegex = /[\x0A\x0D\x09\x0C\x08]/;  // \x0A = \n, \x0D = \r, \x09 = \t, \x0C = \f, \x08 = backspace
-const tokenValue = restoreControlCharacters(token.value)
+    const controlCharacterRegex = /[\x0A\x0D\x09\x0C\x08]/ // \x0A = \n, \x0D = \r, \x09 = \t, \x0C = \f, \x08 = backspace
+    const tokenValue = restoreControlCharacters(token.value)
     if (!highlighted && label === 'template') {
       if (token.value && !controlCharacterRegex.test(tokenValue)) {
         outputSyntax.push(colors.greenB(token.value))
@@ -216,15 +230,13 @@ const tokenValue = restoreControlCharacters(token.value)
 
     // ตรวจสอบการขึ้นบรรทัดใหม่และช่องว่าง non-ASCII
 
-    
     if (!highlighted && controlCharacterRegex.test(tokenValue)) {
-
-      outputSyntax.push(escapeControlCharacters(String(tokenValue)));
-     collectData.on('other', escapeControlCharacters(String(tokenValue)))
+      outputSyntax.push(escapeControlCharacters(String(tokenValue)))
+      collectData.on('other', escapeControlCharacters(String(tokenValue)))
       highlighted = true
     } else if (nonASCIIwhitespace.test(tokenValue)) {
       outputSyntax.push(' ')
-     collectData.on('other', ' ')
+      collectData.on('other', ' ')
       highlighted = true
     }
 
@@ -236,42 +248,35 @@ const tokenValue = restoreControlCharacters(token.value)
         handledKeywordTypes(token, collectData)
       } else if (label === 'variableName') {
         if (prevToken && prevToken.value !== 'as') {
-          if (prevToken.value === ':'){
+          if (prevToken.value === ':') {
             outputSyntax.push(colors.chalky(token.value))
-            collectData.on('typeAssertions', token.value)}
-          else if (prevToken.value === 'let' || prevToken.value === 'var'){
+            collectData.on('typeAssertions', token.value)
+          } else if (prevToken.value === 'let' || prevToken.value === 'var') {
             console.log(token.value)
-              outputSyntax.push(colors.chalky(token.value))
-              collectData.on('other', token.value, 'coral')
-            }else{
+            outputSyntax.push(colors.chalky(token.value))
+            collectData.on('other', token.value, 'coral')
+          } else {
             outputSyntax.push(colors.malibuB(token.value))
-        collectData.on('variable', token.value)
-        }
-                
-       
-        }else{
-          
+            collectData.on('variable', token.value)
+          }
+        } else {
           outputSyntax.push(colors.chalky(token.value))
-      collectData.on('typeAssertions', token.value)
+          collectData.on('typeAssertions', token.value)
         }
-        
       } else if (label === 'privateId') {
         if (prevToken && prevToken.type.label === '.') {
-          
+          outputSyntax.push(colors.coralB('#' + token.value))
+          collectData.on('method', '#' + token.value)
+        } else {
+          if (nextToken.type.label === '(') {
             outputSyntax.push(colors.coralB('#' + token.value))
-                    collectData.on('method', '#' + token.value)
-            
-          }else {
-          if (nextToken.type.label === '('){
-                    outputSyntax.push(colors.coralB('#' + token.value))
-           collectData.on('method', '#' + token.value)
-          }else {
-                    outputSyntax.push(colors.coralB('#' + token.value))
-                  collectData.on('property', '#' + token.value)
+            collectData.on('method', '#' + token.value)
+          } else {
+            outputSyntax.push(colors.coralB('#' + token.value))
+            collectData.on('property', '#' + token.value)
           }
-  }
-        
-    } else if (label === 'name') {
+        }
+      } else if (label === 'name') {
         const basicType = [
           'string',
           'number',
@@ -306,43 +311,40 @@ const tokenValue = restoreControlCharacters(token.value)
         ]
         if (basicType.includes(token.value)) {
           outputSyntax.push(colors.chalky(token.value))
-          collectData.on('typeAssertions', token.value)}
-         else 
-          // ตรวจสอบว่าโทเค็นก่อนหน้าเป็นจุด (.)
-          if (prevToken && prevToken.type.label === '.') {
-            if(nextToken.type.label === '.'){ outputSyntax.push(colors.chalkyB(token.value))
-            
-          collectData.on('property', token.value)
-   
-              }else if (nextToken.type.label === '(') {
-            outputSyntax.push(colors.malibuB(token.value))
-                                                       collectData.on('method', token.value)
-            
-            }else{ outputSyntax.push(colors.coralB(token.value))
-                  collectData.on('property', token.value)
-          }
-            
-          }else if (prevToken && prevToken.type.label === '{'){outputSyntax.push(color.hex('f14c4c')(token.value))
-                                                               collectData.on('property', token.value)
-                                                              
-         }else if (prevToken && prevToken.type.label === '['){
-            outputSyntax.push(color.hex('f14c4c')(token.value))
-                                                           collectData.on('property', token.value)
+          collectData.on('typeAssertions', token.value)
+        }
+        // ตรวจสอบว่าโทเค็นก่อนหน้าเป็นจุด (.)
+        else if (prevToken && prevToken.type.label === '.') {
+          if (nextToken.type.label === '.') {
+            outputSyntax.push(colors.chalkyB(token.value))
 
-     } else if (prevToken && prevToken.type.label === ':') {
-            outputSyntax.push(color.hex('E4BF7F')(token.value))
-                                                                collectData.on('constants', token.value)
-           }else if (prevToken && prevToken.type.label === ',') {
-            outputSyntax.push(color.hex('f14c4c')(token.value))
-                                                                 collectData.on('property', token.value)
-           
-           } else if (prevToken && prevToken.value === '('){ outputSyntax.push(colors.chalkyB(token.value))
-                                                             collectData.on('method', token.value)
-          }else {
-            outputSyntax.push(colors.lightWhiteB(token.value))
-                 collectData.on('other', token.value)
-         } 
-        
+            collectData.on('property', token.value)
+          } else if (nextToken.type.label === '(') {
+            outputSyntax.push(colors.malibuB(token.value))
+            collectData.on('method', token.value)
+          } else {
+            outputSyntax.push(colors.coralB(token.value))
+            collectData.on('property', token.value)
+          }
+        } else if (prevToken && prevToken.type.label === '{') {
+          outputSyntax.push(color.hex('f14c4c')(token.value))
+          collectData.on('property', token.value)
+        } else if (prevToken && prevToken.type.label === '[') {
+          outputSyntax.push(color.hex('f14c4c')(token.value))
+          collectData.on('property', token.value)
+        } else if (prevToken && prevToken.type.label === ':') {
+          outputSyntax.push(color.hex('E4BF7F')(token.value))
+          collectData.on('constants', token.value)
+        } else if (prevToken && prevToken.type.label === ',') {
+          outputSyntax.push(color.hex('f14c4c')(token.value))
+          collectData.on('property', token.value)
+        } else if (prevToken && prevToken.value === '(') {
+          outputSyntax.push(colors.chalkyB(token.value))
+          collectData.on('method', token.value)
+        } else {
+          outputSyntax.push(colors.lightWhiteB(token.value))
+          collectData.on('other', token.value)
+        }
       } else if (label === 'string') {
         outputSyntax.push(colors.greenB("'" + token.value + "'"))
         collectData.on('string', "'" + token.value + "'")
@@ -380,8 +382,11 @@ const tokenValue = restoreControlCharacters(token.value)
     // อัปเดต prevToken ให้เป็นโทเค็นปัจจุบัน
     prevToken = token
   })
-  debug(color.chalk.bgGreen.bold.white.bold('Result:') + '%s', collectData.emit('string'))
-console.log(collectData.emit('string'))
+  debug(
+    color.chalk.bgGreen.bold.white.bold('Result:') + '%s',
+    collectData.emit('string')
+  )
+  console.log(collectData.emit('string'))
   // แสดงผล
   return
   errorMessageAndPaths(outputSyntax)
@@ -392,12 +397,12 @@ const handledKeywordTypes = (token: SyntaxHighlight, outputSyntax) => {
   outputSyntax.isBold = true
 
   if (type.keyword === 'TsKeyword') {
-    outputSyntax.on('keyword',token.value)
+    outputSyntax.on('keyword', token.value)
   } else if (token.type.label !== 'name') {
     //console.log(token.value)
-    outputSyntax.on('keyword',token.value)
+    outputSyntax.on('keyword', token.value)
   } else {
-    outputSyntax.on('keyword',token.value)
+    outputSyntax.on('keyword', token.value)
   }
   outputSyntax.isBold = false
 }
@@ -433,7 +438,6 @@ const errorMessageAndPaths = (outputSyntax: Array<string>) => {
       str[index] = atPath(clearAnsiCodes(item))
     }
   })
-  
 
   // รวมข้อความและแสดงผล
   process.stdout.write(str.join('\n'))

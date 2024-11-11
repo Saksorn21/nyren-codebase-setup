@@ -1,23 +1,26 @@
-import TokenTransformer, {KeywordType, CustomToken } from './abstract.js'
+import TokenTransformer, { KeywordType, CustomToken } from './abstract.js'
 
 class TFName extends TokenTransformer {
-  prevContext: string[] =['(', '[', '{', '.',',']
-  nextContext: string[] = ['(', '[', '{',',', '=']
-  parse(token: CustomToken, prevToken: CustomToken, nextToken: CustomToken): CustomToken{
-    
-    if(token.type.label === 'name'){
-      
-      if(prevToken){
+  prevContext: string[] = ['(', '[', '{', '.', ',']
+  nextContext: string[] = ['(', '[', '{', ',', '=']
+  parse(
+    token: CustomToken,
+    prevToken: CustomToken,
+    nextToken: CustomToken
+  ): CustomToken {
+    if (token.type.label === 'name') {
+      if (prevToken) {
         const { label: prevLabel } = prevToken.type
         const prevValue = this.valueToString(prevToken.value)
-        
-      // this.transform(token, 'variable')
-        if(prevLabel === 'keyword'){
-          // !['const', 'class', 'var', 'let','function'].includes(prevValue)
+
+        // this.transform(token, 'variable')
+        if (prevLabel === 'keyword') {
           this.transform(token, 'variable')
-        }else if(this.prevContext.includes(this.valueToString(prevToken.type.label))){
+        } else if (
+          this.prevContext.includes(this.valueToString(prevToken.type.label))
+        ) {
           this.transform(token, 'property')
-        }else if(prevToken.type.label === ':'){
+        } else if (prevToken.type.label === ':') {
           const basicType = [
             'string',
             'number',
@@ -51,31 +54,29 @@ class TFName extends TokenTransformer {
             'RegExp',
           ]
           if (basicType.includes(token.value)) {
-        this.transform(token, 'typeAnnotation')
-   }
-    }
+            this.transform(token, 'typeAnnotation')
+          }
+        }
         const { label: nextLabel } = nextToken.type
-     
-        
-          
-          if(prevLabel !== ':' && this.nextContext.includes( nextToken.type.label)){
-            this.transform(token, 'variable')
-       }
-        if(nextToken.type.label === '('){
-      this.transform(token, 'method')
-    }
-            if(nextLabel === '.' && prevLabel === '.'){
-              this.transform(token, 'property')
-            }else if(nextLabel === '.'){
-              this.transform(token, 'object')
-            }
-    
-    }
-  
+
+        if (
+          prevLabel !== ':' &&
+          this.nextContext.includes(nextToken.type.label)
+        ) {
+          this.transform(token, 'variable')
+        }
+        if (nextToken.type.label === '(') {
+          this.transform(token, 'method')
+        }
+        if (nextLabel === '.' && prevLabel === '.') {
+          this.transform(token, 'property')
+        } else if (nextLabel === '.') {
+          this.transform(token, 'object')
+        }
+      }
     }
     return token
-    }
-  
+  }
 }
 
 export default TFName

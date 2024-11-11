@@ -94,7 +94,6 @@ const utils: UtilsModules = {
   icon: modulesIcon,
   prefixCli: `${color.white('[')}${color.nyren('nyrenx')}${color.white(']')}`,
   isWindows: process.platform === 'win32',
-  
 }
 export const clearAnsiCodes = (str: string): string =>
   typeof str === 'string'

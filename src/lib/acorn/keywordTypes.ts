@@ -8,19 +8,19 @@ import { keywordTypes as kwTypes, AddKeywordTypes } from './main.js'
 •	postfix: หมายถึงว่า token นี้สามารถอยู่หลังตัวแปรหรือไม่ สำหรับ regexp จะเป็น false
 •	binop: แสดงถึงการดำเนินการทางคณิตศาสตร์หรือไม่ สำหรับ regexp จะเป็น null เพราะ regexp ไม่ได้ใช้ในการคำนวณ
 */
-const startsExpr: boolean = true;
-const beforeExpr: boolean = true;
-const isLoop: boolean = true;
-const isAssign: boolean = true;
-const prefix: boolean = true;
-const postfix: boolean = true;
+const startsExpr: boolean = true
+const beforeExpr: boolean = true
+const isLoop: boolean = true
+const isAssign: boolean = true
+const prefix: boolean = true
+const postfix: boolean = true
 const keywordTypes = new AddKeywordTypes(kwTypes)
 keywordTypes
   .on('let', { startsExpr })
   .on('from')
   .on('of', { isLoop })
   .del('true')
-  .del('false');
+  .del('false')
 
 keywordTypes.on(
   'as',
@@ -34,9 +34,9 @@ keywordTypes.on(
   'extends',
   {
     keyword: 'TsKeyword',
-    startsExpr,  // 'as' และคำที่คล้ายกันสามารถเริ่มต้น expression ได้
+    startsExpr, // 'as' และคำที่คล้ายกันสามารถเริ่มต้น expression ได้
   }
-);
+)
 
 keywordTypes.on(
   'assert',
@@ -58,7 +58,7 @@ keywordTypes.on(
   {
     keyword: 'TsKeyword',
   }
-);
+)
 
 // ตัวอย่างคีย์เวิร์ดที่ใช้ b
 

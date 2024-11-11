@@ -1,6 +1,7 @@
 import chalk from 'chalk'
 import isUnicodeSupported from 'is-unicode-supported'
-const isHyper = typeof process !== 'undefined' && process.env.TERM_PROGRAM === 'Hyper';
+const isHyper =
+  typeof process !== 'undefined' && process.env.TERM_PROGRAM === 'Hyper'
 const isLinux = typeof process !== 'undefined' && process.platform === 'linux'
 
 const _isUnicode: boolean = isUnicodeSupported()

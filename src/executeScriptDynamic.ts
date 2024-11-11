@@ -97,7 +97,6 @@ export async function executeScriptDynamic(
   try {
     // nyrenx [script for package.json] Suppose there is nyrenx test
     if (scriptMatchResult === MatchResult.MATCH_FOUND) {
-
       commandArgsResult.push(...commandArgs, ...forwardedArgs)
       commandArgs[0] = 'nyrenx'
       messageRunners.push(
@@ -108,7 +107,7 @@ export async function executeScriptDynamic(
       // nyrenx ./path/to/file.<ts,js | cjs | mjs>
     } else {
       await prepareScriptCommand(commandArgs, pkj.type)
-      
+
       commandArgsResult.push(...commandArgs, ...forwardedArgs)
       messageRunners.push(
         t.text('#800080')('$'),
@@ -122,7 +121,7 @@ export async function executeScriptDynamic(
     process.exit(1)
   }
 
-  utils.log._log('log',`${t.text('d7d7ff').dim(messageRunners.join(' '))}`)
+  utils.log._log('log', `${t.text('d7d7ff').dim(messageRunners.join(' '))}`)
   // nyrenx --watch ./path/to/file.<ts,js | cjs | mjs>
   if (options.watch) {
     return await monitorChanges({
