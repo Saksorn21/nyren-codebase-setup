@@ -1,3 +1,4 @@
+import { supportsColorStderr,  supportsColor, chalkStderr } from 'chalk'
 export enum colorType {
   chalky = 'chalky',
   coral = 'coral',
@@ -28,7 +29,6 @@ const textColors = {
   whiskey: '#d19a66',
   deepRed: '#BE5046',
 }
-import { supportsColorStderr,  supportsColor, chalkStderr } from 'chalk'
 class Themes {
   textColors: typeof textColors = textColors
   chalky!: ReturnType<typeof chalkStderr.hex>

@@ -20,13 +20,13 @@ class ColorizeSyntax {
   } as const
   isBold: boolean = false
   constructor(
-    private colorsTheme: Themes , 
+    private hexColorsTheme: Themes , 
     private result: Array<string>){
 
     }
   private bulidColor(keywordType: KeywordType, colorName: string = 'lightDark'){
 
-    if (keywordType === 'other' && colorName) return (this.colorsTheme as any)[colorName]
+    if (keywordType === 'other' && colorName) return (this.hexColorsTheme as any)[colorName]
 
     for (const [kw, color] of Object.entries(this.syntaxColorPairs)){
 if (kw === keywordType) {
