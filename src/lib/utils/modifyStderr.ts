@@ -11,7 +11,7 @@ import parseCode, { AddKeywordTypes,
   TokContext,
   TokenType,
 } from '../acorn/main.js'
-import Labels from '../acorn/labels/main.js'
+import Labels, { debug } from '../acorn/labels/main.js'
 import { clearAnsiCodes } from './main.js'
 import type { Position, SourceLocation, Options } from 'acorn'
 import color from './color.js'
@@ -72,6 +72,7 @@ const modifyStderr = (stderr: typeof process.stderr) =>
      
       highlightSyntax(labels.result)
     } catch (error: unknown) {
+      debug(`Error caught: ${error.message}`)
       console.log(error)
       cloneData.forEach((item: string, index: number) => {
         if (item.includes('^')) {

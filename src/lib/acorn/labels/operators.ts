@@ -30,6 +30,7 @@ const punctuation = [
   // Other Punctuation
   ';', ':', '?', '=>'
 ];
+const booleans = ['true', 'false']
 class TFOperators extends TokenTransformer {
   parse(token: CustomToken, prevToken: CustomToken, nextToken: CustomToken): CustomToken{
     //const context = [tokTypes, tokContexts]
@@ -38,6 +39,9 @@ if(!token.value){
 }
     if (token.value === '${'){
       this.transform(token, 'templateExpressionStart')
+    }
+    if(typeof token.value === 'string' && token.type.keyword && booleans.includes(token.value) && booleans.includes(token.type.label) && booleans.includes(token.type.keyword)){
+      this.transform(token, 'boolean')
     }
     if(operators.includes(token.type.label)){
       

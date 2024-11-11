@@ -10,7 +10,7 @@ class TFName extends TokenTransformer {
       if(prevToken){
         const { label: prevLabel } = prevToken.type
         const prevValue = this.valueToString(prevToken.value)
-        console.log(this.utils.color.red('name: prevToken' + '| ' + prevToken.type.label))
+        
       // this.transform(token, 'variable')
         if(prevLabel === 'keyword'){
           // !['const', 'class', 'var', 'let','function'].includes(prevValue)
@@ -57,7 +57,7 @@ class TFName extends TokenTransformer {
         const { label: nextLabel } = nextToken.type
      
         
-          console.log(this.utils.color.red('name: nextToken' + '| ' + nextToken.type.label))
+          
           if(prevLabel !== ':' && this.nextContext.includes( nextToken.type.label)){
             this.transform(token, 'variable')
        }

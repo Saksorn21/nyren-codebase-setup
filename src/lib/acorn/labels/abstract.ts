@@ -2,6 +2,7 @@ import { Token,tokContexts, tokTypes  } from 'acorn'
 import type { Position } from 'acorn'
 import keywordTypes  from '../keywordTypes.js'
 import utils from '../../utils/main.js'
+import createDebug from 'debug'
 /**
  *@ interface SyntaxHighlight 
  *@ dscription - Acorn's Token class doesn't have a property value, so we need to create one.
@@ -26,7 +27,7 @@ export type KeywordType = 'keyword' | 'operator' | 'punctuation' | 'constants' |
 
 abstract class TokenTransformer {
   abstract parse(token: CustomToken, prevToken: CustomToken, nextToken: CustomToken): CustomToken;
-
+  debug = createDebug('nyren:parse')
   transform(token: CustomToken, keyword: string): CustomToken {
     // สามารถใช้การแปลงที่เหมือนกันในหลายๆ คลาสลูก
     
@@ -34,20 +35,26 @@ abstract class TokenTransformer {
     const value = this.valueToString(token.value)
     const kwType = keywordTypes.emit()[value]
       if(kwType && this.isKeyword(keywordTypes, value)){
-        console.log(this.utils.color.white.dim('transform: keyword'))
-        console.log(this.utils.color.amber.dim('transform: '+ token.value))
-       if(token.type.label === 'class') return token
+        
+       if(token.type.label === 'class') {
+         this.debug('keyword: classes')
+         return token
+       }
     if (token.type.keyword === undefined) {
+      this.debug('keyword: %s', value)
       token.type.label = 'keyword'
       token.type.keyword = kwType.label
-      }else{
+      }else if(kwType.keyword === 'TsKeyword') {
+       this.debug('TSkeyword: %s', value)
+       token.type.label = kwType.keyword
+       }else{
+      this.debug('keyword: %s', value)
        token.type.label = 'keyword'
-      }
-     if(kwType.keyword === 'TsKeyword') token.type.label = kwType.keyword
+       }
         return token
       }else{
+        this.debug('keyword: %s value: %s', keyword,token.value)
         
-        console.log(utils.color.deepBlue('transform: Debug', JSON.stringify({keyword, tokenValue: token.value})))
         token.type.label = keyword 
         return token
       }

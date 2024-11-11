@@ -3,7 +3,7 @@ import type { Position } from 'acorn'
 import ColorizeSyntax, { type KeywordType} from '../ColorizeSyntax.js'
 import kwTypes  from '../keywordTypes.js'
 import utils from '../../utils/main.js'
-import debug from 'debug'
+import createDebug from 'debug'
 /**
  *@ interface SyntaxHighlight 
  *@ dscription - Acorn's Token class doesn't have a property value, so we need to create one.
@@ -23,6 +23,7 @@ interface CustomRegExp {
 interface CustomToken extends Token {
   value: string | CustomRegExp 
 }
+export const debug = createDebug('nyren:acorn-labels')
 //const taxi = utils.taxi
 class Labels {
   static formatEscapes(str: String) {
@@ -64,44 +65,59 @@ class Labels {
     let keysword = [...this.kwTypes.getKeys()]
     const keywordType = this.kwTypes.emit()
     let isCustomtolen = false
+    
 console.log(utils.color.red('build'))
+    debug('build')
     this.rawToken.forEach((token: CustomToken, index: number) => {
-      const cloneToken = utils.clone(token)
+      let cloneToken = utils.clone(token)
+      debug('rawToken: %o', token)
       this.nextToken = this.rawToken[index + 1] || null
-      token = this.transformer.build(cloneToken, this.prevToken, this.nextToken);
-            this.result.push(token);
-      this.prevToken = token
-      return
+        cloneToken = this.transformer.build(cloneToken, this.prevToken, this.nextToken);
+      debug('newToken: %o', cloneToken)
+            this.result.push(cloneToken);
+      //this.prevToken = cloneToken
+      
+   
       const parse = new ParseLabels(cloneToken, this.prevToken,this.nextToken )
-      switch (token.type.label) {
-        case 'name':
-          if(typeof token.value === 'string'){
-                    if (!token.type.keyword && keysword.includes(token.value)){
-                      this.result.push(parse.normalizedKeyword(token.value))
-              }else {
-                if (this.prevToken){ 
-                        if (this.prevToken.value === '('){
-                          this.result.push(parse.keywordUndefined('property'))
-      }
-                                         }
-                      this.result.push(parse.keywordUndefined('variable'))
+      switch (cloneToken.type.label) {
+          case 'method':
+          console.log(utils.color.white('parse: keyword'))
 
-           }   
-          }
-          else this.result.push(parse.property('property'))
-          console.log(utils.color.white('parse: name'))
           break
-        case 'num':
-          console.log(utils.color.white('parse: num'))
+          case 'keyword': case 'TsKeyword':
+          console.log(utils.color.white('parse: keyword and TsKeyword'))
+
+          break
+          case 'class': case 'typeAnnotation': case 'types':
+          console.log(utils.color.white('parse: class and typeAnnotation and types'))
+
+          break
+        case 'variable':
+          console.log(utils.color.white('parse: variable'))
+              
+          break
+          case 'property': case 'object':
+          console.log(utils.color.white('parse: property and object'))
+
+          break
+          case 'boolean':
+          console.log(utils.color.white('parse: boolean'))
+          break
+        case 'number':
+          console.log(utils.color.white('parse: number'))
           break
         case 'string':
           console.log(utils.color.white('parse: string'))
           break
-        case 'template':
+        case 'template': case 'templateExpressionStart':
+          console.log(utils.color.white('parse: template and templateExpression'))
           break
         case 'regexp':
           //value ? pattern flags value | string | undefined
           console.log(utils.color.white('parse: regexp'))
+          break
+          case 'operator': case 'punctuation':
+          console.log(utils.color.white('parse: operator and punctuation'))
           break
         case 'privateId': case 'privateldentifier':
           console.log(utils.color.white('parse: privateId'))
@@ -112,20 +128,7 @@ console.log(utils.color.red('build'))
         default:
           console.log(utils.color.white('parse: default'))
           
-          if(token.value !== undefined){
-            if(typeof token.value === 'string'){
-              if(keywordType[token.value]){ this.result.push(parse.normalizedKeyword(token.value))
-                                    }
-              if (!token.type.keyword && keysword.includes(token.value)){
-                this.result.push(parse.keywordUndefined(token.value))
-        }else{
-                
-        }
-    }
-          }else{
-            console.log(utils.color.white.dim('parse: value undefined'))
-            this.result.push(parse.valueUndefined('operator'))
-          }
+          
           break
       }
       this.prevToken = token
