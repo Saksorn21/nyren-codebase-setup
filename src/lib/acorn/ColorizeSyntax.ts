@@ -1,7 +1,10 @@
 import { colorType } from '../acorn/Themes.js'
+import Themes from './Themes.js'
+import TokenTransformer, {
+  KeywordType,
+  CustomToken,
+} from './labels/abstract.js'
 
-
-export type KeywordType = 'keyword' | 'operator' | 'punctuation' | 'constants' | 'comment' | 'string' | 'numbers' | 'boolean'| 'types' | 'typeAssertions'| 'variable' | 'property' | 'method' | 'other' | null
 class ColorizeSyntax {
   readonly syntaxColorPairs = {
     keyword: colorType.purple,
@@ -11,10 +14,11 @@ class ColorizeSyntax {
     string: colorType.green,
     numbers: colorType.whiskey,
     boolean: colorType.whiskey,
-    types: colorType.coral,
+    types: colorType.chalky,
     typeAssertions: colorType.chalky,
     variable: colorType .lightWhite,
-    propety: colorType.coral,
+    object: colorType.lightWhite,
+    property: colorType.coral,
     method: colorType.malibu,
     other: colorType.lightDark,
   } as const
@@ -30,8 +34,8 @@ class ColorizeSyntax {
 
     for (const [kw, color] of Object.entries(this.syntaxColorPairs)){
 if (kw === keywordType) {
-  if (this.isBold) return (this.colorsTheme as any)[color + 'B']
-  else return this.colorsTheme[color]
+  if (this.isBold) return (this.hexColorsTheme as any)[color + 'B']
+  else return this.hexColorsTheme[color]
  }
       continue
     }
@@ -44,13 +48,17 @@ if (kw === keywordType) {
     let msg = ''
     if(colorName) msg = this.bulidColor(keywordType, colorName)(newResult) 
    else msg = this.bulidColor(keywordType)(newResult)
-
+this.isBold = false
     this.result.push(msg)
     return this
   }
-  emit(need: 'string' | 'array' = 'string'){
-    if(need === 'string') return this.result.join('')
-    else return this.result
+  emit(need: 'string' | 'array' = 'string'): string | Array<string>{
+    if(need === 'string') {
+      return this.result.join('') as string
+    }
+    else{ 
+      return this.result as Array<string>
+    }
   }
 }
 

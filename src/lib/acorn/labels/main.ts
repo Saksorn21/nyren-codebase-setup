@@ -3,7 +3,7 @@ import type { Position } from 'acorn'
 import ColorizeSyntax, { type KeywordType} from '../ColorizeSyntax.js'
 import kwTypes  from '../keywordTypes.js'
 import utils from '../../utils/main.js'
-import TokenTracker from '../TokenTracker.js'
+
 export function onDebug(namespace: string = 'nyren:*') {
   console.log('onDebug is called')
   if (!process.env.DEBUG) {

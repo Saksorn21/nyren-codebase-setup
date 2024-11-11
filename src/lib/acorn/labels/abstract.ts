@@ -22,12 +22,12 @@ interface CustomRegExp {
 export interface CustomToken extends Token {
   value: string | CustomRegExp 
 }
-export type KeywordType = 'keyword' | 'operator' | 'punctuation' | 'constants' | 'comment' | 'string' | 'numbers' | 'boolean'| 'types' | 'typeAssertion'| 'variable' | 'property' | 'method' | 'object' | 'regex' | 'class' | 'interface' | 'typeAnnotation' | 'typeParameterDeclaration' 
+export type KeywordType = 'keyword' | 'operator' | 'punctuation' | 'constants' | 'comment' | 'string' | 'numbers' | 'boolean'| 'types' | 'typeAssertion'| 'variable' | 'property' | 'method' | 'object' | 'regex' | 'class' | 'interface' | 'typeAnnotation' 
 
 
 abstract class TokenTransformer {
   abstract parse(token: CustomToken, prevToken: CustomToken, nextToken: CustomToken): CustomToken;
-  debug = createDebug(process.env.DEBUG || 'nyren:parse')
+  debug = createDebug('nyren:parse')
   transform(token: CustomToken, keyword: string): CustomToken {
     // สามารถใช้การแปลงที่เหมือนกันในหลายๆ คลาสลูก
     
@@ -37,25 +37,37 @@ abstract class TokenTransformer {
       if(kwType && this.isKeyword(keywordTypes, value)){
         
        if(token.type.label === 'class') {
-         this.debug(this.utils.color.green('keyword:') + ' classes')
+         this.debug(this.utils.color.green('newToken: ') + this.utils.color.amber('keyword:') + `${this.utils.color.green('\'')}${this.utils.color.chalk.greenBright.bold('Classes')}${this.utils.color.green('\'')}`)
          return token
-       }
-    if (token.type.keyword === undefined) {
-      this.debug(this.utils.color.green('keyword:') +' %s', value)
-      token.type.label = 'keyword'
+       }else if (token.type.keyword === undefined) {
+         
+      if(kwType.keyword === 'TsKeyword'){
+
+        this.debug(this.utils.color.green('newToken: ') + this.utils.color.deepBlue('TSkeyword:') + `${this.utils.color.green('\'')}${this.utils.color.chalk.greenBright.bold('%s')}${this.utils.color.green('\'')}`, value)
+         token.type.label = kwType.keyword
+      }else{
+        
+        this.debug(this.utils.color.green('newToken: ') + this.utils.color.amber('keyword:') + `${this.utils.color.green('\'')}${this.utils.color.chalk.greenBright.bold('%s')}${this.utils.color.green('\'')}`, value)
+        token.type.label = 'keyword'
+        
+      }
       token.type.keyword = kwType.label
-      }else if(kwType.keyword === 'TsKeyword') {
-       this.debug(this.utils.color.deepBlue('TSkeyword:') +' %s', value)
-       token.type.label = kwType.keyword
-       }else{
-      this.debug(this.utils.color.green('keyword:') +' %s', value)
+      }else{
+         if(kwType.keyword === 'TsKeyword'){
+           this.debug(this.utils.color.green('newToken: ') + this.utils.color.deepBlue('TSkeyword:') + `${this.utils.color.green('\'')}${this.utils.color.chalk.greenBright.bold('%s')}${this.utils.color.green('\'')}`, value)
+            token.type.label = kwType.keyword
+         }else{
+      this.debug(this.utils.color.green('newToken: ') + this.utils.color.green('keyword:') +`${this.utils.color.green('\'')}${this.utils.color.chalk.greenBright.bold('%s')}${this.utils.color.green('\'')}`, value)
        token.type.label = 'keyword'
+         }
+         token.type.keyword = kwType.label
        }
         return token
       }else{
-        this.debug(`${utils.color.green('newToken:')} ${utils.color.amber('keyword: ')} %s ${utils.color.purple('value: ')}${utils.color.green('\'')}${utils.color.white.dim('%s')}${utils.color.green('\'')}`, keyword,token.value)
+        this.debug(`${this.utils.color.green('newToken:')} ${this.utils.color.lightSteelBlue.visible('%s:')} ${this.utils.color.green('\'')}${this.utils.color.chalk.greenBright.bold('%s')}${this.utils.color.green('\'')}`, keyword,token.value)
         
         token.type.label = keyword 
+          
         return token
       }
     
