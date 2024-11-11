@@ -38,7 +38,7 @@ const modifyStderr = (stderr: typeof process.stderr) =>
 
     const optionsAcorn: Options = {
       ecmaVersion: 'latest',
-      // sourceType: 'module',
+      sourceType: 'module',
       locations: true,
       preserveParens: true,
       checkPrivateFields: true,
@@ -49,6 +49,7 @@ const modifyStderr = (stderr: typeof process.stderr) =>
         console.log(lastTokEnd, lastTokEndLoc),
     }
     const code = `
+    
     class SosTest {
     static test()
     public test()
@@ -58,6 +59,8 @@ const modifyStderr = (stderr: typeof process.stderr) =>
       
       }
     }
+    const face = (kok: string) => console.log(kok))
+    fack('Tot')
   `
 
     try {
@@ -68,6 +71,7 @@ const modifyStderr = (stderr: typeof process.stderr) =>
      //console.log('ast',ast)
       const labels = new Labels(ast)
       labels.build()
+      labels.debug(color.white('<<<===HighLight Syntax===>>>')) 
       //console.log('yes',labels.result)
      
       highlightSyntax(labels.result)
@@ -365,7 +369,8 @@ const tokenValue = restoreControlCharacters(token.value)
     // อัปเดต prevToken ให้เป็นโทเค็นปัจจุบัน
     prevToken = token
   })
-console.log(collectData.emit())
+  debug(color.chalk.bgGreen.bold.white.bold('Result:') + '%s', collectData.emit())
+
   // แสดงผล
   return
   errorMessageAndPaths(outputSyntax)

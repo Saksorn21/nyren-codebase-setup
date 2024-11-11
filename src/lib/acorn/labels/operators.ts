@@ -37,6 +37,9 @@ class TFOperators extends TokenTransformer {
 if(!token.value){
   token.value = token.type.label
 }
+    if (prevToken && prevToken.value === ')' && token.type.label === '=>'){
+      this.transform(token,'arrow')
+    }
     if (token.value === '${'){
       this.transform(token, 'templateExpressionStart')
     }

@@ -3,6 +3,14 @@ import type { Position } from 'acorn'
 import ColorizeSyntax, { type KeywordType} from '../ColorizeSyntax.js'
 import kwTypes  from '../keywordTypes.js'
 import utils from '../../utils/main.js'
+import TokenTracker from '../TokenTracker.js'
+export function onDebug(namespace: string = 'nyren:*') {
+  console.log('onDebug is called')
+  if (!process.env.DEBUG) {
+    process.env.DEBUG = namespace;
+  }
+}
+onDebug()
 import createDebug from 'debug'
 /**
  *@ interface SyntaxHighlight 
@@ -23,7 +31,8 @@ interface CustomRegExp {
 interface CustomToken extends Token {
   value: string | CustomRegExp 
 }
-export const debug = createDebug('nyren:acorn-labels')
+type ContractType = 'data' | 'error'
+export const debug = createDebug(process.env.DEBUG || 'nyren:acorn-labels')
 //const taxi = utils.taxi
 class Labels {
   static formatEscapes(str: String) {
@@ -50,14 +59,16 @@ class Labels {
   prevToken: CustomToken | null
   nextToken: CustomToken | null
   result!: CustomToken[] 
-  private transformer: CompositeTransformer;
-
+  private listeners: { [key in ContractType]?: ((data: CustomToken[]) => void)[] } = {};
   
+  private transformer: CompositeTransformer;
+ readonly debug: typeof debug = debug
   constructor(private readonly rawToken: CustomToken[]) {
     this.result = []
     this.prevToken = null
     this.nextToken = null
     this.transformer = new CompositeTransformer()
+    
   }
   build() {
     let currentLine = 1
@@ -66,74 +77,83 @@ class Labels {
     const keywordType = this.kwTypes.emit()
     let isCustomtolen = false
     
-console.log(utils.color.red('build'))
-    debug('build')
+       debug(utils.color.white('<<<===Parses Token===>>>')) 
     this.rawToken.forEach((token: CustomToken, index: number) => {
       let cloneToken = utils.clone(token)
-      debug('rawToken: %o', token)
-      this.nextToken = this.rawToken[index + 1] || null
-        cloneToken = this.transformer.build(cloneToken, this.prevToken, this.nextToken);
-            this.result.push(cloneToken);
-      //this.prevToken = cloneToken
       
 
-      switch (cloneToken.type.label) {
-          case 'method':
-          console.log(utils.color.white('parse: keyword'))
+      debug(utils.color.red('rawToken: ') + '%o', {
+        label: token.type.label, 
+                             keyword: token.type.keyword || null, value: token.value || null})
+      this.nextToken = this.rawToken[index + 1] || null
+           
+        cloneToken = this.transformer.pasesToken(cloneToken, this.prevToken, this.nextToken);
+            this.result.push(cloneToken);
+      //this.prevToken = cloneToken
 
-          break
-          case 'keyword': case 'TsKeyword':
-          console.log(utils.color.white('parse: keyword and TsKeyword'))
-
-          break
-          case 'class': case 'typeAnnotation': case 'types':
-          console.log(utils.color.white('parse: class and typeAnnotation and types'))
-
-          break
-        case 'variable':
-          console.log(utils.color.white('parse: variable'))
-              
-          break
-          case 'property': case 'object':
-          console.log(utils.color.white('parse: property and object'))
-
-          break
-          case 'booleans':
-          console.log(utils.color.white('parse: boolean'))
-          break
-        case 'number':
-          console.log(utils.color.white('parse: number'))
-          break
-        case 'string':
-          console.log(utils.color.white('parse: string'))
-          break
-        case 'template': case 'templateExpressionStart':
-          console.log(utils.color.white('parse: template and templateExpression'))
-          break
-        case 'regexp':
-          //value ? pattern flags value | string | undefined
-          console.log(utils.color.white('parse: regexp'))
-          break
-          case 'operator': case 'punctuation':
-          console.log(utils.color.white('parse: operator and punctuation'))
-          break
-        case 'privateId': case 'privateIdentifier':
-          console.log(utils.color.white('parse: privateId'))
-          break
-        case 'eof':  //End of File
-          console.log(utils.color.white('parse: eof'))
-          break
-        default:
-          console.log(utils.color.white('parse: default'))
-          
-          
-          break
-      }
       this.prevToken = token
     })
   }
+  onDebug = onDebug
   
-}
+
+  // ฟังก์ชันที่ใช้เรียก callbacks เมื่อผลลัพธ์ใหม่ถูกอัพเดต
+  emit(contract: ContractType){
+    switch (cloneToken.type.label) {
+        case 'method':
+        console.log(utils.color.white('parse: keyword'))
+
+        break
+        case 'keyword': case 'TsKeyword':
+        console.log(utils.color.white('parse: keyword and TsKeyword'))
+
+        break
+        case 'class': case 'typeAnnotation': case 'types':
+        console.log(utils.color.white('parse: class and typeAnnotation and types'))
+
+        break
+      case 'variable':
+        console.log(utils.color.white('parse: variable'))
+
+        break
+        case 'property': case 'object':
+        console.log(utils.color.white('parse: property and object'))
+
+        break
+        case 'booleans':
+        console.log(utils.color.white('parse: boolean'))
+        break
+      case 'number':
+        console.log(utils.color.white('parse: number'))
+        break
+      case 'string':
+        console.log(utils.color.white('parse: string'))
+        break
+      case 'template': case 'templateExpressionStart':
+        console.log(utils.color.white('parse: template and templateExpression'))
+        break
+      case 'regexp':
+        //value ? pattern flags value | string | undefined
+        console.log(utils.color.white('parse: regexp'))
+        break
+        case 'operator': case 'punctuation':
+        console.log(utils.color.white('parse: operator and punctuation'))
+        break
+      case 'privateId': case 'privateIdentifier':
+        console.log(utils.color.white('parse: privateId'))
+        break
+      case 'eof':  //End of File
+        console.log(utils.color.white('parse: eof'))
+        break
+      default:
+        console.log(utils.color.white('parse: default'))
+
+
+        break
+    }}
+  }
+  
+
 
 import TFKeyword from './keywords.js'
 import TFName from './name.js'
@@ -154,9 +174,10 @@ class CompositeTransformer {
     this.transformers.push(new TFOperators());
   }
 
-  build(token: CustomToken, prevToken: CustomToken | null, nextToken: CustomToken): CustomToken {
+  pasesToken(token: CustomToken, prevToken: CustomToken | null, nextToken: CustomToken): CustomToken {
+
     for (const transformer of this.transformers) {
-      debug('TransFormer: %s', transformer.constructor.name)
+      
     
       token = transformer.parse(token, prevToken, nextToken);
     }

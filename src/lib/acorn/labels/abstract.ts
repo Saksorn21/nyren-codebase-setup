@@ -27,7 +27,7 @@ export type KeywordType = 'keyword' | 'operator' | 'punctuation' | 'constants' |
 
 abstract class TokenTransformer {
   abstract parse(token: CustomToken, prevToken: CustomToken, nextToken: CustomToken): CustomToken;
-  debug = createDebug('nyren:parse')
+  debug = createDebug(process.env.DEBUG || 'nyren:parse')
   transform(token: CustomToken, keyword: string): CustomToken {
     // สามารถใช้การแปลงที่เหมือนกันในหลายๆ คลาสลูก
     
@@ -37,23 +37,23 @@ abstract class TokenTransformer {
       if(kwType && this.isKeyword(keywordTypes, value)){
         
        if(token.type.label === 'class') {
-         this.debug('keyword: classes')
+         this.debug(this.utils.color.green('keyword:') + ' classes')
          return token
        }
     if (token.type.keyword === undefined) {
-      this.debug('keyword: %s', value)
+      this.debug(this.utils.color.green('keyword:') +' %s', value)
       token.type.label = 'keyword'
       token.type.keyword = kwType.label
       }else if(kwType.keyword === 'TsKeyword') {
-       this.debug('TSkeyword: %s', value)
+       this.debug(this.utils.color.deepBlue('TSkeyword:') +' %s', value)
        token.type.label = kwType.keyword
        }else{
-      this.debug('keyword: %s', value)
+      this.debug(this.utils.color.green('keyword:') +' %s', value)
        token.type.label = 'keyword'
        }
         return token
       }else{
-        this.debug('keyword: %s value: %s', keyword,token.value)
+        this.debug(`${utils.color.green('newToken:')} ${utils.color.amber('keyword: ')} %s ${utils.color.purple('value: ')}${utils.color.green('\'')}${utils.color.white.dim('%s')}${utils.color.green('\'')}`, keyword,token.value)
         
         token.type.label = keyword 
         return token
