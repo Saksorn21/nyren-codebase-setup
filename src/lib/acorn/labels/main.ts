@@ -73,12 +73,10 @@ console.log(utils.color.red('build'))
       debug('rawToken: %o', token)
       this.nextToken = this.rawToken[index + 1] || null
         cloneToken = this.transformer.build(cloneToken, this.prevToken, this.nextToken);
-      debug('newToken: %o', cloneToken)
             this.result.push(cloneToken);
       //this.prevToken = cloneToken
       
-   
-      const parse = new ParseLabels(cloneToken, this.prevToken,this.nextToken )
+
       switch (cloneToken.type.label) {
           case 'method':
           console.log(utils.color.white('parse: keyword'))
@@ -100,7 +98,7 @@ console.log(utils.color.red('build'))
           console.log(utils.color.white('parse: property and object'))
 
           break
-          case 'boolean':
+          case 'booleans':
           console.log(utils.color.white('parse: boolean'))
           break
         case 'number':
@@ -119,7 +117,7 @@ console.log(utils.color.red('build'))
           case 'operator': case 'punctuation':
           console.log(utils.color.white('parse: operator and punctuation'))
           break
-        case 'privateId': case 'privateldentifier':
+        case 'privateId': case 'privateIdentifier':
           console.log(utils.color.white('parse: privateId'))
           break
         case 'eof':  //End of File
@@ -136,49 +134,7 @@ console.log(utils.color.red('build'))
   }
   
 }
-class ParseLabels {
-  value: string | CustomRegExp | undefined
-  kw: string | undefined 
-  label: string
-  constructor(
-    private tok: CustomToken,
-    private readonly prevToken: CustomToken | null,
-  private readonly nextToken: CustomToken , ) {
-    this.kw = this.tok.type.keyword
-    this.label = this.tok.type.label
-    this.value = this.tok.value
-  }
-  property(k: string){
-    if (this.prevToken.value === '('){
 
-    this.tok.type.label = k
-      }
-    return this.tok
-  }
-  normalizedKeyword(k: string){
-    if (this.kw !== k) this.tok.type.keyword = k as string
-    if(this.label !== k) {
-      this.tok.type.label = k as string
-      
-    }
-    return this.tok
-  }
-  keywordUndefined(keyword: string){
-    if (this.kw === undefined) {
-      this.tok.type.keyword = keyword as string
-      }
-    return this.tok
-  }
-  valueUndefined(keyword: KeywordType) {
-    if (this.value === undefined) {
-      if(this.kw === undefined){
-        this.tok.type.keyword = keyword as string
-      }
-      this.tok.value = this.tok.type.label 
-     } 
-    return this.tok
-  }
-}
 import TFKeyword from './keywords.js'
 import TFName from './name.js'
 import TFNumbers from './numbers.js'
@@ -200,6 +156,8 @@ class CompositeTransformer {
 
   build(token: CustomToken, prevToken: CustomToken | null, nextToken: CustomToken): CustomToken {
     for (const transformer of this.transformers) {
+      debug('TransFormer: %s', transformer.constructor.name)
+    
       token = transformer.parse(token, prevToken, nextToken);
     }
     return token;
