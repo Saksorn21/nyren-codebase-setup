@@ -14,6 +14,7 @@ export enum colorType {
   whiskey = 'whiskey',
   deepRed = 'deepRed',
 }
+
 const textColors = {
   chalky: '#e5c07b',
   coral: '#e06c75',
