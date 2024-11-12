@@ -81,7 +81,7 @@ class Labels {
     debug(utils.color.white('<<<===Parses Token===>>>'))
     this.rawToken.forEach((token: CustomToken, index: number) => {
       let cloneToken = utils.clone(token)
-      
+   //   cloneToken.value = Labels.replaceCR(cloneToken.value)
       this.discontinue(cloneToken)
       debug(utils.color.red('rawToken: ') + '%o', {
         label: token.type.label,
@@ -118,6 +118,7 @@ import TFName from './name.js'
 import TFNumbers from './numbers.js'
 import TFString from './strings.js'
 import TFTemplate from './template.js'
+import TFRegexp from './regexp.js'
 import TFOperators from './operators.js'
 class CompositeTransformer {
   private transformers: any[] = []
@@ -129,6 +130,7 @@ class CompositeTransformer {
     this.transformers.push(new TFNumbers())
    this.transformers.push(new TFString())
     this.transformers.push(new TFTemplate())
+    this.transformers.push(new TFRegexp())
     this.transformers.push(new TFOperators())
   }
   

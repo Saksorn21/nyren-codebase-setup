@@ -7,9 +7,15 @@ class TFRegexp extends TokenTransformer {
     nextToken: CustomToken
   ): CustomToken {
     if (token.type.label === 'regexp') {
-      if (token.value === '${') {
-        this.transform(token, 'templateExpressionStart')
-      }
+      console.log('regexp',token)
+      if(typeof token.value !=='string'){
+        console.log('regexp',token)
+        //token.value.pat.replace(/\[CR\]/g, '\r')
+        token.value = token.value.pattern
+        }
+      
+        this.transform(token, 'regexp')
+      
     }
     return token
   }

@@ -16,6 +16,7 @@ class TFTemplate extends TokenTransformer {
       if (token.value === '${') {
         this.transform(token, 'templateExpressionStart')
       }
+      this.transform(token, 'template')
     }
     return token
   }

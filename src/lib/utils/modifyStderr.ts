@@ -52,16 +52,16 @@ const modifyStderr = (stderr: typeof process.stderr) =>
     const code = `
     const fn = (msg: string) => console.log('Hello,' + msg)
     fn('nyren')
-    let x = 1 * (2 / 3)
+    const x = /^in(stanceof)?$/
     
       
     }
   `
     
     try {
-      const codeWithPlaceholders = code.replace(/\r/g, '[CR]')
+      const codeWithPlaceholders = code.replace(/\r/g, '[CR]').replace(/\t/g, '[TAB]').replace(/\f/g, '[FF]').replace(/\v/g, '[VT]').replace(/\a/g, '[A]')
       const tokens = 
-        [...parseCode.tokenizer(codeWithPlaceholders, optionsAcorn)]
+        [...parseCode.tokenizer(code, optionsAcorn)]
       // as SyntaxHighlight[]
       // const ast = full(parseCode.parse(code,optionsAcorn), node => console.log(node))
       
