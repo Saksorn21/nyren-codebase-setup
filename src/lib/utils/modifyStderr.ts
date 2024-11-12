@@ -50,34 +50,25 @@ const modifyStderr = (stderr: typeof process.stderr) =>
         console.log(lastTokEnd, lastTokEndLoc),
     }
     const code = `
-    class Bun{
-    jjj: Array<string> = ['sos','kk',1]
-    private a: number = 1
-    static b: number = 2
-    constructor(private readonly nom: string){}
-    }
-    function functionName(jan: string, agr) {
-    var isTrue = true
-    if (isTrue) {
-    }
-    for (var i = 0; i < 10; i++) {
-    }
-    }
-       let { n , p } = agr.sos.kkk()
-      return n + p.ii
-    }
+    const fn = (msg: string) => console.log('Hello,' + msg)
+    fn('nyren')
+    let x = 1 * (2 / 3)
     
-    
+      
+    }
   `
-
+    
     try {
       const codeWithPlaceholders = code.replace(/\r/g, '[CR]')
-      const ast = [
-        ...parseCode.tokenizer(codeWithPlaceholders, optionsAcorn),
-      ] as SyntaxHighlight[]
+      const tokens = 
+        [...parseCode.tokenizer(codeWithPlaceholders, optionsAcorn)]
+      // as SyntaxHighlight[]
       // const ast = full(parseCode.parse(code,optionsAcorn), node => console.log(node))
-      //console.log('ast',ast)
-      const labels = new Labels(ast)
+      
+      // สร้าง token iterator
+      
+      
+      const labels = new Labels(tokens)
       labels.build()
       labels.debug(color.white('<<<===HighLight Syntax===>>>'))
       //console.log('yes',labels.result)

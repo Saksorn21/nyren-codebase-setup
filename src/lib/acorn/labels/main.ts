@@ -81,12 +81,14 @@ class Labels {
     debug(utils.color.white('<<<===Parses Token===>>>'))
     this.rawToken.forEach((token: CustomToken, index: number) => {
       let cloneToken = utils.clone(token)
-
+      
+      this.discontinue(cloneToken)
       debug(utils.color.red('rawToken: ') + '%o', {
         label: token.type.label,
         keyword: token.type.keyword || null,
         value: token.value || null,
       })
+      this.prevToken = this.rawToken[index - 1] || null
       this.nextToken = this.rawToken[index + 1] || null
 
       cloneToken = this.transformer.pasesToken(
@@ -94,77 +96,21 @@ class Labels {
         this.prevToken,
         this.nextToken
       )
+      
       this.result.push(cloneToken)
-      //this.prevToken = cloneToken
-
-      this.prevToken = token
     })
+    
   }
   onDebug = onDebug
 
-  // ฟังก์ชันที่ใช้เรียก callbacks เมื่อผลลัพธ์ใหม่ถูกอัพเดต
-  emit(contract: ContractType) {
-    switch (cloneToken.type.label) {
-      case 'method':
-        console.log(utils.color.white('parse: keyword'))
-
-        break
-      case 'keyword':
-      case 'TsKeyword':
-        console.log(utils.color.white('parse: keyword and TsKeyword'))
-
-        break
-      case 'class':
-      case 'typeAnnotation':
-      case 'types':
-        console.log(
-          utils.color.white('parse: class and typeAnnotation and types')
-        )
-
-        break
-      case 'variable':
-        console.log(utils.color.white('parse: variable'))
-
-        break
-      case 'property':
-      case 'object':
-        console.log(utils.color.white('parse: property and object'))
-
-        break
-      case 'booleans':
-        console.log(utils.color.white('parse: boolean'))
-        break
-      case 'number':
-        console.log(utils.color.white('parse: number'))
-        break
-      case 'string':
-        console.log(utils.color.white('parse: string'))
-        break
-      case 'template':
-      case 'templateExpressionStart':
-        console.log(utils.color.white('parse: template and templateExpression'))
-        break
-      case 'regexp':
-        //value ? pattern flags value | string | undefined
-        console.log(utils.color.white('parse: regexp'))
-        break
-      case 'operator':
-      case 'punctuation':
-        console.log(utils.color.white('parse: operator and punctuation'))
-        break
-      case 'privateId':
-      case 'privateIdentifier':
-        console.log(utils.color.white('parse: privateId'))
-        break
-      case 'eof': //End of File
-        console.log(utils.color.white('parse: eof'))
-        break
-      default:
-        console.log(utils.color.white('parse: default'))
-
-        break
-    }
+  discontinue(token: CustomToken){
+    delete token.type.isLoop
+    delete token.type.binop
+    delete token.type.prefix
+    delete token.type.postfix
+    delete token.type.updateContext
   }
+  
 }
 
 import TFKeyword from './keywords.js'
@@ -181,21 +127,46 @@ class CompositeTransformer {
     this.transformers.push(new TFKeyword())
     this.transformers.push(new TFName())
     this.transformers.push(new TFNumbers())
-    this.transformers.push(new TFString())
+   this.transformers.push(new TFString())
     this.transformers.push(new TFTemplate())
     this.transformers.push(new TFOperators())
   }
-
+  
+  
   pasesToken(
     token: CustomToken,
     prevToken: CustomToken | null,
     nextToken: CustomToken
   ): CustomToken {
+    const walk = walkToken(token, this.transformers)
+  //  token = walk.next().value.parse(token, prevToken, nextToken)
+    //console.log(token)
+   // return
     for (const transformer of this.transformers) {
       token = transformer.parse(token, prevToken, nextToken)
     }
+    
     return token
   }
+}
+function* walkToken(token: CustomToken,tf ){
+  if(token.type.label === 'name'){
+    
+    yield new TFKeyword()
+  }else if(token.type.label === 'num'){
+    yield new TFNumbers()
+  } else if(token.type.label === 'string'){
+     
+    yield new TFString()
+  }else if(token.type.label === 'template'){
+    yield new TFTemplate()
+  }else {
+    for(const transformer of tf){
+      yield transformer
+      return 
+    }
+  }
+    
 }
 // class Labels {
 //   private transformer: CompositeTransformer;

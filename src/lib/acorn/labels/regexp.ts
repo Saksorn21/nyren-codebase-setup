@@ -1,18 +1,18 @@
 import TokenTransformer, { KeywordType, CustomToken } from './abstract.js'
 
-class TFString extends TokenTransformer {
+class TFRegexp extends TokenTransformer {
   parse(
     token: CustomToken,
     prevToken: CustomToken,
     nextToken: CustomToken
   ): CustomToken {
-    if (token.type.label === 'string') {
-      
-
-      this.transform(token, 'string')
+    if (token.type.label === 'regexp') {
+      if (token.value === '${') {
+        this.transform(token, 'templateExpressionStart')
+      }
     }
     return token
   }
 }
 
-export default TFString
+export default TFRegexp

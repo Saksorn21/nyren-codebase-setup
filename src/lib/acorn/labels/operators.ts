@@ -101,7 +101,8 @@ class TFOperators extends TokenTransformer {
     }
     if (operators.includes(token.type.label)) {
       this.transform(token, 'operator')
-    } else if (punctuation.includes(token.type.label)) {
+    } 
+    if (punctuation.includes(token.type.label)) {
       this.transform(token, 'punctuation')
     }
 
