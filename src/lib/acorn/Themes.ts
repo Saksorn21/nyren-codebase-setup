@@ -1,20 +1,10 @@
 import { supportsColorStderr, supportsColor, chalkStderr } from 'chalk'
 
-import { defaultTheme, ThemeSchema } from './schema-theme.js'
-export enum colorType {
-  white = 'white',
-  dark = 'dark',
-  purple = 'purple',
-  yellow = 'yellow',
-  blue = 'blue',
-  green = 'green',
-  orange = 'orange',
-  red = 'red',
-  error = 'error',
-}
+import { defaultTheme, ThemeSchema, colorType } from './schema-theme.js'
+
 
 class Themes {
-  constructor(private schemaTheme: ThemeSchema) {
+  constructor(private schemaTheme?: ThemeSchema) {
     this.validate()
     this.build()
   }

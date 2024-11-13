@@ -35,8 +35,8 @@ class HighlightSyntax {
         case 'keyword':
         case 'TsKeyword':
         case 'class':
-          collectData.isBold = true
-          collectData.on('keyword', val)
+          
+          collectData.on('keyword', val).bold
           break
         case 'variable':
         case 'name':
@@ -59,7 +59,7 @@ class HighlightSyntax {
           collectData.on('boolean', val)
           break
         case 'string':
-          collectData.on('string', val.replace(/$/, "'").replace(/^/, "'"))
+          collectData.bold.on('string', val.replace(/$/, "'").replace(/^/, "'"))
           break
         case 'operator':
           collectData.on('operator', val)

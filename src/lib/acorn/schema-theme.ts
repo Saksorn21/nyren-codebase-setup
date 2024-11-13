@@ -1,12 +1,26 @@
   import {keywordAnyTypes, JSKeywordTypes, TSKeywordTypes} from './schema-keywordType.js' 
-export type colorType =  'white' | 'dark'| 'purple' | 'yellow' | 'blue' | 'green' | 'orange' | 'red' | 'error' 
+export type ColorType =  'white' | 'dark'| 'purple' | 'yellow' | 'blue' | 'green' | 'orange' | 'red' | 'error' 
+export enum colorType {
+  white = 'white',
+  dark = 'dark',
+  purple = 'purple',
+  yellow = 'yellow',
+  blue = 'blue',
+  green = 'green',
+  orange = 'orange',
+  red = 'red',
+  error = 'error',
+}
+type ColorSchema<T> = {[key in ColorType]: T }
+  
+
 export interface ThemeSchema {
   name: string;
   version: string;
   originator: string[] | string;
-  colors: {
-    [colorName in colorType]: string; // ชื่อสีและโค้ดสี
-  };
+  colors: ColorSchema<string>;
+     // ชื่อสีและโค้ดสี
+  
   isDefault?: boolean
 }
 
@@ -27,13 +41,15 @@ export const defaultTheme: ThemeSchema  = {
       },
     isDefault: true
 };
-export default {
+const matchIncludes: ColorSchema<Array<string>>  = {
   white: ['variable', 'parameter', 'operator', 'punctuation'],
-  purple: keywordAnyTypes,
-  yellow: ['classes', 'TsKeyword'],
-  blue: ['functions', 'methods', 'object'],
-  green: ['strings', 'literals', 'regexp'],
-  orange: ['property', 'constants', 'numbers'],
+  dark: ['variable', 'parameter', 'operator', 'punctuation', 'name','object'],
+  purple: ['keyword',...keywordAnyTypes],
+  yellow: ['classes', 'typeAnnotation','types'],
+  blue: ['functions', 'method', ],
+  green: ['string', 'literals', 'regexp'],
+  orange: ['property', 'constants', 'number', 'boolean'],
   red: ['errors', 'highlights'],
   error: ['invalid'],
 }
+export default matchIncludes
