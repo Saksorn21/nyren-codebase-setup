@@ -6,6 +6,7 @@ class TFKeyword extends TokenTransformer {
     prevToken: CustomToken,
     nextToken: CustomToken
   ): CustomToken {
+    
     if (this.isValue(token)) {
       if (this.isKeyword(this.keywordType, this.valueToString(token.value))) {
         this.transform(token, token.value)

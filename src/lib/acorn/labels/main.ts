@@ -82,6 +82,7 @@ class Labels {
     this.rawToken.forEach((token: CustomToken, index: number) => {
       let cloneToken = utils.clone(token)
    //   cloneToken.value = Labels.replaceCR(cloneToken.value)
+     // console.log(cloneToken)
       this.discontinue(cloneToken)
       debug(utils.color.red('rawToken: ') + '%o', {
         label: token.type.label,
