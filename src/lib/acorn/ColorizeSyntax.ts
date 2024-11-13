@@ -16,22 +16,7 @@ import matchKeywords, {
   ThemeSchema,
 } from './schema-theme.js'
 class ColorizeSyntax {
-  readonly syntaxColorPair = {
-    keyword: colorType.purple,
-    operator: colorType.white,
-    punctuation: colorType.white,
-    constants: colorType.malibu,
-    string: colorType.green,
-    numbers: colorType.whiskey,
-    boolean: colorType.whiskey,
-    types: colorType.chalky,
-    typeAssertions: colorType.chalky,
-    variable: colorType.lightWhite,
-    object: colorType.lightWhite,
-    property: colorType.coral,
-    method: colorType.malibu,
-    other: colorType.lightDark,
-  } as const
+  
   isBold: boolean = false
   constructor(
     private theme: Themes,
@@ -39,7 +24,7 @@ class ColorizeSyntax {
   ) {}
   get bold() {
     this.isBold = true;
-    return this;
+    return this
   }
 
   on(keywordType: KeywordType, newResult: string, colorName?: string) {

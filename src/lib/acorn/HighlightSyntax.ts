@@ -15,7 +15,7 @@ class HighlightSyntax {
     const position = { currentLine: 1, currentColumn: 0 }
     this.tokens.forEach((token: CustomToken, index: number) => {
       const { label, keyword } = token.type
-      const val = token.value
+      const val = typeof token.value === 'string' ? token.value : (token.value.value as any)
       let prev: CustomToken | null = this.tokens[index - 1],
         prev2: CustomToken | null = this.tokens[index - 2]
       let next: CustomToken | null = this.tokens[index + 1],
@@ -36,7 +36,7 @@ class HighlightSyntax {
         case 'TsKeyword':
         case 'class':
           
-          collectData.on('keyword', val).bold
+          collectData.bold.on('keyword', val)
           break
         case 'variable':
         case 'name':
@@ -60,6 +60,9 @@ class HighlightSyntax {
           break
         case 'string':
           collectData.bold.on('string', val.replace(/$/, "'").replace(/^/, "'"))
+          break
+        case 'regexp':
+          collectData.on('regexp', val)
           break
         case 'operator':
           collectData.on('operator', val)
@@ -90,7 +93,7 @@ class HighlightSyntax {
     startLine: number,
     startColumn: number,
     position: { currentLine: number; currentColumn: number },
-    collectData: typeof ColorizeSyntax
+    collectData: ColorizeSyntax
   ) {
     // ตรวจสอบบรรทัดปัจจุบันกับบรรทัดที่ต้องการเริ่ม
     while (position.currentLine < startLine) {

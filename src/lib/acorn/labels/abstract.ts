@@ -37,10 +37,11 @@ export type KeywordType =
   | 'property'
   | 'method'
   | 'object'
-  | 'regex'
+  | 'regexp'
   | 'class'
   | 'interface'
   | 'typeAnnotation'
+  | 'other'
 
 abstract class TokenTransformer {
   abstract parse(
