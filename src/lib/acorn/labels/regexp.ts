@@ -14,7 +14,7 @@ class TFRegexp extends TokenTransformer {
     nextToken: CustomToken
   ): CustomToken {
     if (token.type.label === 'regexp') {
-      console.log('regexp',token)
+      
       if(typeof token.value !=='string'){
         //console.log('regexp',token)
         let pat = token.value.pattern.replace(/\[CR\]/g, '\r').replace(/\[FF\]/g, '\f').replace(/\[LF\]/g, '\n').replace(/\[TAB\]/g, '\t').replace(/\[BS\]/g, '\b').replace(/\[VT\]/g, '\v')

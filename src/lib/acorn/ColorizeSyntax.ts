@@ -27,6 +27,10 @@ class ColorizeSyntax {
     private hexColorsTheme: Themes,
     private result: Array<string>
   ) {}
+  get bold(){
+    this.isBold = true
+    return this
+  }
   private bulidColor(
     keywordType: KeywordType,
     colorName: string = 'lightDark'
@@ -42,7 +46,7 @@ class ColorizeSyntax {
       continue
     }
   }
-  on(keywordType: KeywordType = null, newResult: string, colorName?: string) {
+  on(keywordType: KeywordType , newResult: string, colorName?: string) {
     if (!keywordType && !newResult)
       throw new TypeError('keywordType and message is required')
     if (keywordType !== 'other' && colorName)

@@ -1,65 +1,30 @@
 import { supportsColorStderr, supportsColor, chalkStderr } from 'chalk'
+
+import { defaultTheme, ThemeSchema } from './schema-theme.js'
 export enum colorType {
-  chalky = 'chalky',
-  coral = 'coral',
+  white = 'white',
   dark = 'dark',
-  error = 'error',
-  fountainBlue = 'fountainBlue',
-  green = 'green',
-  invalid = 'invalid',
-  lightDark = 'lightDark',
-  lightWhite = 'lightWhite',
-  malibu = 'malibu',
   purple = 'purple',
-  whiskey = 'whiskey',
-  deepRed = 'deepRed',
+  yellow = 'yellow',
+  blue = 'blue',
+  green = 'green',
+  orange = 'orange',
+  red = 'red',
+  error = 'error',
 }
 
-const textColors = {
-  chalky: '#e5c07b',
-  coral: '#e06c75',
-  dark: '#5c6370',
-  error: '#f44747',
-  fountainBlue: '#56b6c2',
-  green: '#98c379',
-  invalid: '#ffffff',
-  lightDark: '#7f848e',
-  lightWhite: '#abb2bf',
-  malibu: '#61afef',
-  purple: '#c678dd',
-  whiskey: '#d19a66',
-  deepRed: '#BE5046',
-}
 class Themes {
-  textColors: typeof textColors = textColors
-  chalky!: ReturnType<typeof chalkStderr.hex>
-  chalkyB!: ReturnType<typeof chalkStderr.hex>
-  coral!: ReturnType<typeof chalkStderr.hex>
-  coralB!: ReturnType<typeof chalkStderr.hex>
-  dark!: ReturnType<typeof chalkStderr.hex>
-  darkB!: ReturnType<typeof chalkStderr.hex>
-  error!: ReturnType<typeof chalkStderr.hex>
-  errorB!: ReturnType<typeof chalkStderr.hex>
-  fountainBlue!: ReturnType<typeof chalkStderr.hex>
-  fountainBlueB!: ReturnType<typeof chalkStderr.hex>
-  green!: ReturnType<typeof chalkStderr.hex>
-  greenB!: ReturnType<typeof chalkStderr.hex>
-  invalid!: ReturnType<typeof chalkStderr.hex>
-  invalidB!: ReturnType<typeof chalkStderr.hex>
-  lightDark!: ReturnType<typeof chalkStderr.hex>
-  lightDarkB!: ReturnType<typeof chalkStderr.hex>
-  lightWhite!: ReturnType<typeof chalkStderr.hex>
-  lightWhiteB!: ReturnType<typeof chalkStderr.hex>
-  malibu!: ReturnType<typeof chalkStderr.hex>
-  malibuB!: ReturnType<typeof chalkStderr.hex>
-  purple!: ReturnType<typeof chalkStderr.hex>
-  purpleB!: ReturnType<typeof chalkStderr.hex>
-  whiskey!: ReturnType<typeof chalkStderr.hex>
-  whiskeyB!: ReturnType<typeof chalkStderr.hex>
-  deepRed!: ReturnType<typeof chalkStderr.hex>
-  deepRedB!: ReturnType<typeof chalkStderr.hex>
-  constructor() {
-    for (const [colorName, hexColor] of Object.entries(this.textColors)) {
+  constructor(private schemaTheme: ThemeSchema) {
+    this.validate()
+    this.build()
+  }
+  get() {
+    return this
+  }
+  private build() {
+    for (const [colorName, hexColor] of Object.entries(
+      this.schemaTheme.colors
+    )) {
       ;(this as any)[colorName] = chalkStderr.hex(hexColor as string).visible
       ;(this as any)[colorName + 'B'] = chalkStderr.hex(
         hexColor as string
@@ -68,6 +33,50 @@ class Themes {
 
     return this
   }
+
+  private validate(): void | undefined | Error {
+    if (this.schemaTheme === undefined) this.schemaTheme = defaultTheme
+    if (this.schemaTheme.name === 'Nyren Pro') {
+      return
+    } else {
+      if (this.schemaTheme.isDefault)
+        throw new Error(
+          "The 'isDefault' property is reserved and cannot be set by the user. Please remove or avoid modifying this property."
+        )
+      if (!this.schemaTheme.colors) {
+        throw new TypeError('colors is required')
+      } else {
+        for (const [colorName, hexColor] of Object.entries(
+          this.schemaTheme.colors
+        )) {
+          if (!(colorName in colorType))
+            throw new TypeError(`${colorName} is not a valid color type`)
+
+          if (!hexColor) throw new TypeError('hexColor is required')
+          if (!/^#[0-9a-fA-F]{6}$/.test(hexColor))
+            throw new TypeError('hexColor must be 7 characters including #')
+        }
+      }
+    }
+  }
+  white!: ReturnType<typeof chalkStderr.hex>
+  whiteB!: ReturnType<typeof chalkStderr.hex>
+  dark!: ReturnType<typeof chalkStderr.hex>
+  darkB!: ReturnType<typeof chalkStderr.hex>
+  purple!: ReturnType<typeof chalkStderr.hex>
+  purpleB!: ReturnType<typeof chalkStderr.hex>
+  yellow!: ReturnType<typeof chalkStderr.hex>
+  yellowB!: ReturnType<typeof chalkStderr.hex>
+  blue!: ReturnType<typeof chalkStderr.hex>
+  blueB!: ReturnType<typeof chalkStderr.hex>
+  green!: ReturnType<typeof chalkStderr.hex>
+  greenB!: ReturnType<typeof chalkStderr.hex>
+  orange!: ReturnType<typeof chalkStderr.hex>
+  orangeB!: ReturnType<typeof chalkStderr.hex>
+  red!: ReturnType<typeof chalkStderr.hex>
+  redB!: ReturnType<typeof chalkStderr.hex>
+  error!: ReturnType<typeof chalkStderr.hex>
+  errorB!: ReturnType<typeof chalkStderr.hex>
 }
 const color = chalkStderr
 const EvaDark = {

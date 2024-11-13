@@ -1,4 +1,5 @@
 import { keywordTypes as kwTypes, AddKeywordTypes } from './main.js'
+import {keywordAnyTypes, JSKeywordTypes, TSKeywordTypes} from './schema-keywordType.js'
 /** 
 •	beforeExpr: ตัวแปรนี้บอกว่า token นี้สามารถอยู่ก่อน expression หรือไม่ สำหรับ regexp จะเป็น false เพราะไม่สามารถอยู่ก่อน expression ได้
 •	startsExpr: บอกว่า token นี้เป็นการเริ่มต้นของ expression หรือไม่ ในกรณีนี้ true หมายความว่า regexp สามารถเริ่มต้น expression ได้

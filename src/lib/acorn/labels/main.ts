@@ -4,7 +4,6 @@ import ColorizeSyntax, { type KeywordType } from '../ColorizeSyntax.js'
 import kwTypes from '../keywordTypes.js'
 import utils from '../../utils/main.js'
 
-
 import createDebug from 'debug'
 /**
  *@ interface SyntaxHighlight 
@@ -66,17 +65,12 @@ class Labels {
     this.transformer = new CompositeTransformer()
   }
   build() {
-    let currentLine = 1
-    let currentColumn = 0
-    let keysword = [...this.kwTypes.getKeys()]
-    const keywordType = this.kwTypes.emit()
-    let isCustomtolen = false
 
     debug(utils.color.white('<<<===Parses Token===>>>'))
     this.rawToken.forEach((token: CustomToken, index: number) => {
       let cloneToken = utils.clone(token)
-   //   cloneToken.value = Labels.replaceCR(cloneToken.value)
-     // console.log(cloneToken)
+      //   cloneToken.value = Labels.replaceCR(cloneToken.value)
+      // console.log(cloneToken)
       this.discontinue(cloneToken)
       debug(utils.color.red('rawToken: ') + '%o', {
         label: token.type.label,
@@ -91,20 +85,18 @@ class Labels {
         this.prevToken,
         this.nextToken
       )
-      
+
       this.result.push(cloneToken)
     })
-    
   }
 
-  discontinue(token: CustomToken){
-    delete token.type.isLoop
+  discontinue(token: any) {
+    delete token.type.isLoop 
     delete token.type.binop
     delete token.type.prefix
     delete token.type.postfix
     delete token.type.updateContext
   }
-  
 }
 
 import TFKeyword from './keywords.js'
@@ -118,65 +110,26 @@ class CompositeTransformer {
   private transformers: any[] = []
 
   constructor() {
-    // เพิ่มคลาสย่อยที่ต้องการใช้
     this.transformers.push(new TFKeyword())
     this.transformers.push(new TFName())
     this.transformers.push(new TFNumbers())
-   this.transformers.push(new TFString())
+    this.transformers.push(new TFString())
     this.transformers.push(new TFTemplate())
     this.transformers.push(new TFRegexp())
     this.transformers.push(new TFOperators())
   }
-  
-  
+
   pasesToken(
     token: CustomToken,
     prevToken: CustomToken | null,
     nextToken: CustomToken
   ): CustomToken {
-    const walk = walkToken(token, this.transformers)
-  //  token = walk.next().value.parse(token, prevToken, nextToken)
-    //console.log(token)
-   // return
     for (const transformer of this.transformers) {
       token = transformer.parse(token, prevToken, nextToken)
     }
-    
+
     return token
   }
 }
-function* walkToken(token: CustomToken,tf ){
-  if(token.type.label === 'name'){
-    
-    yield new TFKeyword()
-  }else if(token.type.label === 'num'){
-    yield new TFNumbers()
-  } else if(token.type.label === 'string'){
-     
-    yield new TFString()
-  }else if(token.type.label === 'template'){
-    yield new TFTemplate()
-  }else {
-    for(const transformer of tf){
-      yield transformer
-      return 
-    }
-  }
-    
-}
-// class Labels {
-//   private transformer: CompositeTransformer;
 
-//   constructor() {
-//     this.transformer = new CompositeTransformer();
-//   }
-
-//   build() {
-//     this.rawToken.forEach((token: CustomToken) => {
-//       // ใช้ CompositeTransformer เพื่อแปลง token
-//       token = this.transformer.transform(token);
-//       this.result.push(token);
-//     });
-//   }
-// }
 export default Labels

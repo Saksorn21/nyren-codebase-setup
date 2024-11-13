@@ -22,6 +22,14 @@ export const javascriptES6AndBeyondKeywords = [
   "const", "let", "class", "extends", "import", "export", "super", "yield", "default", "function*",
   "async", "await", "promise", "symbol"
 ];
-const keywordTypes = [...javascriptAdditionalKeywords]
 
 const set: Set<string> = new Set<string>()
+let keywordAnyTypes: Array<string>, JSKeywordTypes: Array<string>, TSKeywordTypes: Array<string>
+  
+  for (const keyword of [...typescriptReservedWords, ...javascriptAdditionalKeywords, ...javascriptES6AndBeyondKeywords]) {
+    set.add(keyword)
+  }
+keywordAnyTypes = [...set]
+JSKeywordTypes = [...javascriptAdditionalKeywords, ...javascriptES6AndBeyondKeywords]
+TSKeywordTypes = typescriptReservedWords
+export { keywordAnyTypes, JSKeywordTypes, TSKeywordTypes}
