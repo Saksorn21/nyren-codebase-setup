@@ -46,20 +46,19 @@ const modifyStderr = (stderr: typeof process.stderr) =>
       allowHashBang: true,
       allowReserved: true,
       allowAwaitOutsideFunction: true,
-      onInsertedSemicolon: (lastTokEnd: number, lastTokEndLoc) =>
-        console.log(lastTokEnd, lastTokEndLoc),
+      
     }
     const code = `
     const fn = (msg: string) => console.log('Hello,' + msg)
     fn('nyren')
-    const x = /\r/
+    const x =. \n
     
       
     }
   `
     
     try {
-      const codeWithPlaceholders = code.replace(/\r/g, '[CR]').replace(/\t/g, '[TAB]').replace(/\f/g, '[FF]').replace(/\v/g, '[VT]').replace(/\a/g, '[A]')
+      const codeWithPlaceholders = code.replace(/\r/g, '[CR]').replace(/\t/g, '[TAB]').replace(/\f/g, '[FF]').replace(/\v/g, '[VT]')
       const tokens = 
         [...parseCode.tokenizer(codeWithPlaceholders, optionsAcorn)]
       // as SyntaxHighlight[]
@@ -406,7 +405,7 @@ const atPath = (path: string) => {
     const line = color.chalk.yellow(parseInt(match[3]))
     const column = color.chalk.yellow(parseInt(match[4]))
 
-    return `    as ${color.chalk.cyan(`${method} ${filePath}:${line}:${column}\n`)}`
+    return `    at ${color.chalk.cyan(`${method} ${filePath}:${line}:${column}\n`)}`
   }
 
   return ''

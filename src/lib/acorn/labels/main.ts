@@ -4,13 +4,7 @@ import ColorizeSyntax, { type KeywordType } from '../ColorizeSyntax.js'
 import kwTypes from '../keywordTypes.js'
 import utils from '../../utils/main.js'
 
-export function onDebug(namespace: string = 'nyren:*') {
-  console.log('onDebug is called')
-  if (!process.env.DEBUG) {
-    process.env.DEBUG = namespace
-  }
-}
-onDebug()
+
 import createDebug from 'debug'
 /**
  *@ interface SyntaxHighlight 
@@ -102,7 +96,6 @@ class Labels {
     })
     
   }
-  onDebug = onDebug
 
   discontinue(token: CustomToken){
     delete token.type.isLoop

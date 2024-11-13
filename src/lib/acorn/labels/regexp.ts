@@ -1,5 +1,12 @@
 import TokenTransformer, { KeywordType, CustomToken } from './abstract.js'
-
+const escapeControlCharacters = (str: String) =>
+  str
+    .replace(/\\/g, '\\\\') // แทนที่ backslash (\\) ให้เป็น \\\\
+    .replace(/\n/g, '\\n') // แทนที่ newline ให้เป็น \\n
+    .replace(/\r/g, '\\r') // แทนที่ carriage return ให้เป็น \\r
+    .replace(/\t/g, '\\t') // แทนที่ tab ให้เป็น \\t
+    .replace(/\x08/g, '\\b') // ใช้ \\x08 เพื่อระบุ backspace ตัวจริง
+    .replace(/\f/g, '\\f') // แทนที่ form feed ให้เป็น \\f
 class TFRegexp extends TokenTransformer {
   parse(
     token: CustomToken,
@@ -10,8 +17,8 @@ class TFRegexp extends TokenTransformer {
       console.log('regexp',token)
       if(typeof token.value !=='string'){
         //console.log('regexp',token)
-        //token.value.pat.replace(/\[CR\]/g, '\r')
-      //  token.value = '/' +token.value.pattern + '/' + token.value.flags
+        let pat = token.value.pattern.replace(/\[CR\]/g, '\r').replace(/\[FF\]/g, '\f').replace(/\[LF\]/g, '\n').replace(/\[TAB\]/g, '\t').replace(/\[BS\]/g, '\b').replace(/\[VT\]/g, '\v')
+        token.value = new RegExp(escapeControlCharacters(pat), token.value.flags) as any
         }
       
         this.transform(token, 'regexp')
