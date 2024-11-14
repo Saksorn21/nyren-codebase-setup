@@ -41,6 +41,7 @@ export type KeywordType =
   | 'class'
   | 'privateId'
   | 'typeAnnotation'
+  | 'error'
   | 'other'
 
 abstract class TokenTransformer {

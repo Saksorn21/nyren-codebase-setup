@@ -29,9 +29,11 @@ class HighlightSyntax {
       const collectMap = this.collectMap(collectData,val,prev?.type.label)
 
       if (collectMap.has(label)) {
+        if(val === '^') return collectData.bold.on('error', val);
         
         collectMap.get(label)?.();
       } else {
+        
         collectData.bold.on('other', val);
       }
       

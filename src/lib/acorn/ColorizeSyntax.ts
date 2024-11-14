@@ -50,6 +50,7 @@ class ColorizeSyntax {
       const color: ColorType = _color as ColorType;
       if (arr.includes(keyword)) {
         const themeColor = this.isBold ? (this.theme as any)[color + 'B'] : this.theme[color];
+        if(keyword === 'error') return themeColor.overline
         this.isBold = false; // Reset `isBold` here after usage in `parse`
         return themeColor;
       }
