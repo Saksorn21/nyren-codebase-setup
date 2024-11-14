@@ -25,59 +25,62 @@ const colors = new Themes()
 
 let keywordTypes = kwTypes.emit()
 
-                  const modifyStderr = (stderr: typeof process.stderr) =>
-                    stderr.on('data', data => {
-                      const rawData = data.toString(); 
-                      console.log('Raw Data:', rawData.replace(/\n/g, '[CR]\n')); // แสดงข้อมูลที่มี newline
+const modifyStderr = (stderr: typeof process.stderr) =>
+  stderr.on('data', data => {
+    const rawData = data.toString()
+    // แสดงข้อมูลที่มี newline
 
-                      const lines = clearAnsiCodes(rawData).split('\n'); // แยกข้อมูลเป็นบรรทัดหลังลบ ANSI codes
-                      console.log('Cleaned Lines:', lines);
+    const lines = clearAnsiCodes(rawData).split('\n') // แยกข้อมูลเป็นบรรทัดหลังลบ ANSI codes
+    
 
-                      let currentErrorBlock: { line: string; index: number }[] = []; // เก็บบล็อกข้อมูลแต่ละชุดพร้อมตำแหน่ง
-                      let collecting = false; // ติดตามสถานะการรวบรวมข้อมูลของชุด
-                      const allBlocks: { block: { line: string; index: number }[] }[] = []; // เก็บบล็อกข้อมูลทั้งหมด
+    let currentErrorBlock: { line: string; index: number }[] = [] // เก็บบล็อกข้อมูลแต่ละชุดพร้อมตำแหน่ง
+    let collecting = false // ติดตามสถานะการรวบรวมข้อมูลของชุด
+    const allBlocks: { block: { line: string; index: number }[] }[] = [] // เก็บบล็อกข้อมูลทั้งหมด
 
-                      lines.forEach((line, index) => {
-                        const errorTypeMatch = line.match(/(?:^|\s)(error|[a-zA-Z]+)(?=:)/); // จับประเภทข้อผิดพลาด
+    lines.forEach((line, index) => {
+      const errorTypeMatch = line.match(/(?:^|\s)(error|[a-zA-Z]+)(?=:)/) // จับประเภทข้อผิดพลาด
 
-                        if (errorTypeMatch && errorTypes.includes(errorTypeMatch[0])) {
-                          // เมื่อพบประเภทข้อผิดพลาดใหม่ เริ่มต้นบล็อกข้อมูลใหม่
-                          if (collecting && currentErrorBlock.length > 0) {
-                            allBlocks.push({ block: [...currentErrorBlock] }); // บันทึกบล็อกข้อมูลชุดก่อนหน้า
-                            currentErrorBlock = []; // รีเซ็ตบล็อกข้อมูลสำหรับชุดถัดไป
-                          }
+      if (errorTypeMatch && errorTypes.includes(errorTypeMatch[0])) {
+        // เมื่อพบประเภทข้อผิดพลาดใหม่ เริ่มต้นบล็อกข้อมูลใหม่
+        if (collecting && currentErrorBlock.length > 0) {
+          allBlocks.push({ block: [...currentErrorBlock] }) // บันทึกบล็อกข้อมูลชุดก่อนหน้า
+          currentErrorBlock = [] // รีเซ็ตบล็อกข้อมูลสำหรับชุดถัดไป
+        }
 
-                          collecting = true; // เริ่มการรวบรวมข้อมูลสำหรับชุดใหม่
-                          currentErrorBlock.push({ line, index }); // เพิ่มบรรทัดประเภทข้อผิดพลาดในบล็อกข้อมูลพร้อมตำแหน่ง
-                        } else if (collecting && line.includes('at ')) {
-                          // เมื่อเจอบรรทัดที่มี 'at path' ในขณะที่กำลังรวบรวมข้อมูลอยู่
-                          currentErrorBlock.push({ line, index }); // เพิ่มบรรทัดนี้ในบล็อกข้อมูลพร้อมตำแหน่ง
-                          allBlocks.push({ block: [...currentErrorBlock] }); // บันทึกบล็อกข้อมูลชุดที่สมบูรณ์
-                          currentErrorBlock = []; // รีเซ็ตบล็อกข้อมูลสำหรับชุดถัดไป
-                          collecting = false; // จบการรวบรวมสำหรับชุดนี้
-                        } else if (collecting) {
-                          // เพิ่มบรรทัดในบล็อกข้อมูลตราบเท่าที่ยังไม่เจอ 'at path'
-                          currentErrorBlock.push({ line, index });
-                        }
-                      });
+        collecting = true // เริ่มการรวบรวมข้อมูลสำหรับชุดใหม่
+        currentErrorBlock.push({ line, index }) // เพิ่มบรรทัดประเภทข้อผิดพลาดในบล็อกข้อมูลพร้อมตำแหน่ง
+        lines[index] = 'markErrorType'
+      } else if (collecting && line.includes('at ')) {
+        // เมื่อเจอบรรทัดที่มี 'at path' ในขณะที่กำลังรวบรวมข้อมูลอยู่
+        currentErrorBlock.push({ line, index }) // เพิ่มบรรทัดนี้ในบล็อกข้อมูลพร้อมตำแหน่ง
+        allBlocks.push({ block: [...currentErrorBlock] }) // บันทึกบล็อกข้อมูลชุดที่สมบูรณ์m
+        lines[index] = 'markAt pPath'
+        currentErrorBlock = [] // รีเซ็ตบล็อกข้อมูลสำหรับชุดถัดไป
+        collecting = false // จบการรวบรวมสำหรับชุดนี้
+      } else if (collecting) {
+        // เพิ่มบรรทัดในบล็อกข้อมูลตราบเท่าที่ยังไม่เจอ 'at path'
+        currentErrorBlock.push({ line, index })
+        lines[index] = 'mark at pathnnnn'
+      }
+    })
 
-                      // บันทึกบล็อกข้อมูลสุดท้ายที่อาจไม่มี 'at path' ในตอนท้าย
-                      if (currentErrorBlock.length > 0) {
-                        allBlocks.push({ block: [...currentErrorBlock] });
-                      }
+    // บันทึกบล็อกข้อมูลสุดท้ายที่อาจไม่มี 'at path' ในตอนท้าย
+    if (currentErrorBlock.length > 0) {
+      allBlocks.push({ block: [...currentErrorBlock] })
+    }
 
-                      // แสดงบล็อกข้อมูลแต่ละชุด
-                      allBlocks.forEach((blockObj, blockIndex) => {
-                        console.log(`Error Block ${blockIndex + 1}:`);
-                        blockObj.block.forEach(({ line, index }) => {
-                          console.log(`Index ${index}: ${line}`);
-                        });
-                      });
-                    
-    //console.log(tokTypes)
+    // แสดงบล็อกข้อมูลแต่ละชุด
+    allBlocks.forEach((blockObj, blockIndex) => {
+      console.log(`Error Block ${blockIndex + 1}:`)
+      blockObj.block.forEach(({ line, index }) => {
+        console.log(`Indexp ${index}: ${line}`)
+      })
+    })
+if( line.includes('bb'
+    //console.log(lines)
     //str = str.join('\n')
     //console.log(str)
-return
+    
     const optionsAcorn: Options = {
       ecmaVersion: 'latest',
       sourceType: 'module',
@@ -87,7 +90,6 @@ return
       allowHashBang: true,
       allowReserved: true,
       allowAwaitOutsideFunction: true,
-      
     }
     const code = `
     class Sos {
@@ -102,17 +104,19 @@ return
     
     }
   `
-    
+
     try {
-      const codeWithPlaceholders = code.replace(/\r/g, '[CR]').replace(/\t/g, '[TAB]').replace(/\f/g, '[FF]').replace(/\v/g, '[VT]')
-      const tokens = 
-        [...parseCode.tokenizer(str, optionsAcorn)]
+      const codeWithPlaceholders = code
+        .replace(/\r/g, '[CR]')
+        .replace(/\t/g, '[TAB]')
+        .replace(/\f/g, '[FF]')
+        .replace(/\v/g, '[VT]')
+      const tokens = [...parseCode.tokenizer(lines.join('\n'), optionsAcorn)]
       // as SyntaxHighlight[]
       // const ast = full(parseCode.parse(code,optionsAcorn), node => console.log(node))
-     // console.log(tokens)
+      // console.log(tokens)
       // สร้าง token iterator
-      
-      
+
       const labels = new Labels(tokens)
       labels.build()
       labels.debug(color.white('<<<===HighLight Syntax===>>>'))
@@ -142,7 +146,7 @@ return
         })
         str = override.join(' ')
       })
-      console.log('error',str)
+      console.log('error', str)
     }
 
     // console.log(str.join('\n'))
@@ -185,19 +189,19 @@ const highlightSyntax = (ast: SyntaxHighlight[]) => {
   let keyword = [...kwTypes.getKeys()]
   let prevToken: SyntaxHighlight | null = null
   // ast.map(item => console.log(item))
-console.log('true highlight')
+  console.log('true highlight')
   const highlight = new HighlightSyntax(ast)
 
   highlight.parse()
- // console.log(highlight.result)
-  outputSyntax.push(
-                    ...highlight.result)
-  
+  // console.log(highlight.result)
+  outputSyntax.push(...highlight.result)
 
-  
   errorMessageAndPaths(outputSyntax)
 }
-const handledKeywordTypes = (token: SyntaxHighlight, outputSyntax: Array<string>) => {
+const handledKeywordTypes = (
+  token: SyntaxHighlight,
+  outputSyntax: Array<string>
+) => {
   //console.log(token)
   const type = keywordTypes[token.value]
   outputSyntax.isBold = true
@@ -233,7 +237,10 @@ const errorMessageAndPaths = (outputSyntax: Array<string>) => {
 
   str.forEach((item, index) => {
     // ตรวจจับเฉพาะ "error:" และทำสีโดยไม่กระทบสีที่ทำไฮไลต์ไว้
-    if (item.includes(clearAnsiCodes('error')) || item.includes(clearAnsiCodes('TypeError'))) {
+    if (
+      item.includes(clearAnsiCodes('error')) ||
+      item.includes(clearAnsiCodes('TypeError'))
+    ) {
       const override = clearAnsiCodes(item).split(':') // ใช้ clearAnsiCodes แค่กับส่วนที่เป็น "error:"
       str[index] =
         color.hex('#F44747')(override[0]) +
