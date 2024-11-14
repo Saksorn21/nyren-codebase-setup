@@ -49,11 +49,14 @@ const modifyStderr = (stderr: typeof process.stderr) =>
       
     }
     const code = `
-    const fn = (msg: string) => console.log('Hello,' + msg)
-    fn('nyren')
-    const x =. \n
+    class Sos {
+    static boat(n: number){
+    return n
+    }
+    public age: number = 21
+    private readonly jan: string = 'jan'
+    #home: string = 'home'
     
-      
     }
   `
     

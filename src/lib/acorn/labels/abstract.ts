@@ -29,7 +29,7 @@ export type KeywordType =
   | 'constants'
   | 'comment'
   | 'string'
-  | 'numbers'
+  | 'number'
   | 'boolean'
   | 'types'
   | 'typeAssertion'
@@ -39,7 +39,7 @@ export type KeywordType =
   | 'object'
   | 'regexp'
   | 'class'
-  | 'interface'
+  | 'privateId'
   | 'typeAnnotation'
   | 'other'
 
@@ -54,6 +54,7 @@ abstract class TokenTransformer {
     // สามารถใช้การแปลงที่เหมือนกันในหลายๆ คลาสลูก
 
     const value = this.valueToString(token.value)
+    console.log(value)
     const kwType = keywordTypes.emit()[value]
     if (kwType && this.isKeyword(keywordTypes, value)) {
       if (token.type.label === 'class') {
@@ -131,7 +132,8 @@ abstract class TokenTransformer {
   valueToString(value: string | CustomRegExp): string {
     if (typeof value === 'string') return value
     else if (typeof value === 'object') return value.pattern
-    else return ''
+      else if (typeof value === 'number') return value
+    else  return ''
   }
 }
 export default TokenTransformer

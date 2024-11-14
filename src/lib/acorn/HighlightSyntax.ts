@@ -15,7 +15,7 @@ class HighlightSyntax {
     const position = { currentLine: 1, currentColumn: 0 }
     this.tokens.forEach((token: CustomToken, index: number) => {
       const { label, keyword } = token.type
-      const val = typeof token.value === 'string' ? token.value : (token.value.value as any)
+      const val = typeof token.value === 'string' ? token.value : typeof token.value === 'number' ? token.value : (token.value.value as any)
       let prev: CustomToken | null = this.tokens[index - 1],
         prev2: CustomToken | null = this.tokens[index - 2]
       let next: CustomToken | null = this.tokens[index + 1],
@@ -53,7 +53,8 @@ class HighlightSyntax {
           collectData.on('property', val)
           break
         case 'number':
-          collectData.on('numbers', val)
+          console.log('num', token)
+          collectData.on('number', val)
           break
         case 'boolean':
           collectData.on('boolean', val)
@@ -76,6 +77,9 @@ class HighlightSyntax {
         case 'typeAnnotation':
         case 'types':
           collectData.on('types', val)
+          break
+          case 'privateId':
+          collectData.on('privateId', val)
           break
         default:
           collectData.on('other', val)

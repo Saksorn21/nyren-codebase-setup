@@ -8,6 +8,7 @@ class TFNumbers extends TokenTransformer {
   ): CustomToken {
     if (token.type.label === 'num') {
       if (token.start !== 0 && token.loc?.start.column !== 0) {
+        
         this.transform(token, 'number')
       }
     }

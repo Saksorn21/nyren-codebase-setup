@@ -49,7 +49,7 @@ const matchIncludes: ColorSchema<Array<string>>  = {
   blue: ['functions', 'method', ],
   green: ['string', 'literals', 'regexp'],
   orange: ['property', 'constants', 'number', 'boolean'],
-  red: ['errors', 'highlights'],
+  red: ['errors', 'privateId'],
   error: ['invalid'],
 }
 export default matchIncludes
