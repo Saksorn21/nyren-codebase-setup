@@ -57,7 +57,7 @@ class TFName extends TokenTransformer {
             this.transform(token, 'typeAnnotation')
           }
         }
-        const { label: nextLabel } = nextToken.type
+        const { label: nextLabel } = nextToken?.type
 
         if (
           prevLabel !== ':' &&

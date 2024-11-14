@@ -42,7 +42,7 @@ class HighlightSyntax {
       prev = token
     })
     
-    ;(collectData.emit('array') as string[])()
+
     this.result = collectData.emit() as Array<string>
   }
   whileLineAndColumn(

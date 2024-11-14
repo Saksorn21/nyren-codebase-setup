@@ -1,5 +1,5 @@
 const errorTypes: Array<string> = [
-    "Error",
+    "error",
     "TypeError",
     "SyntaxError",
     "ReferenceError",

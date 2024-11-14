@@ -20,23 +20,39 @@ import clone from './clone.js'
 import Themes, { colorType } from '../acorn/Themes.js'
 import ColorizeSyntax, { type KeywordType } from '../acorn/ColorizeSyntax.js'
 import kwTypes from '../acorn/keywordTypes.js'
+import errorTypes from '../acorn/errorType.js'
 const colors = new Themes()
 
 let keywordTypes = kwTypes.emit()
 
-const modifyStderr = (stderr: typeof process.stderr) =>
-  stderr.on('data', data => {
-    let str = data.toString().split('\n')
-    let cloneData = clone(str)
-    str.forEach((item: string, index: number) => {
-      if (item.includes('Bun')) {
-        str.splice(index, str.length)
-      }
-    })
-    //console.log(tokTypes)
-    str = str.join('\n')
-    //console.log(str)
+          const modifyStderr = (stderr: typeof process.stderr) =>
+            stderr.on('data', data => {
+              const rawData = data.toString(); 
+              console.log('Raw Data:', rawData.replace(/\n/g, '[CR]\n')); // แสดงข้อมูลที่มี newline
 
+              const lines = clearAnsiCodes(rawData).split('\n'); // แยกข้อมูลเป็นบรรทัดหลังลบ ANSI codes
+              console.log('Cleaned Lines:', lines);
+
+              lines.forEach((line, index) => {
+                const match = line.match(/(?:^|\s)(error|[a-zA-Z]+)(?=:)/); // จับประเภทข้อผิดพลาดในแต่ละบรรทัด
+
+                if (match) {
+                  console.log(`Line ${index + 1} - Match:`, match[0].replace(/\n/g, '[CR]').replace(/\r/g, '[CR]').replace(/\t/g, '[TAB]').replace(/\f/g, '[FF]').replace(/\v/g, '[VT]'));
+
+                  if (errorTypes.includes(match[0])) {
+                    console.log('Detected Error Type:', match[0], 'in line:', line);
+                  }else console.log(match[0])
+                } else {
+                  console.log(`Line ${index + 1} - No match found`);
+                }
+              });
+            
+        
+      
+    //console.log(tokTypes)
+    //str = str.join('\n')
+    //console.log(str)
+return
     const optionsAcorn: Options = {
       ecmaVersion: 'latest',
       sourceType: 'module',
