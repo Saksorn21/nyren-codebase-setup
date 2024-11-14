@@ -25,30 +25,55 @@ const colors = new Themes()
 
 let keywordTypes = kwTypes.emit()
 
-          const modifyStderr = (stderr: typeof process.stderr) =>
-            stderr.on('data', data => {
-              const rawData = data.toString(); 
-              console.log('Raw Data:', rawData.replace(/\n/g, '[CR]\n')); // แสดงข้อมูลที่มี newline
+                  const modifyStderr = (stderr: typeof process.stderr) =>
+                    stderr.on('data', data => {
+                      const rawData = data.toString(); 
+                      console.log('Raw Data:', rawData.replace(/\n/g, '[CR]\n')); // แสดงข้อมูลที่มี newline
 
-              const lines = clearAnsiCodes(rawData).split('\n'); // แยกข้อมูลเป็นบรรทัดหลังลบ ANSI codes
-              console.log('Cleaned Lines:', lines);
+                      const lines = clearAnsiCodes(rawData).split('\n'); // แยกข้อมูลเป็นบรรทัดหลังลบ ANSI codes
+                      console.log('Cleaned Lines:', lines);
 
-              lines.forEach((line, index) => {
-                const match = line.match(/(?:^|\s)(error|[a-zA-Z]+)(?=:)/); // จับประเภทข้อผิดพลาดในแต่ละบรรทัด
+                      let currentErrorBlock: { line: string; index: number }[] = []; // เก็บบล็อกข้อมูลแต่ละชุดพร้อมตำแหน่ง
+                      let collecting = false; // ติดตามสถานะการรวบรวมข้อมูลของชุด
+                      const allBlocks: { block: { line: string; index: number }[] }[] = []; // เก็บบล็อกข้อมูลทั้งหมด
 
-                if (match) {
-                  console.log(`Line ${index + 1} - Match:`, match[0].replace(/\n/g, '[CR]').replace(/\r/g, '[CR]').replace(/\t/g, '[TAB]').replace(/\f/g, '[FF]').replace(/\v/g, '[VT]'));
+                      lines.forEach((line, index) => {
+                        const errorTypeMatch = line.match(/(?:^|\s)(error|[a-zA-Z]+)(?=:)/); // จับประเภทข้อผิดพลาด
 
-                  if (errorTypes.includes(match[0])) {
-                    console.log('Detected Error Type:', match[0], 'in line:', line);
-                  }else console.log(match[0])
-                } else {
-                  console.log(`Line ${index + 1} - No match found`);
-                }
-              });
-            
-        
-      
+                        if (errorTypeMatch && errorTypes.includes(errorTypeMatch[0])) {
+                          // เมื่อพบประเภทข้อผิดพลาดใหม่ เริ่มต้นบล็อกข้อมูลใหม่
+                          if (collecting && currentErrorBlock.length > 0) {
+                            allBlocks.push({ block: [...currentErrorBlock] }); // บันทึกบล็อกข้อมูลชุดก่อนหน้า
+                            currentErrorBlock = []; // รีเซ็ตบล็อกข้อมูลสำหรับชุดถัดไป
+                          }
+
+                          collecting = true; // เริ่มการรวบรวมข้อมูลสำหรับชุดใหม่
+                          currentErrorBlock.push({ line, index }); // เพิ่มบรรทัดประเภทข้อผิดพลาดในบล็อกข้อมูลพร้อมตำแหน่ง
+                        } else if (collecting && line.includes('at ')) {
+                          // เมื่อเจอบรรทัดที่มี 'at path' ในขณะที่กำลังรวบรวมข้อมูลอยู่
+                          currentErrorBlock.push({ line, index }); // เพิ่มบรรทัดนี้ในบล็อกข้อมูลพร้อมตำแหน่ง
+                          allBlocks.push({ block: [...currentErrorBlock] }); // บันทึกบล็อกข้อมูลชุดที่สมบูรณ์
+                          currentErrorBlock = []; // รีเซ็ตบล็อกข้อมูลสำหรับชุดถัดไป
+                          collecting = false; // จบการรวบรวมสำหรับชุดนี้
+                        } else if (collecting) {
+                          // เพิ่มบรรทัดในบล็อกข้อมูลตราบเท่าที่ยังไม่เจอ 'at path'
+                          currentErrorBlock.push({ line, index });
+                        }
+                      });
+
+                      // บันทึกบล็อกข้อมูลสุดท้ายที่อาจไม่มี 'at path' ในตอนท้าย
+                      if (currentErrorBlock.length > 0) {
+                        allBlocks.push({ block: [...currentErrorBlock] });
+                      }
+
+                      // แสดงบล็อกข้อมูลแต่ละชุด
+                      allBlocks.forEach((blockObj, blockIndex) => {
+                        console.log(`Error Block ${blockIndex + 1}:`);
+                        blockObj.block.forEach(({ line, index }) => {
+                          console.log(`Index ${index}: ${line}`);
+                        });
+                      });
+                    
     //console.log(tokTypes)
     //str = str.join('\n')
     //console.log(str)
