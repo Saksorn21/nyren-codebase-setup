@@ -1,1 +1,1 @@
-const p
+const p = 'ness'{

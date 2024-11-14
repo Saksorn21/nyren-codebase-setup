@@ -29,8 +29,8 @@ export type KeywordType =
   | 'constants'
   | 'comment'
   | 'string'
-  | 'number'
-  | 'boolean'
+  | 'TFnumber'
+  | 'TFboolean'
   | 'types'
   | 'typeAssertion'
   | 'variable'
@@ -51,10 +51,9 @@ abstract class TokenTransformer {
   ): CustomToken
   debug = createDebug('nyren:parse')
   transform(token: CustomToken, keyword: string): CustomToken {
-    // สามารถใช้การแปลงที่เหมือนกันในหลายๆ คลาสลูก
 
     const value = this.valueToString(token.value)
-    console.log(value)
+    
     const kwType = keywordTypes.emit()[value]
     if (kwType && this.isKeyword(keywordTypes, value)) {
       if (token.type.label === 'class') {

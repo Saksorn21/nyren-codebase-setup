@@ -48,7 +48,7 @@ const matchIncludes: ColorSchema<Array<string>>  = {
   yellow: ['classes', 'typeAnnotation','types'],
   blue: ['functions', 'method', ],
   green: ['string', 'literals', 'regexp'],
-  orange: ['property', 'constants', 'number', 'boolean'],
+  orange: ['property', 'constants', 'TFnumber', 'TFboolean'],
   red: ['errors', 'privateId'],
   error: ['invalid'],
 }

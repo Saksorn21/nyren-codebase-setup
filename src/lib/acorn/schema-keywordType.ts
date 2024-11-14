@@ -15,7 +15,7 @@ export const javascriptAdditionalKeywords = [
   "if", "else", "for", "while", "do", "switch", "case", "break", "continue", "default", "return", 
   "try", "catch", "finally", "throw", "new", "this", "super", "instanceof", "typeof", 
   "void", "delete", "in", "of", "yield", "async", "await", "import", "export", "const", "let", 
-  "class", "extends", "function", "var", "null", "true", "false", "instanceof", "debugger", 
+  "class", "extends", "function", "var", "null", "instanceof", "debugger", 
   "with", "eval", "arguments", "private", "protected", "public", "static", "super"
 ];
 export const javascriptES6AndBeyondKeywords = [
@@ -32,4 +32,5 @@ let keywordAnyTypes: Array<string>, JSKeywordTypes: Array<string>, TSKeywordType
 keywordAnyTypes = [...set]
 JSKeywordTypes = [...javascriptAdditionalKeywords, ...javascriptES6AndBeyondKeywords]
 TSKeywordTypes = typescriptReservedWords
+
 export { keywordAnyTypes, JSKeywordTypes, TSKeywordTypes}

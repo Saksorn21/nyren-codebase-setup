@@ -1,6 +1,6 @@
 import TokenTransformer, { KeywordType, CustomToken } from './abstract.js'
 
-class TFString extends TokenTransformer {
+class TFPrivateId extends TokenTransformer {
   parse(
     token: CustomToken,
     prevToken: CustomToken,
@@ -15,4 +15,4 @@ class TFString extends TokenTransformer {
   }
 }
 
-export default TFString
+export default TFPrivateId

@@ -53,7 +53,9 @@ const modifyStderr = (stderr: typeof process.stderr) =>
     static boat(n: number){
     return n
     }
-    public age: number = 21
+    public age: number = 25
+    private isSos: boolean = true
+    
     private readonly jan: string = 'jan'
     #home: string = 'home'
     
@@ -63,7 +65,7 @@ const modifyStderr = (stderr: typeof process.stderr) =>
     try {
       const codeWithPlaceholders = code.replace(/\r/g, '[CR]').replace(/\t/g, '[TAB]').replace(/\f/g, '[FF]').replace(/\v/g, '[VT]')
       const tokens = 
-        [...parseCode.tokenizer(codeWithPlaceholders, optionsAcorn)]
+        [...parseCode.tokenizer(str, optionsAcorn)]
       // as SyntaxHighlight[]
       // const ast = full(parseCode.parse(code,optionsAcorn), node => console.log(node))
      // console.log(tokens)
@@ -99,7 +101,7 @@ const modifyStderr = (stderr: typeof process.stderr) =>
         })
         str = override.join(' ')
       })
-      console.log(str)
+      console.log('error',str)
     }
 
     // console.log(str.join('\n'))
@@ -142,7 +144,7 @@ const highlightSyntax = (ast: SyntaxHighlight[]) => {
   let keyword = [...kwTypes.getKeys()]
   let prevToken: SyntaxHighlight | null = null
   // ast.map(item => console.log(item))
-
+console.log('true highlight')
   const highlight = new HighlightSyntax(ast)
 
   highlight.parse()

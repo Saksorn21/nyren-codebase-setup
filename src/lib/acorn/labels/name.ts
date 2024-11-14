@@ -53,7 +53,7 @@ class TFName extends TokenTransformer {
             'Date',
             'RegExp',
           ]
-          if (basicType.includes(token.value)) {
+          if (basicType.includes(this.valueToString(token.value))) {
             this.transform(token, 'typeAnnotation')
           }
         }

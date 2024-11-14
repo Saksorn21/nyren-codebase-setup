@@ -104,6 +104,8 @@ import TFName from './name.js'
 import TFNumbers from './numbers.js'
 import TFString from './strings.js'
 import TFTemplate from './template.js'
+import TFBoolean from './boolean.js'
+import TFPrivateId from './privateId.js'
 import TFRegexp from './regexp.js'
 import TFOperators from './operators.js'
 class CompositeTransformer {
@@ -112,6 +114,8 @@ class CompositeTransformer {
   constructor() {
     this.transformers.push(new TFKeyword())
     this.transformers.push(new TFName())
+    this.transformers.push(new TFPrivateId())
+    this.transformers.push(new TFBoolean())
     this.transformers.push(new TFNumbers())
     this.transformers.push(new TFString())
     this.transformers.push(new TFTemplate())
