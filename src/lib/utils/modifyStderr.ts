@@ -15,12 +15,13 @@ import parseCode, {
 import Labels, { debug } from '../acorn/labels/main.js'
 import { clearAnsiCodes } from './main.js'
 import type { Position, SourceLocation, Options } from 'acorn'
+import HighlightSyntax from '../acorn/HighlightSyntax.js'
 import color from './color.js'
 import clone from './clone.js'
 import Themes, { colorType } from '../acorn/Themes.js'
 import ColorizeSyntax, { type KeywordType } from '../acorn/ColorizeSyntax.js'
 import kwTypes from '../acorn/keywordTypes.js'
-
+import ErrorLogManager from '../acorn/ErrorLogManager.js'
 import errorTypes from '../acorn/errorType.js'
 const colors = new Themes()
 
@@ -31,61 +32,53 @@ interface ErrorAndPath {
     index: number
   }[]
 }
-const modifyStderr = (stderr: typeof process.stderr) =>
-  stderr.on('data', data => {
-    
-    const rawData = data.toString(),
-      clonedRawData = clone(rawData),
-      sanitizedLines = clearAnsiCodes(clonedRawData).split('\n'),
-      errorPathBlocks: ErrorAndPath[] = [];
+    const modifyStderr = (stderr: typeof process.stderr) =>
+      stderr.on('data', data => {
+        const rawData = data.toString();
+        const lines = clearAnsiCodes(rawData).split('\n'); // ลบ ANSI codes แล้วแยกเป็นบรรทัด
 
-    let activeErrorBlock: ErrorAndPath['block'] = [],
-    isCollecting = false;
-     
+        const allBlocks: { block: { line: string; index: number }[] }[] = [];
+        let currentErrorBlock: { line: string; index: number }[] = [];
+        let collecting = false;
 
-      sanitizedLines.forEach((line, index) => {
-      if(line.includes('Bun')){
-          sanitizedLines.splice(index, sanitizedLines.length)
+        lines.forEach((line, index) => {
+          const errorTypeMatch = line.match(/(?:^|\s)(error|[a-zA-Z]+)(?=:)/); // ตรวจจับประเภทข้อผิดพลาด
+          const atPathMatch = line.trim().startsWith('at '); // ตรวจจับบรรทัด `at path`
+
+          if (errorTypeMatch && errorTypes.includes(errorTypeMatch[0])) {
+            // เจอ error type ใหม่ -> บันทึกบล็อกเดิมและเริ่มบล็อกใหม่
+            if (collecting && currentErrorBlock.length > 0) {
+              allBlocks.push({ block: [...currentErrorBlock] });
+              currentErrorBlock = [];
+            }
+            collecting = true; // เริ่มรวบรวมบล็อกใหม่
+            currentErrorBlock.push({ line, index }); // เก็บบรรทัด error type
+          } else if (collecting && atPathMatch) {
+            // รวบรวมบรรทัด `at path`
+            currentErrorBlock.push({ line, index });
+          } else if (collecting) {
+            // จบการรวบรวมเมื่อเจอข้อความอื่นที่ไม่ใช่ `at path`
+            allBlocks.push({ block: [...currentErrorBlock] });
+            currentErrorBlock = [];
+            collecting = false;
+          }
+        });
+
+        // บันทึกบล็อกสุดท้าย
+        if (currentErrorBlock.length > 0) {
+          allBlocks.push({ block: [...currentErrorBlock] });
+        }
+
+        // แสดงผลลัพธ์
+        allBlocks.forEach((blockObj, blockIndex) => {
+          console.log(`Error Block ${blockIndex + 1}:`);
+          blockObj.block.forEach(({ line, index }) => {
+            console.log(`Index ${index}: ${line}`);
+          });
+        });
+      
         
-      }
-      const errorTypeMatch = line.match(/(?:^|\s)(error|[a-zA-Z]+)(?=:)/)
-
-    if (errorTypeMatch && errorTypes.includes(errorTypeMatch[0])) {
-      // When a new error type is found, start a new data block
-      if (isCollecting && activeErrorBlock.length > 0) {
-          errorPathBlocks.push({ block: [...activeErrorBlock] }) // Save the previous data block
-          activeErrorBlock = [] // Reset the data block for the next set
-      }
-
-      isCollecting = true // Start collecting data for the new set
-      activeErrorBlock.push({ line, index }) // Add the error type line to the data block with position
-      sanitizedLines[index] = 'markErrorType: ' + index
-    } else if (isCollecting && line.includes('at ')) {
-      // When encountering a line with 'at path' while collecting data
-      activeErrorBlock.push({ line, index }) // Add this line to the data block with position
-      errorPathBlocks.push({ block: [...activeErrorBlock] }) // Save the completed data block
-      sanitizedLines[index] = 'markAtPath: ' + index
-      activeErrorBlock = [] // Reset the data block for the next set
-      isCollecting = false // End data collection for this set
-    } else if (isCollecting) {
-      // Continue adding lines to the data block as long as 'at path' is not found
-      activeErrorBlock.push({ line, index })
-      sanitizedLines[index] = 'mark at pathnnnn'
-    }
-
-    // Save the last data block that may not end with 'at path'
-    if (activeErrorBlock.length > 0) {
-      errorPathBlocks.push({ block: [...activeErrorBlock] })
-    }
-
-    // Display each data block
-    errorPathBlocks.forEach((blockObj, blockIndex) => {
-      console.log(`Error Block ${blockIndex + 1}:`)
-      blockObj.block.forEach(({ line, index }) => {
-          console.log(`Index ${index}: ${line}`)
-      })
-    })
-    console.log(...errorPathBlocks)
+    console.log(...allBlocks)
     //str = str.join('\n')
     //console.log(str)
     
@@ -119,7 +112,7 @@ const modifyStderr = (stderr: typeof process.stderr) =>
         .replace(/\t/g, '[TAB]')
         .replace(/\f/g, '[FF]')
         .replace(/\v/g, '[VT]')
-      const tokens = [...parseCode.tokenizer(lines.join('\n'), optionsAcorn)]
+      const tokens = [...parseCode.tokenizer(sanitizedLines.join('\n'), optionsAcorn)]
       // as SyntaxHighlight[]
       // const ast = full(parseCode.parse(code,optionsAcorn), node => console.log(node))
       // console.log(tokens)
@@ -134,19 +127,19 @@ const modifyStderr = (stderr: typeof process.stderr) =>
     } catch (error: unknown) {
       debug(`Error caught: ${error.message}`)
       console.log(error)
-      cloneData.forEach((item: string, index: number) => {
+        clonedData.forEach((item: string, index: number) => {
         if (item.includes('^')) {
-          cloneData[index] = color.red(item)
+            clonedData[index] = color.red(item)
         } else if (item.includes('error')) {
-          let override = cloneData[index].split('error:')
-          cloneData[index] = color.red('error:') + color.grey(override.slice(1))
+          let override = clonedData[index].split('error:')
+            clonedData[index] = color.red('error:') + color.grey(override.slice(1))
         } else if (item.includes('at ')) {
-          cloneData[index] = atPath(item)
+            clonedData[index] = atPath(item)
         } else if (item.includes('Bun')) {
-          cloneData.splice(index, cloneData.length)
+            clonedData.splice(index, clonedData.length)
         }
 
-        const override = cloneData.join('\n').split(' ')
+        const override = clonedData.join('\n').split(' ')
         override.forEach((item: string, index: number) => {
           if (keywordTypes[item]) {
             override[index] = color.hex('A78CFA')(item)
@@ -187,7 +180,7 @@ range?: [number, number]
 interface SyntaxHighlight extends Token {
   value: string
 }
-import HighlightSyntax from '../acorn/HighlightSyntax.js'
+
 
 const highlightSyntax = (ast: SyntaxHighlight[]) => {
   const outputSyntax: Array<string> = []
@@ -206,24 +199,7 @@ const highlightSyntax = (ast: SyntaxHighlight[]) => {
 
   errorMessageAndPaths(outputSyntax)
 }
-const handledKeywordTypes = (
-  token: SyntaxHighlight,
-  outputSyntax: Array<string>
-) => {
-  //console.log(token)
-  const type = keywordTypes[token.value]
-  outputSyntax.isBold = true
 
-  if (type.keyword === 'TsKeyword') {
-    outputSyntax.on('keyword', token.value)
-  } else if (token.type.label !== 'name') {
-    //console.log(token.value)
-    outputSyntax.on('keyword', token.value)
-  } else {
-    outputSyntax.on('keyword', token.value)
-  }
-  outputSyntax.isBold = false
-}
 const atPath = (path: string) => {
   const match = path.match(/at\s+([^\s]+)?\s?([^\s:]+):(\d+):(\d+)/)
 

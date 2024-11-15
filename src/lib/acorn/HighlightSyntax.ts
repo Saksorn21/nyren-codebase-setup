@@ -13,7 +13,7 @@ class HighlightSyntax {
   parse() {
     const collectData = new ColorizeSyntax(new Themes(), [])
     const position = { currentLine: 1, currentColumn: 0 }
-    this.tokens.forEach((token: CustomToken, index: number) => {
+    this.tokens.forEach((token: CustomToken, index: number): void => {
       const { label, keyword } = token.type
       const val = typeof token.value === 'string' ? token.value : typeof token.value === 'number' ? token.value : (token.value.value as any)
       let prev: CustomToken | null = this.tokens[index - 1]
