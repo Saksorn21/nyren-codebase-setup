@@ -20,6 +20,7 @@ import clone from './clone.js'
 import Themes, { colorType } from '../acorn/Themes.js'
 import ColorizeSyntax, { type KeywordType } from '../acorn/ColorizeSyntax.js'
 import kwTypes from '../acorn/keywordTypes.js'
+
 import errorTypes from '../acorn/errorType.js'
 const colors = new Themes()
 
