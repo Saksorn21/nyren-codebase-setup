@@ -39,46 +39,16 @@ interface ErrorAndPath {
 
         const allBlocks: { block: { line: string; index: number }[] }[] = [];
         let currentErrorBlock: { line: string; index: number }[] = [];
-        let collecting = false;
 
-        lines.forEach((line, index) => {
-          const errorTypeMatch = line.match(/(?:^|\s)(error|[a-zA-Z]+)(?=:)/); // ตรวจจับประเภทข้อผิดพลาด
-          const atPathMatch = line.trim().startsWith('at '); // ตรวจจับบรรทัด `at path`
+        const errorManager = new ErrorLogManager();
+        errorManager.process(rawData);
 
-          if (errorTypeMatch && errorTypes.includes(errorTypeMatch[0])) {
-            // เจอ error type ใหม่ -> บันทึกบล็อกเดิมและเริ่มบล็อกใหม่
-            if (collecting && currentErrorBlock.length > 0) {
-              allBlocks.push({ block: [...currentErrorBlock] });
-              currentErrorBlock = [];
-            }
-            collecting = true; // เริ่มรวบรวมบล็อกใหม่
-            currentErrorBlock.push({ line, index }); // เก็บบรรทัด error type
-          } else if (collecting && atPathMatch) {
-            // รวบรวมบรรทัด `at path`
-            currentErrorBlock.push({ line, index });
-          } else if (collecting) {
-            // จบการรวบรวมเมื่อเจอข้อความอื่นที่ไม่ใช่ `at path`
-            allBlocks.push({ block: [...currentErrorBlock] });
-            currentErrorBlock = [];
-            collecting = false;
-          }
-        });
+        // Debug ข้อมูล
+        errorManager.debug();
 
-        // บันทึกบล็อกสุดท้าย
-        if (currentErrorBlock.length > 0) {
-          allBlocks.push({ block: [...currentErrorBlock] });
-        }
-
-        // แสดงผลลัพธ์
-        allBlocks.forEach((blockObj, blockIndex) => {
-          console.log(`Error Block ${blockIndex + 1}:`);
-          blockObj.block.forEach(({ line, index }) => {
-            console.log(`Index ${index}: ${line}`);
-          });
-        });
-      
-        
-    console.log(...allBlocks)
+        // รับผลลัพธ์ที่ประมวลผลแล้ว
+        const { errorPathBlocks, arrData, modifiedData } = errorManager.results;
+        console.log(...errorPathBlocks);
     //str = str.join('\n')
     //console.log(str)
     
