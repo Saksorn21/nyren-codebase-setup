@@ -29,12 +29,19 @@ export default class ErrorLogManager {
      */
     process(rawData: string) {
         this.arrRawData.push(...rawData.split('\n'))
+        
         const lines = clearAnsiCodes(rawData).split('\n') // Remove ANSI codes and split into lines
-        this.newData = lines.map((line, index) => {
+        this.newData = lines
+        //this.newData = 
+        this.newData.map((line, index) => {
+            
             this.parse(line, index) // Process each line
-            return line // Return the original line
+            
+            return line// Return the original line
         })
+        this.removeRunTimes() // Remove run times from the newData array
         this.saveBlock() // Save the last block if any
+        
     }
 
     /**
@@ -58,6 +65,7 @@ export default class ErrorLogManager {
             this.saveBlock() // Save the current block when encountering unrelated lines
             this.isCollectingError = false
         }
+        
     }
 
     /**
@@ -68,6 +76,7 @@ export default class ErrorLogManager {
     private addError(line: string, index: number) {
         this.activeErrorBlock.push({ line, index })
         this.markAsModified('errorType', index)
+        
     }
 
     /**
@@ -98,9 +107,14 @@ export default class ErrorLogManager {
      */
     private markAsModified(type: 'errorType' | 'path', index: number) {
         const marker = type === 'errorType' ? this.MAKEERRORTYPE : this.MAKEPATH
-        this.newData[index] = marker + this.newData[index]
+        this.newData[index] = marker + index
+        
     }
-
+removeRunTimes(){
+    this.newData.map((line, index) => line.includes('Bun') ? this.newData[index] = '' : line)
+    
+}
+    
     /**
      * Debugging method to print out all error blocks with their corresponding lines and indices.
      */
@@ -132,51 +146,7 @@ export default class ErrorLogManager {
             modifiedData: this.newData,
         }
 
-        this.editsData('path', index)
     }
 
-    /**
-     * Save the current block and reset for the next error block.
-     */
-    private completeCurrentBlock(): void {
-        if (this.activeErrorBlock.length > 0) {
-            this.errorPathBlocks.push({ block: [...this.activeErrorBlock] })
-            this.activeErrorBlock = []
-        }
-        this.isCollectingError = false
-    }
 
-    /**
-     * Start a new error block.
-     */
-    private startNewErrorBlock(line: string, index: number): void {
-        if (this.isCollectingError) {
-            this.completeCurrentBlock()
-        }
-        this.isCollectingError = true
-        this.addError(line, index)
-    }
-
-    /**
-     * Debugger for visualizing parsed blocks.
-     */
-    debugger(): void {
-        this.errorPathBlocks.forEach((blockObj, blockIndex) => {
-            console.log(`Error Block ${blockIndex + 1}:`)
-            blockObj.block.forEach(({ line, index }) => {
-                console.log(`  Index ${index}: ${line}`)
-            })
-        })
-    }
-
-    /**
-     * Retrieve parsed error blocks and modified data.
-     */
-    get parsedData() {
-        return {
-            errorPathBlocks: this.errorPathBlocks,
-            rawData: this.rawData,
-            newData: this.newData,
-        }
-    }
 }

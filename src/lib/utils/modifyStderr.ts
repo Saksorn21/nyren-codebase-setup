@@ -26,19 +26,13 @@ import errorTypes from '../acorn/errorType.js'
 const colors = new Themes()
 
 let keywordTypes = kwTypes.emit()
-interface ErrorAndPath {
-  block: {
-    line: string
-    index: number
-  }[]
-}
+
     const modifyStderr = (stderr: typeof process.stderr) =>
       stderr.on('data', data => {
         const rawData = data.toString();
-        const lines = clearAnsiCodes(rawData).split('\n'); // ลบ ANSI codes แล้วแยกเป็นบรรทัด
+        // ลบ ANSI codes แล้วแยกเป็นบรรทัด
 
-        const allBlocks: { block: { line: string; index: number }[] }[] = [];
-        let currentErrorBlock: { line: string; index: number }[] = [];
+        
 
         const errorManager = new ErrorLogManager();
         errorManager.process(rawData);
@@ -47,8 +41,8 @@ interface ErrorAndPath {
         errorManager.debug();
 
         // รับผลลัพธ์ที่ประมวลผลแล้ว
-        const { errorPathBlocks, arrData, modifiedData } = errorManager.results;
-        console.log(...errorPathBlocks);
+        const { errorPathBlocks, arrRawData, modifiedData } = errorManager.results;
+        console.log(modifiedData);
     //str = str.join('\n')
     //console.log(str)
     
@@ -82,7 +76,7 @@ interface ErrorAndPath {
         .replace(/\t/g, '[TAB]')
         .replace(/\f/g, '[FF]')
         .replace(/\v/g, '[VT]')
-      const tokens = [...parseCode.tokenizer(sanitizedLines.join('\n'), optionsAcorn)]
+      const tokens = [...parseCode.tokenizer(modifiedData.join('\n'), optionsAcorn)]
       // as SyntaxHighlight[]
       // const ast = full(parseCode.parse(code,optionsAcorn), node => console.log(node))
       // console.log(tokens)
@@ -94,22 +88,23 @@ interface ErrorAndPath {
       //console.log('yes',labels.result)
 
       highlightSyntax(labels.result)
-    } catch (error: unknown) {
+    } catch (error) {
+      let str = ''
       debug(`Error caught: ${error.message}`)
       console.log(error)
-        clonedData.forEach((item: string, index: number) => {
+          arrRawData.forEach((item: string, index: number) => {
         if (item.includes('^')) {
-            clonedData[index] = color.red(item)
+              arrRawData[index] = color.red(item)
         } else if (item.includes('error')) {
-          let override = clonedData[index].split('error:')
-            clonedData[index] = color.red('error:') + color.grey(override.slice(1))
+          let override = arrRawData[index].split('error:')
+              arrRawData[index] = color.red('error:') + color.grey(override.slice(1))
         } else if (item.includes('at ')) {
-            clonedData[index] = atPath(item)
+              arrRawData[index] = atPath(item)
         } else if (item.includes('Bun')) {
-            clonedData.splice(index, clonedData.length)
+              arrRawData.splice(index, arrRawData.length)
         }
 
-        const override = clonedData.join('\n').split(' ')
+        const override = arrRawData.join('\n').split(' ')
         override.forEach((item: string, index: number) => {
           if (keywordTypes[item]) {
             override[index] = color.hex('A78CFA')(item)
