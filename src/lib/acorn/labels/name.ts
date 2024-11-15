@@ -57,15 +57,16 @@ class TFName extends TokenTransformer {
             this.transform(token, 'typeAnnotation')
           }
         }
+        if(nextToken){
         const { label: nextLabel } = nextToken?.type
 
         if (
           prevLabel !== ':' &&
-          this.nextContext.includes(nextToken.type.label)
+          this.nextContext.includes(nextLabel)
         ) {
           this.transform(token, 'variable')
         }
-        if (nextToken.type.label === '(') {
+        if (nextLabel === '(') {
           this.transform(token, 'method')
         }
         if (nextLabel === '.' && prevLabel === '.') {
@@ -74,6 +75,7 @@ class TFName extends TokenTransformer {
           this.transform(token, 'object')
         }
       }
+        }
     }
     return token
   }

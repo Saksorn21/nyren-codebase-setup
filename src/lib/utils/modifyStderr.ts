@@ -24,60 +24,67 @@ import errorTypes from '../acorn/errorType.js'
 const colors = new Themes()
 
 let keywordTypes = kwTypes.emit()
-
+interface ErrorAndPath {
+  block: {
+    line: string
+    index: number
+  }[]
+}
 const modifyStderr = (stderr: typeof process.stderr) =>
   stderr.on('data', data => {
-    const rawData = data.toString()
-    // แสดงข้อมูลที่มี newline
-
-    const lines = clearAnsiCodes(rawData).split('\n') // แยกข้อมูลเป็นบรรทัดหลังลบ ANSI codes
     
+    const rawData = data.toString(),
+      clonedRawData = clone(rawData),
+      sanitizedLines = clearAnsiCodes(clonedRawData).split('\n'),
+      errorPathBlocks: ErrorAndPath[] = [];
 
-    let currentErrorBlock: { line: string; index: number }[] = [] // เก็บบล็อกข้อมูลแต่ละชุดพร้อมตำแหน่ง
-    let collecting = false // ติดตามสถานะการรวบรวมข้อมูลของชุด
-    const allBlocks: { block: { line: string; index: number }[] }[] = [] // เก็บบล็อกข้อมูลทั้งหมด
+    let activeErrorBlock: ErrorAndPath['block'] = [],
+    isCollecting = false;
+     
 
-    lines.forEach((line, index) => {
-      const errorTypeMatch = line.match(/(?:^|\s)(error|[a-zA-Z]+)(?=:)/) // จับประเภทข้อผิดพลาด
-
-      if (errorTypeMatch && errorTypes.includes(errorTypeMatch[0])) {
-        // เมื่อพบประเภทข้อผิดพลาดใหม่ เริ่มต้นบล็อกข้อมูลใหม่
-        if (collecting && currentErrorBlock.length > 0) {
-          allBlocks.push({ block: [...currentErrorBlock] }) // บันทึกบล็อกข้อมูลชุดก่อนหน้า
-          currentErrorBlock = [] // รีเซ็ตบล็อกข้อมูลสำหรับชุดถัดไป
-        }
-
-        collecting = true // เริ่มการรวบรวมข้อมูลสำหรับชุดใหม่
-        currentErrorBlock.push({ line, index }) // เพิ่มบรรทัดประเภทข้อผิดพลาดในบล็อกข้อมูลพร้อมตำแหน่ง
-        lines[index] = 'markErrorType'
-      } else if (collecting && line.includes('at ')) {
-        // เมื่อเจอบรรทัดที่มี 'at path' ในขณะที่กำลังรวบรวมข้อมูลอยู่
-        currentErrorBlock.push({ line, index }) // เพิ่มบรรทัดนี้ในบล็อกข้อมูลพร้อมตำแหน่ง
-        allBlocks.push({ block: [...currentErrorBlock] }) // บันทึกบล็อกข้อมูลชุดที่สมบูรณ์m
-        lines[index] = 'markAt pPath'
-        currentErrorBlock = [] // รีเซ็ตบล็อกข้อมูลสำหรับชุดถัดไป
-        collecting = false // จบการรวบรวมสำหรับชุดนี้
-      } else if (collecting) {
-        // เพิ่มบรรทัดในบล็อกข้อมูลตราบเท่าที่ยังไม่เจอ 'at path'
-        currentErrorBlock.push({ line, index })
-        lines[index] = 'mark at pathnnnn'
+      sanitizedLines.forEach((line, index) => {
+      if(line.includes('Bun')){
+          sanitizedLines.splice(index, sanitizedLines.length)
+        
       }
-    })
+      const errorTypeMatch = line.match(/(?:^|\s)(error|[a-zA-Z]+)(?=:)/)
 
-    // บันทึกบล็อกข้อมูลสุดท้ายที่อาจไม่มี 'at path' ในตอนท้าย
-    if (currentErrorBlock.length > 0) {
-      allBlocks.push({ block: [...currentErrorBlock] })
+    if (errorTypeMatch && errorTypes.includes(errorTypeMatch[0])) {
+      // When a new error type is found, start a new data block
+      if (isCollecting && activeErrorBlock.length > 0) {
+          errorPathBlocks.push({ block: [...activeErrorBlock] }) // Save the previous data block
+          activeErrorBlock = [] // Reset the data block for the next set
+      }
+
+      isCollecting = true // Start collecting data for the new set
+      activeErrorBlock.push({ line, index }) // Add the error type line to the data block with position
+      sanitizedLines[index] = 'markErrorType: ' + index
+    } else if (isCollecting && line.includes('at ')) {
+      // When encountering a line with 'at path' while collecting data
+      activeErrorBlock.push({ line, index }) // Add this line to the data block with position
+      errorPathBlocks.push({ block: [...activeErrorBlock] }) // Save the completed data block
+      sanitizedLines[index] = 'markAtPath: ' + index
+      activeErrorBlock = [] // Reset the data block for the next set
+      isCollecting = false // End data collection for this set
+    } else if (isCollecting) {
+      // Continue adding lines to the data block as long as 'at path' is not found
+      activeErrorBlock.push({ line, index })
+      sanitizedLines[index] = 'mark at pathnnnn'
     }
 
-    // แสดงบล็อกข้อมูลแต่ละชุด
-    allBlocks.forEach((blockObj, blockIndex) => {
+    // Save the last data block that may not end with 'at path'
+    if (activeErrorBlock.length > 0) {
+      errorPathBlocks.push({ block: [...activeErrorBlock] })
+    }
+
+    // Display each data block
+    errorPathBlocks.forEach((blockObj, blockIndex) => {
       console.log(`Error Block ${blockIndex + 1}:`)
       blockObj.block.forEach(({ line, index }) => {
-        console.log(`Indexp ${index}: ${line}`)
+          console.log(`Index ${index}: ${line}`)
       })
     })
-if( line.includes('bb'
-    //console.log(lines)
+    console.log(...errorPathBlocks)
     //str = str.join('\n')
     //console.log(str)
     
