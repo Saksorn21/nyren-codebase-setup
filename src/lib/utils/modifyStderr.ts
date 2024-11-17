@@ -40,10 +40,7 @@ let keywordTypes = kwTypes.emit()
         // Debug ข้อมูล
         errorManager.debug();
 const parseError = ''
-  for (const err of errorManager.processColorize()) {
-    console.log(err.errorType + err.message)
-     console.log(err.path.join(''))
-  }
+  
   
         
         
@@ -101,8 +98,19 @@ obj.loc.map('ppp')
       console.log('true highlight')
       const highlight = new HighlightSyntax(labels.result)
 
-    //  highlight.parse()
-      // console.log(highlight.result)
+      highlight.parse()
+ console.log(highlight.result.emit())
+      for (const err of errorManager.processColorize()) {
+        const comb = highlight.result.emit()
+        if (comb.includes(errorManager.MAKEERRORTYPE)){
+          console.log(comb)
+        }
+        //comb[err.idx] = err.errorType + err.message
+        //comb[err.path[0]] = err.path[1]
+
+        
+      }
+      
       //outputSyntax.push(...errorPathBlocks)
 
       //errorMessageAndPaths(...errorPathBlocks)

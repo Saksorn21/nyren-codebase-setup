@@ -108,49 +108,41 @@ export default class ErrorLogManager {
     }
 
     public processColorize() {
-        let resultPaths: Array<string> = []
-        const colorizeResult: {
-            idx: number
+     
+const colorizeResult: {
+    idx: number
             errorType: string
             message: string
-            path: string[]
+            path: Array<number | string>
         }[] = []
         let errType = '',
             path = '',
-            line = '',
+            
             msg = '',
-            parse: Array<string> = [],
+             
             isType = false,
             isPath = false,
-            blockId = 0
-        
-        this.errorPathBlocks.forEach((blockObj, blockIndex) => {
-            blockId = blockIndex + 1
-            console.log(
-                utils.color.red(
-                    `Error Block ${utils.color.white(blockIndex + 1 + ':')}`
-                )
-            )
-            //console.log(blockObj)
-            blockObj.block.forEach(({ line, index }) => {
-                parse = line.split(':')
-                const type = line.match(this.regExpErrorType)
-                if (type && !isType) {
-                    errType = type[0]
-                    msg = line.replace(type[0], '')
-                    isType = true
-                    //isPath = false
+            resultPaths: Array<number | string> = []
+     this.errorPathBlocks.forEach((blockObj) => {
+
+blockObj.block.forEach(({ line, index }) => { 
+         const type = line.match(this.regExpErrorType)
+     if (type && !isType) {
+        errType = type[0]
+            msg = line.replace(type[0], '')
+        isType = true
+   
     } else  {
         isType = false
        isPath = true
         path = this.atPath(line)
-                    resultPaths.push(path)
+                    resultPaths.push(index,path)
                 }
     
                 if (this.errorTypes.includes(errType) && isType) {
-                    isType = false
-                    errType = utils.color.red(errType || '')
-                    msg = utils.color.white(msg || '')
+        isType = false
+                    errType = utils.color.hex('f44747').visible(errType || '')
+                    msg = utils.color.hex('abb2bf').visible(msg || '')
 
                     colorizeResult.push({
        idx: index,
@@ -162,6 +154,8 @@ export default class ErrorLogManager {
                 } 
                 
             })
+            isType = false
+            isPath = false
             resultPaths = []
             
         })

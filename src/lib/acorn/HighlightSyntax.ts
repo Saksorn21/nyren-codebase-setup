@@ -8,7 +8,8 @@ import Themes from './Themes.js'
 import ColorizeSyntax from './ColorizeSyntax.js'
 
 class HighlightSyntax {
-   result: Array<string> = []
+  
+   result!: ReturnType<ColorizeSyntax['emit']>
   constructor(private readonly tokens: CustomToken[]) {}
   parse() {
     const collectData = new ColorizeSyntax(new Themes(), [])
@@ -30,8 +31,10 @@ class HighlightSyntax {
 
       if (collectMap.has(label)) {
         if(val === '^') return collectData.bold.on('error', val);
+        if(val === 'markErrorType' || val === 'markPath') collectData.on('other', val, 'noColor');
         
-        collectMap.get(label)?.();
+        
+        else collectMap.get(label)?.();
       } else {
         
         collectData.bold.on('other', val);
@@ -43,7 +46,7 @@ class HighlightSyntax {
     })
     
 
-    this.result = collectData.emit() as Array<string>
+    this.result = collectData as any
   }
   whileLineAndColumn(
     startLine: number,

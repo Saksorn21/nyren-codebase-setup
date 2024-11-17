@@ -129,6 +129,7 @@ class CompositeTransformer {
     nextToken: CustomToken
   ): CustomToken {
     for (const transformer of this.transformers) {
+      
       token = transformer.parse(token, prevToken, nextToken)
     }
 

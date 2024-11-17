@@ -13,7 +13,7 @@ class Themes {
   }
   private build() {
     for (const [colorName, hexColor] of Object.entries(
-      this.schemaTheme.colors
+      this.schemaTheme?.colors || {}
     )) {
       ;(this as any)[colorName] = chalkStderr.hex(hexColor as string).visible
       ;(this as any)[colorName + 'B'] = chalkStderr.hex(
@@ -67,6 +67,7 @@ class Themes {
   redB!: ReturnType<typeof chalkStderr.hex>
   error!: ReturnType<typeof chalkStderr.hex>
   errorB!: ReturnType<typeof chalkStderr.hex>
+  noColor!: ReturnType<typeof chalkStderr.hex>
 }
 const color = chalkStderr
 const EvaDark = {

@@ -1,5 +1,5 @@
   import {keywordAnyTypes, JSKeywordTypes, TSKeywordTypes} from './schema-keywordType.js' 
-export type ColorType =  'white' | 'dark'| 'purple' | 'yellow' | 'blue' | 'green' | 'orange' | 'red' | 'error' 
+export type ColorType =  'white' | 'dark'| 'purple' | 'yellow' | 'blue' | 'green' | 'orange' | 'red' | 'error' | 'noColor'
 export enum colorType {
   white = 'white',
   dark = 'dark',
@@ -10,6 +10,7 @@ export enum colorType {
   orange = 'orange',
   red = 'red',
   error = 'error',
+  noColor = 'noColor',
 }
 type ColorSchema<T> = {[key in ColorType]: T }
   
@@ -38,6 +39,7 @@ export const defaultTheme: ThemeSchema  = {
     orange: '#D19A66',        // property, constants, numbers
     red: '#E06C75',           // errors, highlights
   error: '#F44747',       // invalid
+      noColor: '',
       },
     isDefault: true
 };
@@ -51,5 +53,6 @@ const matchIncludes: ColorSchema<Array<string>>  = {
   orange: [ 'parameter','constants', 'TFnumber', 'TFboolean'],
   red: ['privateId'],
   error: ['invalid','error'],
+  noColor: ['other'],
 }
 export default matchIncludes
