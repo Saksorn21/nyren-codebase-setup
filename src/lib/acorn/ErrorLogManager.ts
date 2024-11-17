@@ -14,8 +14,8 @@ export default class ErrorLogManager {
     private activeErrorBlock: ErrorAndPath['block']
     private readonly arrRawData: Array<string> = []
     private newData: Array<string>
-    public readonly MAKEERRORTYPE = 'markErrorType: '
-    public readonly MAKEPATH = 'markPath: '
+    public readonly MAKEERRORTYPE = 'markErrorType'
+    public readonly MAKEPATH = 'markPath'
     public readonly errorTypes = errorTypes
     constructor() {
         this.errorPathBlocks = []
@@ -53,17 +53,21 @@ export default class ErrorLogManager {
         const atPathMatch = line.trim().startsWith('at ')
 
         if (errorTypeMatch && this.errorTypes.includes(errorTypeMatch[0])) {
+            
             if (this.isCollectingError && this.activeErrorBlock.length > 0) {
                 this.saveBlock() // Save the current block before starting a new one
             }
             this.isCollectingError = true // Start collecting a new block
+            
             this.addError(line, index) // Add the error type line to the current block
         } else if (this.isCollectingError && atPathMatch) {
             this.addPath(line, index) // Add the `at path` line to the current block
         } else if (this.isCollectingError) {
             this.saveBlock() // Save the current block when encountering unrelated lines
+            
             this.isCollectingError = false
         }
+        
     }
 
     /**
@@ -104,7 +108,7 @@ export default class ErrorLogManager {
      */
     private markAsModified(type: 'errorType' | 'path', index: number) {
         const marker = type === 'errorType' ? this.MAKEERRORTYPE : this.MAKEPATH
-        this.newData[index] = marker + index
+        this.newData[index] = marker + ': ' + index
     }
 
     public processColorize() {
@@ -113,7 +117,7 @@ const colorizeResult: {
     idx: number
             errorType: string
             message: string
-            path: Array<number | string>
+            paths: Array<{idx: number, path: string}>
         }[] = []
         let errType = '',
             path = '',
@@ -122,7 +126,7 @@ const colorizeResult: {
              
             isType = false,
             isPath = false,
-            resultPaths: Array<number | string> = []
+            resultPaths: Array<{idx: number, path: string}> = []
      this.errorPathBlocks.forEach((blockObj) => {
 
 blockObj.block.forEach(({ line, index }) => { 
@@ -136,7 +140,7 @@ blockObj.block.forEach(({ line, index }) => {
         isType = false
        isPath = true
         path = this.atPath(line)
-                    resultPaths.push(index,path)
+                    resultPaths.push({idx: index,path})
                 }
     
                 if (this.errorTypes.includes(errType) && isType) {
@@ -148,7 +152,7 @@ blockObj.block.forEach(({ line, index }) => {
        idx: index,
         errorType: errType,
         message: msg,
-        path: resultPaths,
+        paths: resultPaths,
                     })
                     
                 } 
@@ -170,12 +174,12 @@ blockObj.block.forEach(({ line, index }) => {
         
       if (match) {
           const at = color.hex('#d7d7ff').dim('at')
-        const method = color.hex('#abb2bf').bold(match.groups.method || '') // กรณีไม่มีชื่อเมธอด
-        const filePath = color.cyan(match.groups.file || '')
-        const line = color.yellow(parseInt(match.groups.line))
-        const column = color.yellow.dim(parseInt(match.groups.column))
+        const method = color.hex('#abb2bf').bold(match.groups?.method || '') // กรณีไม่มีชื่อเมธอด
+        const filePath = color.cyan(match.groups?.file || '')
+        const line = color.yellow(parseInt(match.groups?.line || ''))
+        const column = color.yellow.dim(parseInt(match.groups?.column || ''))
 
-        return color.hex('#5c6370').visible(`      ${at} ${method} ${method ?'(' + filePath + ')' : filePath}:${line}:${column}\n`)
+        return color.hex('#5c6370').visible(`     ${at} ${method} ${method ?'(' + filePath + ')' : filePath}:${line}:${column}\n`)
       }
         return ''
     }

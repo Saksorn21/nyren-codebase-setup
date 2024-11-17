@@ -9,7 +9,7 @@ import ColorizeSyntax from './ColorizeSyntax.js'
 
 class HighlightSyntax {
   
-   result!: ReturnType<ColorizeSyntax['emit']>
+   result!: ColorizeSyntax
   constructor(private readonly tokens: CustomToken[]) {}
   parse() {
     const collectData = new ColorizeSyntax(new Themes(), [])
@@ -46,7 +46,7 @@ class HighlightSyntax {
     })
     
 
-    this.result = collectData as any
+    this.result = collectData 
   }
   whileLineAndColumn(
     startLine: number,

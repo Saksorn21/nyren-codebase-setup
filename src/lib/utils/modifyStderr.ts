@@ -100,17 +100,33 @@ obj.loc.map('ppp')
 
       highlight.parse()
  console.log(highlight.result.emit())
+      const tokenColored: Array<string> = (highlight.result.emit() as string).split('\n') as Array<string>
       for (const err of errorManager.processColorize()) {
-        const comb = highlight.result.emit()
-        if (comb.includes(errorManager.MAKEERRORTYPE)){
-          console.log(comb)
+         tokenColored.map((line, index) =>{
+           const parse = clearAnsiCodes(line).split(':')
+           const lineId = parseInt(parse[1])
+           if (line.includes(errorManager.MAKEERRORTYPE)){
+
+
+          if(lineId === err.idx){
+            tokenColored[index] = err.errorType + err.message
         }
+
+      }else if (line.includes(errorManager.MAKEPATH)) err.paths.map(({idx, path}) => {
+            if(lineId === idx) tokenColored[index] = path.replace(/\n/g, '')
+          })
+          
+            
+      
+          
+          //tokenColored[index] = line.replace(errorManager.MAKEERRORTYPE,err.errorType) + err.message
+        })
         //comb[err.idx] = err.errorType + err.message
         //comb[err.path[0]] = err.path[1]
 
-        
-      }
+        }
       
+      console.log(tokenColored.join('\n'))
       //outputSyntax.push(...errorPathBlocks)
 
       //errorMessageAndPaths(...errorPathBlocks)
