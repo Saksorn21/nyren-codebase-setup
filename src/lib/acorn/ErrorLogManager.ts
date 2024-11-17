@@ -2,7 +2,7 @@ import clearAnsiCodes from '../utils/clearAnsi.js'
 import errorTypes from './errorType.js'
 import utils from '../utils/main.js'
 
-type ErrorAndPath = {
+export type ErrorAndPath = {
     block: { line: string; index: number }[]
 }
 
@@ -16,7 +16,7 @@ export default class ErrorLogManager {
     private newData: Array<string>
     public readonly MAKEERRORTYPE = 'markErrorType: '
     public readonly MAKEPATH = 'markPath: '
-
+    public readonly errorTypes = errorTypes
     constructor() {
         this.errorPathBlocks = []
         this.activeErrorBlock = []
@@ -52,7 +52,7 @@ export default class ErrorLogManager {
         const errorTypeMatch = line.match(this.regExpErrorType)
         const atPathMatch = line.trim().startsWith('at ')
 
-        if (errorTypeMatch && errorTypes.includes(errorTypeMatch[0])) {
+        if (errorTypeMatch && this.errorTypes.includes(errorTypeMatch[0])) {
             if (this.isCollectingError && this.activeErrorBlock.length > 0) {
                 this.saveBlock() // Save the current block before starting a new one
             }
@@ -105,6 +105,58 @@ export default class ErrorLogManager {
     private markAsModified(type: 'errorType' | 'path', index: number) {
         const marker = type === 'errorType' ? this.MAKEERRORTYPE : this.MAKEPATH
         this.newData[index] = marker + index
+    }
+    
+    public processColorize() {
+        const result: Array<string> = [] 
+        const colorizeResult:{
+            idx: number,
+            errorType: string,
+            message: string,
+            path: string[]
+        }[] = []
+        let errType = '', path = '', line = '', msg = '', parse: Array<string> = [],isType = false, isPath = false
+        this.errorPathBlocks.forEach((blockObj, blockIndex) => {
+            
+            console.log(
+                utils.color.red(
+                    `Error Block ${utils.color.white(blockIndex + 1 + ':')}`
+                )
+            )
+            console.log(blockObj);
+            blockObj.block.forEach(({ line, index }) => {
+                parse = line.split(':')
+                const type = line.match(this.regExpErrorType)
+                if(type && !isType){
+                    errType = type[0]
+                    msg = line.replace(type[0], '')
+                    isType = true
+                    isPath = false
+                }else{
+                    isType = false
+                    isPath = true
+                    path = line.trim().startsWith('at ') ? line : ''
+                    result.push(path)
+                }
+
+
+                if(this.errorTypes.includes(errType) && isType){
+                   isPath = false ,isType = false 
+                     errType = utils.color.red(errType || '')
+                    msg = utils.color.white(msg || '')
+
+                    colorizeResult.push({
+                                idx: index,
+                                errorType: errType,
+                                message: msg,
+                                path: result
+                            })
+                        
+}
+                    })
+     })
+                
+        console.log(colorizeResult)
     }
     /**
      * Removes run times from the newData array.

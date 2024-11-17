@@ -11,45 +11,39 @@ class TFName extends TokenTransformer {
     if (token.type.label === 'name') {
       if (prevToken) {
         const { label: prevLabel } = prevToken.type
-        const prevValue = this.valueToString(prevToken.value)
 
-        // this.transform(token, 'variable')
         if (prevLabel === 'keyword') {
           this.transform(token, 'variable')
         } else if (
           this.prevContext.includes(this.valueToString(prevToken.type.label))
         ) {
-          if(prevLabel ==='('){
+          if (prevLabel === '(') {
             this.transform(token, 'parameter')
-          }else this.transform(token, 'property')
+          } else this.transform(token, 'property')
         } else if (prevLabel === ':') {
           this.typeAnnotation(token)
         }
-        if(nextToken){
-        const { label: nextLabel } = nextToken?.type
+        if (nextToken) {
+          const { label: nextLabel } = nextToken?.type
 
-        if (
-          prevLabel !== ':' &&
-          this.nextContext.includes(nextLabel)
-        ) {
-          this.transform(token, 'variable')
-        }
-        if (nextLabel === '(') {
-          this.transform(token, 'method')
-        }
-        if (nextLabel === '.' && prevLabel === '.') {
-          this.transform(token, 'property')
-        } else if (nextLabel === '.') {
-          this.transform(token, 'object')
+          if (prevLabel !== ':' && this.nextContext.includes(nextLabel)) {
+            this.transform(token, 'variable')
+          }
+          if (nextLabel === '(') {
+            this.transform(token, 'method')
+          }
+          if (nextLabel === '.' && prevLabel === '.') {
+            this.transform(token, 'property')
+          } else if (nextLabel === '.') {
+            this.transform(token, 'object')
+          }
         }
       }
-        }else{this.transform(token, 'method')}
-      
     }
-    console.log(token)
+
     return token
   }
-  typeAnnotation(token: CustomToken): void{
+  typeAnnotation(token: CustomToken): void {
     const basicType = [
       'string',
       'number',
@@ -82,7 +76,7 @@ class TFName extends TokenTransformer {
       'Date',
       'RegExp',
     ]
-    if (basicType.includes(this.valueToString(token.value))){
+    if (basicType.includes(this.valueToString(token.value))) {
       this.transform(token, 'typeAnnotation')
     }
   }

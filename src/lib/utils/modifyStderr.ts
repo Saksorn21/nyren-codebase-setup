@@ -21,7 +21,7 @@ import clone from './clone.js'
 import Themes, { colorType } from '../acorn/Themes.js'
 import ColorizeSyntax, { type KeywordType } from '../acorn/ColorizeSyntax.js'
 import kwTypes from '../acorn/keywordTypes.js'
-import ErrorLogManager from '../acorn/ErrorLogManager.js'
+import ErrorLogManager, { type ErrorAndPath }  from '../acorn/ErrorLogManager.js'
 
 const colors = new Themes()
 
@@ -39,10 +39,12 @@ let keywordTypes = kwTypes.emit()
 
         // Debug ข้อมูล
         errorManager.debug();
-
+const parseError = ''
+  errorManager.processColorize()
+        
         // รับผลลัพธ์ที่ประมวลผลแล้ว
         const { errorPathBlocks, arrRawData, modifiedData } = errorManager.results;
-        console.log(modifiedData);
+        //console.log(...errorPathBlocks);
     //str = str.join('\n')
     //console.log(str)
     
@@ -78,7 +80,7 @@ obj.loc.map('ppp')
         .replace(/\t/g, '[TAB]')
         .replace(/\f/g, '[FF]')
         .replace(/\v/g, '[VT]')
-      const tokens = [...parseCode.tokenizer(codeWithPlaceholders, optionsAcorn)]
+      const tokens = [...parseCode.tokenizer(modifiedData.join('\n'), optionsAcorn)]
       // as SyntaxHighlight[]
       // const ast = full(parseCode.parse(code,optionsAcorn), node => console.log(node))
       // console.log(tokens)
@@ -89,7 +91,16 @@ obj.loc.map('ppp')
       labels.debug(color.white('<<<===HighLight Syntax===>>>'))
       //console.log('yes',labels.result)
 
-      highlightSyntax(labels.result)
+      
+      const outputSyntax: Array<string> = []
+      console.log('true highlight')
+      const highlight = new HighlightSyntax(labels.result)
+
+    //  highlight.parse()
+      // console.log(highlight.result)
+      //outputSyntax.push(...errorPathBlocks)
+
+      //errorMessageAndPaths(...errorPathBlocks)
     } catch (error) {
       let str = ''
       debug(`Error caught: ${error.message}`)
@@ -133,39 +144,6 @@ const restoreControlCharacters = (tokenValue: string) =>
   typeof tokenValue === 'string'
     ? tokenValue.replace(/\[CR\]/g, '\r')
     : tokenValue
-/**
- *@ interface SyntaxHighlight 
- *@ dscription - Acorn's Token class doesn't have a property value, so we need to create one.
- * of acorn Token {
-type: TokenType
-start: number
-end: number
-loc?: SourceLocation
-range?: [number, number]
-}
- */
-interface SyntaxHighlight extends Token {
-  value: string
-}
-
-
-const highlightSyntax = (ast: SyntaxHighlight[]) => {
-  const outputSyntax: Array<string> = []
-  const collectData = new ColorizeSyntax(colors, [])
-  let currentLine = 1
-  let currentColumn = 0
-  let keyword = [...kwTypes.getKeys()]
-  let prevToken: SyntaxHighlight | null = null
-  // ast.map(item => console.log(item))
-  console.log('true highlight')
-  const highlight = new HighlightSyntax(ast)
-
-  highlight.parse()
-  // console.log(highlight.result)
-  outputSyntax.push(...highlight.result)
-
-  errorMessageAndPaths(outputSyntax)
-}
 
 const atPath = (path: string) => {
   const match = path.match(/at\s+([^\s]+)?\s?([^\s:]+):(\d+):(\d+)/)
@@ -181,16 +159,22 @@ const atPath = (path: string) => {
 
   return ''
 }
-const errorMessageAndPaths = (outputSyntax: Array<string>) => {
-  let str: any = outputSyntax.join('')
+const errorMessageAndPaths = (errorTypes:Array<string>, errorPaths: ErrorAndPath[]) => {
+  let str: any = errorPaths
 
-  str = str.split('\n')
 
-  str.forEach((item, index) => {
+  str.forEach((blockObj, blockIndex) => {
+    blockObj.block.forEach(({ line, index }) => {
+        console.log(
+            utils.color.amber(
+                `Index ${utils.color.white(index) + ':'} ${utils.color.white(line)}`
+            )
+        )
+    
     // ตรวจจับเฉพาะ "error:" และทำสีโดยไม่กระทบสีที่ทำไฮไลต์ไว้
     if (
-      item.includes(clearAnsiCodes('error')) ||
-      item.includes(clearAnsiCodes('TypeError'))
+      line.includes(clearAnsiCodes('error')) ||
+      line.includes(clearAnsiCodes('TypeError'))
     ) {
       const override = clearAnsiCodes(item).split(':') // ใช้ clearAnsiCodes แค่กับส่วนที่เป็น "error:"
       str[index] =
@@ -201,6 +185,7 @@ const errorMessageAndPaths = (outputSyntax: Array<string>) => {
     ) {
       str[index] = atPath(clearAnsiCodes(item))
     }
+      })
   })
 
   // รวมข้อความและแสดงผล
