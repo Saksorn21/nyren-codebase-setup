@@ -21,35 +21,30 @@ import clone from './clone.js'
 import Themes, { colorType } from '../acorn/Themes.js'
 import ColorizeSyntax, { type KeywordType } from '../acorn/ColorizeSyntax.js'
 import kwTypes from '../acorn/keywordTypes.js'
-import ErrorLogManager, { type ErrorAndPath }  from '../acorn/ErrorLogManager.js'
-
+import ErrorLogManager, { type ErrorAndPath } from '../acorn/ErrorLogManager.js'
+import Fusion from '../acorn/Fusion.js'
 const colors = new Themes()
 
 let keywordTypes = kwTypes.emit()
 
-    const modifyStderr = (stderr: typeof process.stderr) =>
-      stderr.on('data', data => {
-        const rawData = data.toString();
-        // ลบ ANSI codes แล้วแยกเป็นบรรทัด
+const modifyStderr = (stderr: typeof process.stderr) =>
+  stderr.on('data', data => {
+    const rawData = data.toString()
+    // ลบ ANSI codes แล้วแยกเป็นบรรทัด
 
-        
+    const errorManager = new ErrorLogManager()
+    errorManager.process(rawData)
 
-        const errorManager = new ErrorLogManager();
-        errorManager.process(rawData);
+    // Debug ข้อมูล
+    errorManager.debug()
+    const parseError = ''
 
-        // Debug ข้อมูล
-        errorManager.debug();
-const parseError = ''
-  
-  
-        
-        
-        // รับผลลัพธ์ที่ประมวลผลแล้ว
-        const { errorPathBlocks, arrRawData, modifiedData } = errorManager.results;
-        //console.log(...errorPathBlocks);
+    // รับผลลัพธ์ที่ประมวลผลแล้ว
+    const { errorPathBlocks, arrRawData, modifiedData } = errorManager.results
+    //console.log(...errorPathBlocks);
     //str = str.join('\n')
     //console.log(str)
-    
+
     const optionsAcorn: Options = {
       ecmaVersion: 'latest',
       sourceType: 'module',
@@ -82,7 +77,9 @@ obj.loc.map('ppp')
         .replace(/\t/g, '[TAB]')
         .replace(/\f/g, '[FF]')
         .replace(/\v/g, '[VT]')
-      const tokens = [...parseCode.tokenizer(modifiedData.join('\n'), optionsAcorn)]
+      const tokens = [
+        ...parseCode.tokenizer(modifiedData.join('\n'), optionsAcorn),
+      ]
       // as SyntaxHighlight[]
       // const ast = full(parseCode.parse(code,optionsAcorn), node => console.log(node))
       // console.log(tokens)
@@ -93,39 +90,17 @@ obj.loc.map('ppp')
       labels.debug(color.white('<<<===HighLight Syntax===>>>'))
       //console.log('yes',labels.result)
 
-      
       const outputSyntax: Array<string> = []
       console.log('true highlight')
       const highlight = new HighlightSyntax(labels.result)
 
       highlight.parse()
- console.log(highlight.result.emit())
-      const tokenColored: Array<string> = (highlight.result.emit() as string).split('\n') as Array<string>
-      for (const err of errorManager.processColorize()) {
-         tokenColored.map((line, index) =>{
-           const parse = clearAnsiCodes(line).split(':')
-           const lineId = parseInt(parse[1])
-           if (line.includes(errorManager.MAKEERRORTYPE)){
-
-
-          if(lineId === err.idx){
-            tokenColored[index] = err.errorType + err.message
-        }
-
-      }else if (line.includes(errorManager.MAKEPATH)) err.paths.map(({idx, path}) => {
-            if(lineId === idx) tokenColored[index] = path.replace(/\n/g, '')
-          })
-          
-            
-      
-          
-          //tokenColored[index] = line.replace(errorManager.MAKEERRORTYPE,err.errorType) + err.message
-        })
-        //comb[err.idx] = err.errorType + err.message
-        //comb[err.path[0]] = err.path[1]
-
-        }
-      
+      console.log(highlight.result.emit())
+      const tokenColored: Array<string> = (
+        highlight.result.emit() as string
+      ).split('\n') as Array<string>
+      const combo = new Fusion()
+      combo.process(tokenColored, errorManager.results.errorPathBlocks)
       console.log(tokenColored.join('\n'))
       //outputSyntax.push(...errorPathBlocks)
 
@@ -134,16 +109,17 @@ obj.loc.map('ppp')
       let str = ''
       debug(`Error caught: ${error.message}`)
       console.log(error)
-          arrRawData.forEach((item: string, index: number) => {
+      arrRawData.forEach((item: string, index: number) => {
         if (item.includes('^')) {
-              arrRawData[index] = color.red(item)
+          arrRawData[index] = color.red(item)
         } else if (item.includes('error')) {
           let override = arrRawData[index].split('error:')
-              arrRawData[index] = color.red('error:') + color.grey(override.slice(1))
+          arrRawData[index] =
+            color.red('error:') + color.grey(override.slice(1))
         } else if (item.includes('at ')) {
-              arrRawData[index] = atPath(item)
+          arrRawData[index] = atPath(item)
         } else if (item.includes('Bun')) {
-              arrRawData.splice(index, arrRawData.length)
+          arrRawData.splice(index, arrRawData.length)
         }
 
         const override = arrRawData.join('\n').split(' ')
@@ -188,33 +164,35 @@ const atPath = (path: string) => {
 
   return ''
 }
-const errorMessageAndPaths = (errorTypes:Array<string>, errorPaths: ErrorAndPath[]) => {
+const errorMessageAndPaths = (
+  errorTypes: Array<string>,
+  errorPaths: ErrorAndPath[]
+) => {
   let str: any = errorPaths
-
 
   str.forEach((blockObj, blockIndex) => {
     blockObj.block.forEach(({ line, index }) => {
-        console.log(
-            utils.color.amber(
-                `Index ${utils.color.white(index) + ':'} ${utils.color.white(line)}`
-            )
+      console.log(
+        utils.color.amber(
+          `Index ${utils.color.white(index) + ':'} ${utils.color.white(line)}`
         )
-    
-    // ตรวจจับเฉพาะ "error:" และทำสีโดยไม่กระทบสีที่ทำไฮไลต์ไว้
-    if (
-      line.includes(clearAnsiCodes('error')) ||
-      line.includes(clearAnsiCodes('TypeError'))
-    ) {
-      const override = clearAnsiCodes(item).split(':') // ใช้ clearAnsiCodes แค่กับส่วนที่เป็น "error:"
-      str[index] =
-        color.hex('#F44747')(override[0]) +
-        color.hex('#7F848E').visible(`:${override.slice(1).join(':')}`)
-    } else if (
-      /at\s+[^\s]+(?:\s?\([^\)]+\))?:\d+:\d+/.test(clearAnsiCodes(item))
-    ) {
-      str[index] = atPath(clearAnsiCodes(item))
-    }
-      })
+      )
+
+      // ตรวจจับเฉพาะ "error:" และทำสีโดยไม่กระทบสีที่ทำไฮไลต์ไว้
+      if (
+        line.includes(clearAnsiCodes('error')) ||
+        line.includes(clearAnsiCodes('TypeError'))
+      ) {
+        const override = clearAnsiCodes(item).split(':') // ใช้ clearAnsiCodes แค่กับส่วนที่เป็น "error:"
+        str[index] =
+          color.hex('#F44747')(override[0]) +
+          color.hex('#7F848E').visible(`:${override.slice(1).join(':')}`)
+      } else if (
+        /at\s+[^\s]+(?:\s?\([^\)]+\))?:\d+:\d+/.test(clearAnsiCodes(item))
+      ) {
+        str[index] = atPath(clearAnsiCodes(item))
+      }
+    })
   })
 
   // รวมข้อความและแสดงผล
