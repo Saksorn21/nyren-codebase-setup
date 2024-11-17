@@ -106,62 +106,90 @@ export default class ErrorLogManager {
         const marker = type === 'errorType' ? this.MAKEERRORTYPE : this.MAKEPATH
         this.newData[index] = marker + index
     }
-    
+
     public processColorize() {
-        const result: Array<string> = [] 
-        const colorizeResult:{
-            idx: number,
-            errorType: string,
-            message: string,
+        let resultPaths: Array<string> = []
+        const colorizeResult: {
+            idx: number
+            errorType: string
+            message: string
             path: string[]
         }[] = []
-        let errType = '', path = '', line = '', msg = '', parse: Array<string> = [],isType = false, isPath = false
+        let errType = '',
+            path = '',
+            line = '',
+            msg = '',
+            parse: Array<string> = [],
+            isType = false,
+            isPath = false,
+            blockId = 0
+        
         this.errorPathBlocks.forEach((blockObj, blockIndex) => {
-            
+            blockId = blockIndex + 1
             console.log(
                 utils.color.red(
                     `Error Block ${utils.color.white(blockIndex + 1 + ':')}`
                 )
             )
-            console.log(blockObj);
+            //console.log(blockObj)
             blockObj.block.forEach(({ line, index }) => {
                 parse = line.split(':')
                 const type = line.match(this.regExpErrorType)
-                if(type && !isType){
+                if (type && !isType) {
                     errType = type[0]
                     msg = line.replace(type[0], '')
                     isType = true
-                    isPath = false
-                }else{
-                    isType = false
-                    isPath = true
-                    path = line.trim().startsWith('at ') ? line : ''
-                    result.push(path)
+                    //isPath = false
+    } else  {
+        isType = false
+       isPath = true
+        path = this.atPath(line)
+                    resultPaths.push(path)
                 }
-
-
-                if(this.errorTypes.includes(errType) && isType){
-                   isPath = false ,isType = false 
-                     errType = utils.color.red(errType || '')
+    
+                if (this.errorTypes.includes(errType) && isType) {
+                    isType = false
+                    errType = utils.color.red(errType || '')
                     msg = utils.color.white(msg || '')
 
                     colorizeResult.push({
-                                idx: index,
-                                errorType: errType,
-                                message: msg,
-                                path: result
-                            })
-                        
-}
+       idx: index,
+        errorType: errType,
+        message: msg,
+        path: resultPaths,
                     })
-     })
+                    
+                } 
                 
-        console.log(colorizeResult)
+            })
+            resultPaths = []
+            
+        })
+
+        return colorizeResult
     }
+    atPath (path: string): string {
+        const color = utils.color.chalk
+        const regex = /at\s+(?:(?<method>[\w<>]+)\s+\()?((?<file>[^\s:]+):(?<line>\d+):(?<column>\d+))\)?/;
+
+      const match = regex.exec(path);
+        
+      if (match) {
+          const at = color.hex('#d7d7ff').dim('at')
+        const method = color.hex('#abb2bf').bold(match.groups.method || '') // กรณีไม่มีชื่อเมธอด
+        const filePath = color.cyan(match.groups.file || '')
+        const line = color.yellow(parseInt(match.groups.line))
+        const column = color.yellow.dim(parseInt(match.groups.column))
+
+        return color.hex('#5c6370').visible(`      ${at} ${method} ${method ?'(' + filePath + ')' : filePath}:${line}:${column}\n`)
+      }
+        return ''
+    }
+
     /**
      * Removes run times from the newData array.
      */
-  private removeRunTimes() {
+    private removeRunTimes() {
         this.newData.map((line, index) =>
             line.includes('Bun') ? (this.newData[index] = '') : line
         )

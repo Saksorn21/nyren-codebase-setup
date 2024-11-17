@@ -40,7 +40,12 @@ let keywordTypes = kwTypes.emit()
         // Debug ข้อมูล
         errorManager.debug();
 const parseError = ''
-  errorManager.processColorize()
+  for (const err of errorManager.processColorize()) {
+    console.log(err.errorType + err.message)
+     console.log(err.path.join(''))
+  }
+  
+        
         
         // รับผลลัพธ์ที่ประมวลผลแล้ว
         const { errorPathBlocks, arrRawData, modifiedData } = errorManager.results;
