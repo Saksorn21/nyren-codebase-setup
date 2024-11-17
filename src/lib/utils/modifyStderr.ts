@@ -22,7 +22,7 @@ import Themes, { colorType } from '../acorn/Themes.js'
 import ColorizeSyntax, { type KeywordType } from '../acorn/ColorizeSyntax.js'
 import kwTypes from '../acorn/keywordTypes.js'
 import ErrorLogManager from '../acorn/ErrorLogManager.js'
-import errorTypes from '../acorn/errorType.js'
+
 const colors = new Themes()
 
 let keywordTypes = kwTypes.emit()
@@ -57,17 +57,19 @@ let keywordTypes = kwTypes.emit()
       allowAwaitOutsideFunction: true,
     }
     const code = `
-    class Sos {
-    static boat(n: number){
-    return n
-    }
-    public age: number = 25
-    private isSos: boolean = true
-    
-    private readonly jan: string = 'jan'
-    #home: string = 'home'
-    
-    }
+    const obj = {
+  name: 'John',
+  age: 30,
+  city: 'New York',
+  loc: {
+    lat: 40.7128,
+    lng: -74.0060,
+    map: (l: string) => {throw new Error(l)
+                        }
+  }
+}
+obj.name
+obj.loc.map('ppp')
   `
 
     try {
@@ -76,7 +78,7 @@ let keywordTypes = kwTypes.emit()
         .replace(/\t/g, '[TAB]')
         .replace(/\f/g, '[FF]')
         .replace(/\v/g, '[VT]')
-      const tokens = [...parseCode.tokenizer(modifiedData.join('\n'), optionsAcorn)]
+      const tokens = [...parseCode.tokenizer(codeWithPlaceholders, optionsAcorn)]
       // as SyntaxHighlight[]
       // const ast = full(parseCode.parse(code,optionsAcorn), node => console.log(node))
       // console.log(tokens)

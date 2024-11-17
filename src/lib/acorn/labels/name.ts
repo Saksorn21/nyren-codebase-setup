@@ -19,43 +19,11 @@ class TFName extends TokenTransformer {
         } else if (
           this.prevContext.includes(this.valueToString(prevToken.type.label))
         ) {
-          this.transform(token, 'property')
-        } else if (prevToken.type.label === ':') {
-          const basicType = [
-            'string',
-            'number',
-            'boolean',
-            'symbol',
-            'bigint',
-            'undefined',
-            'null',
-            'unknown',
-            'unique',
-            'object',
-            'string[]',
-            'any',
-            'any[]',
-            'void',
-            'never',
-            'Array',
-            'Function',
-            'null[]',
-            'boolean[]',
-            'number[]',
-            'symbol[]',
-            'object[]',
-            'unknown[]',
-            'tuple',
-            'record',
-            'Map',
-            'Set',
-            'Promise',
-            'Date',
-            'RegExp',
-          ]
-          if (basicType.includes(this.valueToString(token.value))) {
-            this.transform(token, 'typeAnnotation')
-          }
+          if(prevLabel ==='('){
+            this.transform(token, 'parameter')
+          }else this.transform(token, 'property')
+        } else if (prevLabel === ':') {
+          this.typeAnnotation(token)
         }
         if(nextToken){
         const { label: nextLabel } = nextToken?.type
@@ -75,9 +43,48 @@ class TFName extends TokenTransformer {
           this.transform(token, 'object')
         }
       }
-        }
+        }else{this.transform(token, 'method')}
+      
     }
+    console.log(token)
     return token
+  }
+  typeAnnotation(token: CustomToken): void{
+    const basicType = [
+      'string',
+      'number',
+      'boolean',
+      'symbol',
+      'bigint',
+      'undefined',
+      'null',
+      'unknown',
+      'unique',
+      'object',
+      'string[]',
+      'any',
+      'any[]',
+      'void',
+      'never',
+      'Array',
+      'Function',
+      'null[]',
+      'boolean[]',
+      'number[]',
+      'symbol[]',
+      'object[]',
+      'unknown[]',
+      'tuple',
+      'record',
+      'Map',
+      'Set',
+      'Promise',
+      'Date',
+      'RegExp',
+    ]
+    if (basicType.includes(this.valueToString(token.value))){
+      this.transform(token, 'typeAnnotation')
+    }
   }
 }
 

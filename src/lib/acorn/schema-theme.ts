@@ -42,13 +42,13 @@ export const defaultTheme: ThemeSchema  = {
     isDefault: true
 };
 const matchIncludes: ColorSchema<Array<string>>  = {
-  white: ['variable', 'parameter', 'operator', 'punctuation'],
-  dark: ['variable', 'parameter', 'operator', 'punctuation', 'name','object'],
+  white: ['variable', 'parameters', 'operator', 'punctuation'],
+  dark: ['variable', 'operator', 'punctuation', 'name','object'],
   purple: ['keyword',...keywordAnyTypes],
   yellow: ['classes', 'typeAnnotation','types'],
-  blue: ['functions', 'method', ],
+  blue: ['functions', 'method', 'property',],
   green: ['string', 'literals', 'regexp'],
-  orange: ['property', 'constants', 'TFnumber', 'TFboolean'],
+  orange: [ 'parameter','constants', 'TFnumber', 'TFboolean'],
   red: ['privateId'],
   error: ['invalid','error'],
 }

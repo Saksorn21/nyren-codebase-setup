@@ -29,19 +29,18 @@ export default class ErrorLogManager {
      */
     process(rawData: string) {
         this.arrRawData.push(...rawData.split('\n'))
-        
+
         const lines = clearAnsiCodes(rawData).split('\n') // Remove ANSI codes and split into lines
         this.newData = lines
-        //this.newData = 
+        //this.newData =
         this.newData.map((line, index) => {
-            
             this.parse(line, index) // Process each line
-            
-            return line// Return the original line
+
+            return line // Return the original line
         })
         this.removeRunTimes() // Remove run times from the newData array
         this.saveBlock() // Save the last block if any
-        
+        return this
     }
 
     /**
@@ -65,7 +64,6 @@ export default class ErrorLogManager {
             this.saveBlock() // Save the current block when encountering unrelated lines
             this.isCollectingError = false
         }
-        
     }
 
     /**
@@ -76,7 +74,6 @@ export default class ErrorLogManager {
     private addError(line: string, index: number) {
         this.activeErrorBlock.push({ line, index })
         this.markAsModified('errorType', index)
-        
     }
 
     /**
@@ -108,13 +105,16 @@ export default class ErrorLogManager {
     private markAsModified(type: 'errorType' | 'path', index: number) {
         const marker = type === 'errorType' ? this.MAKEERRORTYPE : this.MAKEPATH
         this.newData[index] = marker + index
-        
     }
-removeRunTimes(){
-    this.newData.map((line, index) => line.includes('Bun') ? this.newData[index] = '' : line)
-    
-}
-    
+    /**
+     * Removes run times from the newData array.
+     */
+  private removeRunTimes() {
+        this.newData.map((line, index) =>
+            line.includes('Bun') ? (this.newData[index] = '') : line
+        )
+    }
+
     /**
      * Debugging method to print out all error blocks with their corresponding lines and indices.
      */
@@ -145,8 +145,5 @@ removeRunTimes(){
             arrRawData: this.arrRawData,
             modifiedData: this.newData,
         }
-
     }
-
-
 }

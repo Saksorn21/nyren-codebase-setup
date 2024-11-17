@@ -82,7 +82,7 @@ class HighlightSyntax {
         ['regexp', () => collectData.on('regexp', val)],
         ['operator', () => collectData.on('operator', val)],
         ['punctuation', () => collectData.on('punctuation', val)],
-        ['constants', () => collectData.on('constants', val)],
+        ['parameter', () => collectData.on('parameter', val)],
         ['typeAnnotation', () => collectData.on('types', val)],
         ['types', () => collectData.on('types', val)],
         ['privateId', () => collectData.on('privateId', val.replace(/^/, "#"))]
