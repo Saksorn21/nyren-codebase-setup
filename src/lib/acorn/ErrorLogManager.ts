@@ -5,7 +5,26 @@ import utils from '../utils/main.js'
 export type ErrorAndPath = {
   block: { line: string; index: number }[]
 }
-
+type ErrorBlock = ErrorAndPath & {
+  lineId: number
+  keyword: string
+  message: string
+  paths: { line: string; index: number }[]
+}
+class BlockError {
+  private readonly regExpErrorType = /(?:^|\s)(error|[a-zA-Z]+)(?=:)/
+  private lineId: number
+  private keyword: string
+  private message: string
+  private paths:Array<{ line: string; index: number }>
+  constructor(e: ErrorBlock){
+    const errorTypeMatch = e.line.match(this.regExpErrorType)
+    this.lineId = parseInt(e.lineId)
+     this.paths = e.paths.forEach(({line, index}): string => line.replace(/\n/g, ''))
+    this.keyword = e.keyword
+    this.message = e.message
+  }
+}
 export default class ErrorLogManager {
   private errorPathBlocks: ErrorAndPath[]
   private readonly regExpErrorType = /(?:^|\s)(error|[a-zA-Z]+)(?=:)/

@@ -26,10 +26,10 @@ import { importAttributes } from 'acorn-import-attributes'
 import classFields from 'acorn-class-fields'
 import staticClassFeatures from 'acorn-static-class-features'
 import privateClassElements from 'acorn-private-class-elements'
-
+import * as aco from "acorn"
 import tsPlugin from 'acorn-typescript'
 //import * as acorn from 'acorn'
-const acorn = Parser.extend(tsPlugin({ dts: true }))
+const acorn = aco.Parser.extend(tsPlugin({ dts: true }))
   .extend(classFields)
   .extend(staticClassFeatures)
 

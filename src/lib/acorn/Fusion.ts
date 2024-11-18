@@ -10,7 +10,7 @@ export default class Fusion {
   result: Array<string> = []
   constructor() {}
   process(code: string, codeError: TokenError[]) {
-    if(!typeof code === 'string') throw new TypeError('code must be a string')
+    if(typeof code !== 'string') throw new TypeError('code must be a string')
     const lines = code.split('\n')
     for (const err of codeError) {
       lines.map((line, index) => {

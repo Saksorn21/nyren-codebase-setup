@@ -91,7 +91,7 @@ obj.loc.map('ppp')
       
       
       combo.process(highlight.result.emit() as string, errorManager.processColorize())
-      console.log(combo.result.join('\n'))
+      console.log(combo.toString())
       //outputSyntax.push(...errorPathBlocks)
 
       //errorMessageAndPaths(...errorPathBlocks)
