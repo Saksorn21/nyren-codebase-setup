@@ -35,13 +35,11 @@ const modifyStderr = (stderr: typeof process.stderr) =>
     const errorManager = new ErrorLogManager()
     errorManager.process(rawData)
 
-    // Debug ข้อมูล
-    errorManager.debug()
     const parseError = ''
 
     // รับผลลัพธ์ที่ประมวลผลแล้ว
-    const { errorPathBlocks, arrRawData, modifiedData } = errorManager.results
-    //console.log(...errorPathBlocks);
+    const { errorPathBlocks,  arrRawData, modifiedData } = errorManager.results
+    
     //str = str.join('\n')
     //console.log(str)
 
@@ -50,9 +48,9 @@ const modifyStderr = (stderr: typeof process.stderr) =>
       sourceType: 'module',
       locations: true,
       preserveParens: true,
-      checkPrivateFields: true,
-      allowHashBang: true,
-      allowReserved: true,
+      //checkPrivateFields: true,
+      //allowHashBang: true,
+      //allowReserved: true,
       allowAwaitOutsideFunction: true,
     }
     const code = `
@@ -70,13 +68,9 @@ const modifyStderr = (stderr: typeof process.stderr) =>
 obj.name
 obj.loc.map('ppp')
   `
-
+    const combo = new Fusion()
     try {
-      const codeWithPlaceholders = code
-        .replace(/\r/g, '[CR]')
-        .replace(/\t/g, '[TAB]')
-        .replace(/\f/g, '[FF]')
-        .replace(/\v/g, '[VT]')
+      
       const tokens = [
         ...parseCode.tokenizer(modifiedData.join('\n'), optionsAcorn),
       ]
@@ -93,47 +87,32 @@ obj.loc.map('ppp')
       const outputSyntax: Array<string> = []
       console.log('true highlight')
       const highlight = new HighlightSyntax(labels.result)
-
       highlight.parse()
-      console.log(highlight.result.emit())
-      const tokenColored: Array<string> = (
-        highlight.result.emit() as string
-      ).split('\n') as Array<string>
-      const combo = new Fusion()
-      combo.process(tokenColored, errorManager.results.errorPathBlocks)
-      console.log(tokenColored.join('\n'))
+      
+      
+      combo.process(highlight.result.emit() as string, errorManager.processColorize())
+      console.log(combo.result.join('\n'))
       //outputSyntax.push(...errorPathBlocks)
 
       //errorMessageAndPaths(...errorPathBlocks)
     } catch (error) {
       let str = ''
       debug(`Error caught: ${error.message}`)
-      console.log(error)
-      arrRawData.forEach((item: string, index: number) => {
+      //console.log(error)
+      
+      modifiedData.forEach((item: string, index: number) => {
         if (item.includes('^')) {
-          arrRawData[index] = color.red(item)
-        } else if (item.includes('error')) {
-          let override = arrRawData[index].split('error:')
-          arrRawData[index] =
-            color.red('error:') + color.grey(override.slice(1))
-        } else if (item.includes('at ')) {
-          arrRawData[index] = atPath(item)
-        } else if (item.includes('Bun')) {
-          arrRawData.splice(index, arrRawData.length)
+            modifiedData[index] = color.red(item)
+        }  else if (item.includes('Bun')) {
+          modifiedData.splice(index, modifiedData.length)
         }
-
-        const override = arrRawData.join('\n').split(' ')
-        override.forEach((item: string, index: number) => {
-          if (keywordTypes[item]) {
-            override[index] = color.hex('A78CFA')(item)
-          }
-        })
-        str = override.join(' ')
-      })
-      console.log('error', str)
-    }
-
+        
+      str = modifiedData.join('\n')
     // console.log(str.join('\n'))
+  })
+      const lastResult = combo.process(str, errorManager.processColorize())
+      console.log(lastResult.toString())
+      }
   })
 // color for syntax by. Eva Dark
 
