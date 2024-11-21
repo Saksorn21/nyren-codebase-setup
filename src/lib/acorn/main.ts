@@ -18,7 +18,6 @@ import {
   tokTypes,
   tokenizer,
   version,
-  parse,
 } from 'acorn'
 import type { ecmaVersion, Options } from 'acorn'
 //ts-no-check

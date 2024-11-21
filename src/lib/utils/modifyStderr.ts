@@ -19,13 +19,11 @@ import HighlightSyntax from '../acorn/HighlightSyntax.js'
 import color from './color.js'
 import clone from './clone.js'
 import Themes, { colorType } from '../acorn/Themes.js'
-import ColorizeSyntax, { type KeywordType } from '../acorn/ColorizeSyntax.js'
+
 import kwTypes from '../acorn/keywordTypes.js'
 import ErrorLogManager, { type ErrorAndPath } from '../acorn/ErrorLogManager.js'
 import Fusion from '../acorn/Fusion.js'
-const colors = new Themes()
-
-let keywordTypes = kwTypes.emit()
+import Parser from '../acorn/Parse.js'
 
 const modifyStderr = (stderr: typeof process.stderr) =>
   stderr.on('data', data => {
@@ -39,6 +37,9 @@ const modifyStderr = (stderr: typeof process.stderr) =>
 
     // รับผลลัพธ์ที่ประมวลผลแล้ว
     const { errorPathBlocks,  arrRawData, modifiedData } = errorManager.results
+    const c = new Parser(rawData)
+    const parse = c.parse()
+    console.log(c.getToken())
     
     //str = str.join('\n')
     //console.log(str)
@@ -73,7 +74,7 @@ obj.loc.map('ppp')
       
       const tokens = [
         ...parseCode.tokenizer(modifiedData.join('\n'), optionsAcorn),
-      ]
+      ] as C
       // as SyntaxHighlight[]
       // const ast = full(parseCode.parse(code,optionsAcorn), node => console.log(node))
       // console.log(tokens)
@@ -84,8 +85,8 @@ obj.loc.map('ppp')
       labels.debug(color.white('<<<===HighLight Syntax===>>>'))
       //console.log('yes',labels.result)
 
-      const outputSyntax: Array<string> = []
-      console.log('true highlight')
+      const outputSyntax = process.argv
+      console.log(outputSyntax)
       const highlight = new HighlightSyntax(labels.result)
       highlight.parse()
       
@@ -116,68 +117,7 @@ obj.loc.map('ppp')
   })
 // color for syntax by. Eva Dark
 
-const escapeControlCharacters = (str: String) =>
-  str
-    .replace(/\\/g, '\\\\') // แทนที่ backslash (\\) ให้เป็น \\\\
-    .replace(/\n/g, '\\n') // แทนที่ newline ให้เป็น \\n
-    .replace(/\r/g, '\\r') // แทนที่ carriage return ให้เป็น \\r
-    .replace(/\t/g, '\\t') // แทนที่ tab ให้เป็น \\t
-    .replace(/\x08/g, '\\b') // ใช้ \\x08 เพื่อระบุ backspace ตัวจริง
-    .replace(/\f/g, '\\f') // แทนที่ form feed ให้เป็น \\f
-const restoreControlCharacters = (tokenValue: string) =>
-  typeof tokenValue === 'string'
-    ? tokenValue.replace(/\[CR\]/g, '\r')
-    : tokenValue
 
-const atPath = (path: string) => {
-  const match = path.match(/at\s+([^\s]+)?\s?([^\s:]+):(\d+):(\d+)/)
-
-  if (match) {
-    const method = match[1] || ' ' // กรณีไม่มีชื่อเมธอด
-    const filePath = match[2]
-    const line = color.chalk.yellow(parseInt(match[3]))
-    const column = color.chalk.yellow(parseInt(match[4]))
-
-    return `    ${color.hex('#ABB2BF')('at')} ${color.chalk.cyan(`${method} ${filePath}:${line}:${column}\n`)}`
-  }
-
-  return ''
-}
-const errorMessageAndPaths = (
-  errorTypes: Array<string>,
-  errorPaths: ErrorAndPath[]
-) => {
-  let str: any = errorPaths
-
-  str.forEach((blockObj, blockIndex) => {
-    blockObj.block.forEach(({ line, index }) => {
-      console.log(
-        utils.color.amber(
-          `Index ${utils.color.white(index) + ':'} ${utils.color.white(line)}`
-        )
-      )
-
-      // ตรวจจับเฉพาะ "error:" และทำสีโดยไม่กระทบสีที่ทำไฮไลต์ไว้
-      if (
-        line.includes(clearAnsiCodes('error')) ||
-        line.includes(clearAnsiCodes('TypeError'))
-      ) {
-        const override = clearAnsiCodes(item).split(':') // ใช้ clearAnsiCodes แค่กับส่วนที่เป็น "error:"
-        str[index] =
-          color.hex('#F44747')(override[0]) +
-          color.hex('#7F848E').visible(`:${override.slice(1).join(':')}`)
-      } else if (
-        /at\s+[^\s]+(?:\s?\([^\)]+\))?:\d+:\d+/.test(clearAnsiCodes(item))
-      ) {
-        str[index] = atPath(clearAnsiCodes(item))
-      }
-    })
-  })
-
-  // รวมข้อความและแสดงผล
-  process.stdout.write(str.join('\n'))
-  console.log()
-}
 
 process.stdout.on('data', data => console.log(data.toString()))
 process.stderr.on('data', data => console.log(data.toString()))

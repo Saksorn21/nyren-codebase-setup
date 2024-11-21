@@ -34,3 +34,4 @@ JSKeywordTypes = [...javascriptAdditionalKeywords, ...javascriptES6AndBeyondKeyw
 TSKeywordTypes = typescriptReservedWords
 
 export { keywordAnyTypes, JSKeywordTypes, TSKeywordTypes}
+export default { keywordAnyTypes, JSKeywordTypes, TSKeywordTypes }
