@@ -95,11 +95,50 @@ const utils: UtilsModules = {
   prefixCli: `${color.white('[')}${color.nyren('nyrenx')}${color.white(']')}`,
   isWindows: process.platform === 'win32',
 }
+const {hasOwnProperty, toString} = Object.prototype
+;(utils as any).hasOwn = Object.hasOwn || ((obj: Object, propName: string) => (
+    hasOwnProperty.call(obj, propName)
+  )) as Function
+;(utils as any).isArray = Array.isArray || ((obj: Object) => (
+    toString.call(obj) === "[object Array]"
+  ))
+  const regexpCache: any = Object.create(null)
+;(utils as any).wordsRegexp =(words: string): any => {
+  return regexpCache[words] || (regexpCache[words] = new RegExp("^(?:" + words.replace(/ /g, "|") + ")$"))
+} 
 export const clearAnsiCodes = (str: string): string =>
   typeof str === 'string'
     ? (() => str.replace(ansiRegex(), ''))()
     : (() => {
         throw new TypeError(`Expected a 'string', got '${typeof str}'`)
       })()
-
-export default utils
+const platform = globalThis.navigator?.userAgentData?.platform;
+class Utils implements UtilsModules  {
+  readonly log = log
+  readonly taxi = taxi
+  readonly color = color
+  readonly clone = clone
+  readonly modifyStderr = modifyStderr
+  readonly path = ModulesPath
+  readonly fs = ModulesFs
+  readonly icon = modulesIcon
+  readonly prefixCli = `${color.white('[')}${color.nyren('nyrenx')}${color.white(']')}`
+  readonly isBrowser = (globalThis as any).window?.document !== undefined;
+  readonly isWindows = platform === 'Windows' || globalThis.navigator?.platform === 'Win32'
+  || globalThis.process?.platform === 'win32';
+  isBun = globalThis.process?.versions?.bun !== undefined
+  isNode = globalThis.process?.versions?.node !== undefined;
+  readonly isArray = Array.isArray || ((obj: Object) => (
+    toString.call(obj) === "[object Array]"
+  ))
+  readonly hasOwn = Object.hasOwn || ((obj: Object, propName: string) => (
+      hasOwnProperty.call(obj, propName)
+    ))
+  
+  constructor(){}
+  wordsRegexp(words: string){
+    return regexpCache[words] || (regexpCache[words] = new RegExp("^(?:" + words.replace(/ /g, "|") + ")$"))
+  } 
+}
+const utilsInstance = new Utils()
+export default utilsInstance

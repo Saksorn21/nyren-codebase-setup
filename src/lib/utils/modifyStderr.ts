@@ -37,9 +37,7 @@ const modifyStderr = (stderr: typeof process.stderr) =>
 
     // รับผลลัพธ์ที่ประมวลผลแล้ว
     const { errorPathBlocks,  arrRawData, modifiedData } = errorManager.results
-    const c = new Parser(rawData)
-    const parse = c.parse()
-    console.log(c.getToken())
+    
     
     //str = str.join('\n')
     //console.log(str)
@@ -54,8 +52,7 @@ const modifyStderr = (stderr: typeof process.stderr) =>
       //allowReserved: true,
       allowAwaitOutsideFunction: true,
     }
-    const code = `
-    const obj = {
+    const code = ` const obj = {
   name: 'John',
   age: 30,
   city: 'New York',
@@ -69,6 +66,11 @@ const modifyStderr = (stderr: typeof process.stderr) =>
 obj.name
 obj.loc.map('ppp')
   `
+    const c = new Parser(code)
+    const parse = c.parse()
+    console.log(c.getToken())
+    console.log(c.getToken())
+    console.log(c.getToken())
     const combo = new Fusion()
     try {
       
