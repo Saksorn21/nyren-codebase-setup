@@ -60,7 +60,10 @@ export default class Tokenizer {
 
   public keyword = kw.keywordAnyTypes
 
-  constructor(private input: string) {}
+  constructor(private input: string) {
+    this.eof = new Token(
+      new TokenType('eof'),'',0,0,new SourceLocation(new SourcePosition(0,0),new SourcePosition(0,0)))
+  }
 
   private isContextToken(value: string): boolean {
     return this.contextTokens.has(value)
@@ -147,6 +150,7 @@ export default class Tokenizer {
     while (this.position < this.input.length) {
       const rawToken = this.readWord()
       if (!rawToken) break
+        
 
       const { value, start, end } = rawToken
 
@@ -165,17 +169,23 @@ export default class Tokenizer {
   }
 
   public [Symbol.iterator]() {
-    const tokens = this.getTokens()
-    let index = 0
+      const tokens = this.getTokens();
+      let index = 0;
 
-    return {
-      next: (): IteratorResult<Token> => {
-        if (index < tokens.length) {
-          return { value: tokens[index++], done: false }
-        }
-        return { value: null as any, done: true }
-      },
-    }
+      // รีเซ็ต this.position ก่อนที่จะเริ่มวนลูป
+      this.position = 0;
+
+      console.log('Tokens in iterator:', tokens); // ตรวจสอบว่ามีค่า tokens หรือไม่
+
+      return {
+          next: (): IteratorResult<Token> => {
+              if (index < tokens.length) {
+                  console.log(`Returning token at index ${index}:`, tokens[index]);
+                  return { value: tokens[index++], done: false };
+              }
+              return { value: null as any, done: true };
+          },
+      };
   }
 
   private readContextToken(
@@ -292,71 +302,19 @@ export default class Tokenizer {
     return new Token(type, value, start, end, loc)
   }
 }
-export class Parser {
-  pos: number = 0
-  tokens: Token[] = []
-  eof: Token
 
-  constructor(private readonly code: string) {
-    this.eof = new Token({
-      type: 'eof',
-      label: 'eof',
-      keyword: 'eof',
-      value: null,
-    })
-  }
 
-  parse() {
-    const arr = this.code.split(' ')
-
-    for (let inCode of arr) {
-      let label = ''
-      let keyword: string | undefined = undefined
-      let value: any = ''
-      if (kw.keywordAnyTypes.includes(inCode)) {
-        label = inCode
-        keyword = inCode
-        value = inCode
-      } else {
-        if (!isNaN(Number(inCode))) {
-          label = 'num'
-          keyword = undefined
-          value = Number(inCode)
-        } else {
-          label = 'name'
-          keyword = inCode
-          value = inCode
-        }
-      }
-      this.tokens.push(new Token({ type: 'identifier', label, keyword, value }))
-    }
-
-    this.tokens.push(this.eof) // Append EOF token at the end
-  }
-
-  getToken() {
-    this.next()
-    return this.tokens[this.pos]
-  }
-
-  next() {
-    if (this.pos < this.tokens.length - 1) {
-      this.pos++
-    }
-  }
-}
-
-const pp = Parser.prototype
-if (typeof Symbol !== 'undefined') {
-  ;(pp as any)[Symbol.iterator] = function () {
-    return {
-      next: () => {
-        const token = this.getTokens()
-        return {
-          done: token.type === this.eof.type,
-          value: token,
-        }
-      },
-    }
-  }
-}
+// const pp = Tokenize.prototype
+// if (typeof Symbol !== 'undefined') {
+//   ;(pp as any)[Symbol.iterator] = function () {
+//     return {
+//       next: () => {
+//         const token = this.getTokens()
+//         return {
+//           done: token.type === this.eof.type,
+//           value: token,
+//         }
+//       },
+//     }
+//   }
+// }

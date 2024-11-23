@@ -90,11 +90,17 @@ console.log('true')
         tokens.forEach(token => {
             console.log(`Type: ${token.type.label}, Value: ${token.value}, Start: ${token.start}, End: ${token.end}`);
         });
-
+        console.log('Tokens from Symbol.iterator:');
+        const iterator = tokenizer[Symbol.iterator]();
+        let result = iterator.next();
+        while (!result.done) {
+            console.log(`Type: ${result.value.type.label}, Value: ${result.value.value}, Start: ${result.value.start}, End: ${result.value.end}`);
+            result = iterator.next();
+        }
         // ทดสอบ Symbol.iterator
         console.log('Tokens from Symbol.iterator:');
         for (const token of tokenizer) {
-            console.log(`Type: ${token.type.label}, Value: ${token.value}, Start: ${token.start}, End: ${token.end}`);
+           console.info(token)
         }
       } catch (error: unknown) {
          console.error('Error parsing code:', error);
