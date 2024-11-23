@@ -14,24 +14,27 @@ class TokenType {
 class Token {
   constructor(
       public type: TokenType,
-      public value: string,
+      public value: any,
       public start: number,
       public end: number,
       public loc: SourceLocation
   ) {}
 }
-class Tokenizer {
+export default class Tokenizer {
     private position: number = 0;
     private line: number = 1;
     private column: number = 0;
-
+   
     private contextTokens: Set<string> = new Set([
         '.', ',', '=', '(', '{', '<', '>', '}', '[', ']', '${', ';', '===', '<=', '>=', '+=', '-=', '*=', '/=', '&&', '||'
     ]);
-
-    constructor(private input: string, private types: { keywordAnyTypes: string[] }) {}
-  public parse(input: string, options){
-    
+ private input: string
+    public keyword = kw.keywordAnyTypes
+    constructor() {
+      this.input = ''
+    }
+  public parse(input: string){
+    this.input = input
   }
     private isContextToken(value: string): boolean {
         return this.contextTokens.has(value);
@@ -80,7 +83,7 @@ class Tokenizer {
 
         if (this.isContextToken(value)) {
             return this.readContextToken(value, start, end, loc);
-        } else if (this.types.keywordAnyTypes.includes(value)) {
+        } else if (this.keyword.includes(value)) {
             return this.readKeywordToken(value, start, end, loc);
         } else if (/^["'].*["']$/.test(value)) {
             return this.readStringToken(value, start, end, loc);
@@ -152,12 +155,25 @@ class Tokenizer {
     }
 
     private readNumberToken(value: string, start: number, end: number, loc: SourceLocation): Token {
-        const type = new TokenType('number');
-        return new Token(type, value, start, end, loc);
+        const type = new TokenType('num');
+        let numValue: number | bigint;
+
+        if (value.endsWith('n')) {
+            numValue = BigInt(value.slice(0, -1)); 
+        } else {
+
+            numValue = parseFloat(value);
+
+            if (isNaN(numValue)) {
+                throw new Error(`Invalid number: ${value}`);
+            }
+        }
+
+        return new Token(type, numValue, start, end, loc);
     }
 
     private readPrivateIdentifierToken(value: string, start: number, end: number, loc: SourceLocation): Token {
-        const type = new TokenType('private');
+        const type = new TokenType('privateId');
         return new Token(type, value, start, end, loc);
     }
 
@@ -189,7 +205,7 @@ class Tokenizer {
         return new Token(type, value, start, end, loc);
     }
 }
-export default class Parser {
+export class Parser {
   pos: number = 0;
   tokens: Token[] = [];
   eof: Token;
