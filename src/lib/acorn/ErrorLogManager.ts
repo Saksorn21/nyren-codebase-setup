@@ -1,7 +1,7 @@
 import clearAnsiCodes from '../utils/clearAnsi.js'
 import errorTypes from './errorType.js'
 import utils from '../utils/main.js'
-
+import { readPackageJson } from '../../lib/packageJsonUtils.js'
 export type ErrorAndPath = {
   block: { line: string; index: number }[]
 }
@@ -204,8 +204,9 @@ export default class ErrorLogManager {
    * Removes run times from the newData array.
    */
   private removeRunTimes() {
+    const version = readPackageJson().version
     this.newData.map((line, index) =>
-      line.includes('Bun') ? (this.newData[index] = '') : line
+      line.includes('Bun') ? (this.newData[index] = utils.color.chalk.hex('#d7d7ff').dim.visible(`Nyrenx: (${version})`)) : line
     )
   }
 

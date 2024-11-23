@@ -10,7 +10,7 @@ import ColorizeSyntax from './ColorizeSyntax.js'
 class HighlightSyntax {
   
    result!: ColorizeSyntax
-  constructor(private readonly tokens: CustomToken[]) {}
+  constructor(private readonly tokens: CustomToken[]) {return this}
   parse() {
     const collectData = new ColorizeSyntax(new Themes(), [])
     const position = { currentLine: 1, currentColumn: 0 }

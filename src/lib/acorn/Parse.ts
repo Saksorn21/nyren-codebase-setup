@@ -1,16 +1,24 @@
 import kw from './schema-keywordType.js'
-class Token {
-  type: string;
-  label: string;
-  keyword: string | null;
-  value: any;
+class SourcePosition {
+  constructor(public line: number, public column: number) {}
+}
 
-  constructor(p: { type: string; label: string; keyword: string | null; value: any }) {
-    this.type = p.type;
-    this.label = p.label;
-    this.keyword = p.keyword;
-    this.value = p.value;
-  }
+class SourceLocation {
+  constructor(public start: SourcePosition, public end: SourcePosition) {}
+}
+
+class TokenType {
+  constructor(public label: string, public keyword: string = '') {}
+}
+
+class Token {
+  constructor(
+      public type: TokenType,
+      public value: string,
+      public start: number,
+      public end: number,
+      public loc: SourceLocation
+  ) {}
 }
 
 export default class Parser {
@@ -27,9 +35,8 @@ export default class Parser {
 
     for (let inCode of arr) {
       let label = '';
-      let keyword = null;
-      let value = '';
-console.log(inCode)
+      let keyword: string | undefined = undefined
+      let value: any = '';
       if (kw.keywordAnyTypes.includes(inCode)) {
         label = inCode;
         keyword = inCode;
@@ -37,7 +44,7 @@ console.log(inCode)
       } else {
         if (!isNaN(Number(inCode))) {
           label = 'num';
-          keyword = null;
+          keyword = undefined
           value = Number(inCode);
         } else {
           label = 'name';

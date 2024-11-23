@@ -5,8 +5,9 @@ const obj = {
   loc: {
     lat: 40.7128,
     lng: -74.0060,
-    map: (l: string) => {throw new SyntaxError(l)
-                        }
+    map: (l: string) => { 
+      throw new Error(l)
+      }
   }
 }
 obj.name
