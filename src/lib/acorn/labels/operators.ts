@@ -77,7 +77,7 @@ class TFOperators extends TokenTransformer {
     nextToken: CustomToken
   ): CustomToken {
     //const context = [tokTypes, tokContexts]
-    if (!token.value) {
+    if (!token.value && token.type.label !== 'template') {
       token.value = token.type.label
     }
     if (
@@ -89,6 +89,9 @@ class TFOperators extends TokenTransformer {
     }
     if (token.value === '${') {
       this.transform(token, 'templateExpressionStart')
+    }else if (token.type.label === '}' && nextToken && nextToken.type.label === 'template') {
+      console.log('dTemp',token)
+      this.transform(token, 'templateExpressionEnd')
     }
     if (
       typeof token.value === 'string' &&

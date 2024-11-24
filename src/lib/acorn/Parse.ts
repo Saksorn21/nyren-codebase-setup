@@ -1,5 +1,5 @@
 import kw from './schema-keywordType.js'
-class SourcePosition {
+class Position {
   constructor(
     public line: number,
     public column: number
@@ -8,15 +8,15 @@ class SourcePosition {
 
 class SourceLocation {
   constructor(
-    public start: SourcePosition,
-    public end: SourcePosition
+    public start: Position,
+    public end: Position
   ) {}
 }
 
 class TokenType {
   constructor(
     public label: string,
-    public keyword: string = ''
+    public keyword: string | undefined = undefined
   ) {}
 }
 
@@ -29,9 +29,19 @@ class Token {
     public loc: SourceLocation
   ) {}
 }
+const eof = new Token(
+    new TokenType('eof', 'eof'),
+    'eof',
+    0,
+    0,
+    new SourceLocation(new Position(0, 0), new Position(0, 0))
+  )
 export default class Tokenizer {
   private position: number = 0
   private line: number = 1
+  private startLoc: number = 0
+  private endLoc: number = 0
+  private lineStart: number = 0
   private column: number = 0
 
   private contextTokens: Set<string> = new Set([
@@ -57,12 +67,12 @@ export default class Tokenizer {
     '&&',
     '||',
   ])
-
+ ch!: number
   public keyword = kw.keywordAnyTypes
+  readonly eof: Token = eof
 
   constructor(private input: string) {
-    this.eof = new Token(
-      new TokenType('eof'),'',0,0,new SourceLocation(new SourcePosition(0,0),new SourcePosition(0,0)))
+ this.input = String(input)
   }
 
   private isContextToken(value: string): boolean {
@@ -72,25 +82,61 @@ export default class Tokenizer {
   private readWord(): { value: string; start: number; end: number } | null {
     let start = this.position
     let currentWord = ''
+    let inString = false // ระบุว่ากำลังอ่าน string อยู่หรือไม่
+    let stringDelimiter = '' // เก็บตัวแบ่ง string เช่น ' หรือ "
 
     while (this.position < this.input.length) {
       const char = this.input[this.position]
-      const isSeparator = /\s|,|\(|\)|{|}|\n/.test(char)
+      this.ch = this.input.charCodeAt(this.position)
+      let ch = this.input.charAt(this.position)
+console.log(char, this.ch, ch)
+      // ตรวจจับจุดเริ่มต้นและจุดสิ้นสุดของ string
+      if ((char === '"' || char === "'" || char === '`') && !inString) {
+        inString = true
+        stringDelimiter = char
+        currentWord += char
+        this.position++
+        continue
+      } else if (inString && char === stringDelimiter) {
+        // สิ้นสุด string
+        inString = false
+        currentWord += char
+        this.position++
+        return { value: currentWord, start, end: this.position }
+      } else if (inString) {
+        // ถ้ายังอยู่ใน string ให้สะสมตัวอักษร
+        currentWord += char
+        this.position++
+        continue
+      }
 
-      // Update line and column when new line is encountered
-      if (char === '\n') {
-        this.line++
-        this.column = 0
+      // เช็คตัวแยก
+      const isSeparator = /\s|,|\(|\)|{|}|\n|:|=/.test(char)
+
+      if ((char === ':' || char === '=') && currentWord) {
+        // ถ้ามีคำแล้วและเจอ : หรือ =
+        return { value: currentWord, start, end: this.position }
       }
 
       if (isSeparator || this.isContextToken(char)) {
+        
         if (currentWord) {
           return { value: currentWord, start, end: this.position }
         }
+if(this.ch === 10 || this.ch === 8232 || this.ch === 8233){ ++this.line
+  this.lineStart = this.position
+                                      }
+        if (this.ch === 13) if (this.input.charCodeAt(this.position + 1) === 10) {
+          ++this.position
+        }
 
+        if(this.ch === 32 || this.ch === 160){
+          this.column++
+         //this.position
+        }
         if (char.trim()) {
-          // Return single-character token
-          this.position++ // Move position forward
+          console.log('trim',char,this.ch)
+          this.position++
           return {
             value: char,
             start,
@@ -98,7 +144,6 @@ export default class Tokenizer {
           }
         }
 
-        // Skip whitespace or separators
         this.position++
         start = this.position
         continue
@@ -110,7 +155,6 @@ export default class Tokenizer {
     }
 
     if (currentWord) {
-      // Return last word at the end of input
       return { value: currentWord, start, end: this.input.length }
     }
 
@@ -119,8 +163,8 @@ export default class Tokenizer {
 
   private createToken(value: string, start: number, end: number): Token {
     const loc = new SourceLocation(
-      new SourcePosition(this.line, this.column - (end - start)),
-      new SourcePosition(this.line, this.column)
+      new Position(this.line, this.column - (end - start)),
+      new Position(this.line,  this.column )
     )
 
     if (this.isContextToken(value)) {
@@ -144,57 +188,53 @@ export default class Tokenizer {
     }
   }
 
-  public getTokens(): Token[] {
-    const tokens: Token[] = []
-
+  public nextToken(): Token {
     while (this.position < this.input.length) {
       const rawToken = this.readWord()
       if (!rawToken) break
-        
 
       const { value, start, end } = rawToken
-
-      // Handle line breaks (if any)
-      if (value === '\n') {
-        this.line++
+      const lineBreak = /\r\n?|\n|\u2028|\u2029/
+      // Handle line breaks
+      console.log(value)
+      if (lineBreak.test(value)) {
+        console.log('line break',value)
+      //  this.line++
         this.column = 0
         continue
       }
 
-      const token = this.createToken(value, start, end)
-      tokens.push(token)
+      return this.createToken(value, start, end)
     }
 
-    return tokens
+    return this.eof
+  }
+
+  public getToken(): Token {
+    return this.nextToken()
   }
 
   public [Symbol.iterator]() {
-      const tokens = this.getTokens();
-      let index = 0;
-
-      // รีเซ็ต this.position ก่อนที่จะเริ่มวนลูป
-      this.position = 0;
-
-      console.log('Tokens in iterator:', tokens); // ตรวจสอบว่ามีค่า tokens หรือไม่
-
-      return {
-          next: (): IteratorResult<Token> => {
-              if (index < tokens.length) {
-                  console.log(`Returning token at index ${index}:`, tokens[index]);
-                  return { value: tokens[index++], done: false };
-              }
-              return { value: null as any, done: true };
-          },
-      };
+    return {
+      next: (): IteratorResult<Token> => {
+        const token = this.getToken()
+        if (token.type.label === 'eof') {
+          return { value: null as any, done: true }
+        }
+        return { value: token, done: false }
+      },
+    }
   }
-
+  public toArray(): Token[]{
+    return [...this]
+  }
   private readContextToken(
     value: string,
     start: number,
     end: number,
     loc: SourceLocation
   ): Token {
-    const type = new TokenType('context', value)
+    const type = new TokenType(value)
     return new Token(type, value, start, end, loc)
   }
 
@@ -215,6 +255,18 @@ export default class Tokenizer {
     loc: SourceLocation
   ): Token {
     const type = new TokenType('string')
+
+    // ตรวจสอบว่ามีเครื่องหมายคำพูดจริงหรือไม่
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
+      // ตัดเครื่องหมายคำพูดออก
+      value = value.slice(1, -1)
+    } else {
+      throw new Error(`Invalid string format: ${value}`)
+    }
+
     return new Token(type, value, start, end, loc)
   }
 
@@ -288,7 +340,7 @@ export default class Tokenizer {
     end: number,
     loc: SourceLocation
   ): Token {
-    const type = new TokenType('identifier')
+    const type = new TokenType('name')
     return new Token(type, value, start, end, loc)
   }
 
@@ -298,13 +350,14 @@ export default class Tokenizer {
     end: number,
     loc: SourceLocation
   ): Token {
-    const type = new TokenType('symbol')
+    const type = new TokenType(value)
     return new Token(type, value, start, end, loc)
   }
 }
 
+// const pp = Tokenizer.prototype
+// pp.toArray = () =>{ return [...this] }
 
-// const pp = Tokenize.prototype
 // if (typeof Symbol !== 'undefined') {
 //   ;(pp as any)[Symbol.iterator] = function () {
 //     return {

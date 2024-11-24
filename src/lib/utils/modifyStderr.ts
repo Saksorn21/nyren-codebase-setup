@@ -36,25 +36,16 @@ const modifyStderr = (stderr: typeof process.stderr) =>
       allowAwaitOutsideFunction: true,
     }
     const combo = new Fusion()
+    const code = `const name = 'hello'
+    const nyren = \`hello\${name}\`
+      `
     try {
-      const code = `
-          const obj = 
-        name: 'John',
-        age: 30,
-        city: 'New York',
-        loc: {
-          lat: 40.7128,
-          lng: -74.0060
-          map: (l: string) => {throw new Error(l)
-                              }
-        }
-      
-      obj.name
-      obj.loc.map('ppp')
-        `
+  
+      //modifiedData.join('\n')
       const tokens = [
-        ...parseCode.tokenizer(modifiedData.join('\n'), optionsAcorn),
+        ...parseCode.tokenizer(code, optionsAcorn),
       ] as CustomToken[]
+      console.log(...tokens)
       // as SyntaxHighlight[]
       // const ast = full(parseCode.parse(code,optionsAcorn), node => console.log(node))
        
@@ -82,26 +73,33 @@ console.log('true')
       console.log('error')
       try {
         console.log('start Tokenizer');
-        const tokenizer = new Tokenizer(modifiedData.join('\n'));
+        const tokenizer = new Tokenizer(code);
 
         // ทดสอบ getTokens()
-        console.log('Tokens from getTokens:');
-        const tokens = tokenizer.getTokens();
-        tokens.forEach(token => {
-            console.log(`Type: ${token.type.label}, Value: ${token.value}, Start: ${token.start}, End: ${token.end}`);
-        });
-        console.log('Tokens from Symbol.iterator:');
-        const iterator = tokenizer[Symbol.iterator]();
-        let result = iterator.next();
-        while (!result.done) {
-            console.log(`Type: ${result.value.type.label}, Value: ${result.value.value}, Start: ${result.value.start}, End: ${result.value.end}`);
-            result = iterator.next();
-        }
-        // ทดสอบ Symbol.iterator
-        console.log('Tokens from Symbol.iterator:');
-        for (const token of tokenizer) {
-           console.info(token)
-        }
+//const tokenizer = new Tokenizer("let x = 42;");
+const token = tokenizer.toArray()
+        console.log(...token)
+        const labels = new Labels(token)
+              labels.build()
+              labels.debug(color.white('<<<===HighLight Syntax===>>>'))
+              //console.log('yes',labels.result)
+        
+              const highlight = new HighlightSyntax(labels.result)
+                highlight.parse()
+       
+        combo.process(highlight.result.emit() as string, errorManager.processColorize())
+        process.stderr.write(combo.toString())
+        console.log()
+        // for (const token of tokenizer) {
+        //   console.log(token);
+        //  }
+
+        // // หรือทีละโทเค็น
+        // let token;
+        // do {
+        //   token = tokenizer.getToken();
+        //  console.log(token);
+        // } while (token.type.label !== 'eof');
       } catch (error: unknown) {
          console.error('Error parsing code:', error);
       }
