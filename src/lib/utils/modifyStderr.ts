@@ -36,16 +36,22 @@ const modifyStderr = (stderr: typeof process.stderr) =>
       allowAwaitOutsideFunction: true,
     }
     const combo = new Fusion()
-    const code = `constt kat = function () {
+    const code = `const kat = function (in: string) {
+    let regex = /[a-z]{3}/g
+      if (regex.test(in)){
+       console.log(in)
+      }else{
+       console.log('no')
+      }
        
     }
-    \`
+    
     `
     try {
   
       //modifiedData.join('\n')
       const tokens = [
-        ...parseCode.tokenizer(modifiedData.join('\n'), optionsAcorn),
+        ...parseCode.tokenizer(code, optionsAcorn),
       ] as CustomToken[]
       console.log(...tokens)
       // as SyntaxHighlight[]
