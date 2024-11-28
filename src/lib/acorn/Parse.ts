@@ -72,9 +72,14 @@ export default class Tokenizer {
     startLoc: new Position(0, 0),
     endLoc: new Position(0, 0)
   })
+  inTemplateElement: boolean = false
   context: tokContexts = tokContexts.none
   containsEsc: boolean
   options: { ecmaVersion: number }
+  lastTokEndLoc: Position | null
+  lastTokStartLoc: Position | null
+  lastTokStart: number 
+  lastTokEnd: number
   constructor(private input: string) {
 
     this.input = String(input)
@@ -83,11 +88,11 @@ export default class Tokenizer {
     this.context = this.initialContext()
     this.containsEsc = false
     this.options = { ecmaVersion: 12 }
+    this.lastTokEndLoc = this.lastTokStartLoc = null
+    this.lastTokStart = this.lastTokEnd = this.pos
   }
 
-  private isContextToken(value: string): boolean {
-    return this.contextTokens.has(value)
-  }
+  
   readWord1(): string {
     this.containsEsc = false
     let word = ""
@@ -162,6 +167,10 @@ export default class Tokenizer {
       case 123: ++this.pos; return this.finishToken(tt.braceL)
       case 125: ++this.pos; return this.finishToken(tt.braceR)
       case 58: ++this.pos; return this.finishToken(tt.colon)
+        case 96: // '`'
+        if (this.options.ecmaVersion < 6) break
+        ++this.pos
+        return this.finishToken(tt.backQuote)
         case 48: // '0'
         let next = this.input.charCodeAt(this.pos + 1)
         if (next === 120 || next === 88) return this.readRadixNumber(16) // '0x', '0X' - hex number
@@ -175,8 +184,32 @@ export default class Tokenizer {
         return this.readNumber(false)
       case 47: // '/'
         return this.readToken_slash()
-      case 61: case 33: // '=!'
-        return this.readToken_eq_excl(code)
+        case 37: case 42: // '%*'
+          return this.readToken_mult_modulo_exp(code)
+
+        case 124: case 38: // '|&'
+          return this.readToken_pipe_amp(code)
+
+        case 94: // '^'
+          return this.readToken_caret()
+
+        case 43: case 45: // '+-'
+          return this.readToken_plus_min(code)
+
+        case 60: case 62: // '<>'
+          return this.readToken_lt_gt(code)
+
+        case 61: case 33: // '=!'
+          return this.readToken_eq_excl(code)
+
+        case 63: // '?'
+          return this.readToken_question()
+
+        case 126: // '~'
+          return this.finishOp(tt.prefix, 1)
+
+        case 35: // '#'
+          return this.readToken_numberSign()
       default:
         ++this.pos
         return this.finishToken(tt.name, this.readWord1())
@@ -237,10 +270,19 @@ export default class Tokenizer {
   private finishToken(type: TokenType, val?: string | number | object) {
     this.end = this.pos
     this.endLoc = this.curPosition()
+    let prevType = this.type
     this.type = type
     this.value = val
-  }
 
+    this.updateContext(prevType)
+  }
+ next(){
+   this.lastTokEnd = this.end
+   this.lastTokStart = this.start
+   this.lastTokEndLoc = this.endLoc
+   this.lastTokStartLoc = this.startLoc
+   this.nextToken()
+ }
   public nextToken() {
     let curContext = this.curContext()
     if (!curContext || !curContext.preserveSpace) this.skipSpace()
@@ -253,7 +295,7 @@ export default class Tokenizer {
   }
 
   public getToken() {
-    this.nextToken()
+    this.next()
     return new Token(this)
   }
 
@@ -268,6 +310,7 @@ export default class Tokenizer {
       },
     }
   }
+  
   readString(quote) {
     let out = "", chunkStart = ++this.pos
     for (;;) {
@@ -415,6 +458,111 @@ this.lineStart = this.pos; ++this.curLine
       return String.fromCharCode(ch)
     }
   }
+  readToken_mult_modulo_exp (code) { // '%*'
+    let next = this.input.charCodeAt(this.pos + 1)
+    let size = 1
+    let tokentype = code === 42 ? tt.star : tt.modulo
+
+    // exponentiation operator ** and **=
+    if (this.options.ecmaVersion >= 7 && code === 42 && next === 42) {
+      ++size
+      tokentype = tt.starstar
+      next = this.input.charCodeAt(this.pos + 2)
+    }
+
+    if (next === 61) return this.finishOp(tt.assign, size + 1)
+    return this.finishOp(tokentype, size)
+  }
+
+readToken_pipe_amp (code) { // '|&'
+    let next = this.input.charCodeAt(this.pos + 1)
+    if (next === code) {
+      if (this.options.ecmaVersion >= 12) {
+        let next2 = this.input.charCodeAt(this.pos + 2)
+        if (next2 === 61) return this.finishOp(tt.assign, 3)
+      }
+      return this.finishOp(code === 124 ? tt.logicalOR : tt.logicalAND, 2)
+    }
+    if (next === 61) return this.finishOp(tt.assign, 2)
+    return this.finishOp(code === 124 ? tt.bitwiseOR : tt.bitwiseAND, 1)
+  }
+
+  readToken_caret () { // '^'
+    let next = this.input.charCodeAt(this.pos + 1)
+    if (next === 61) return this.finishOp(tt.assign, 2)
+    return this.finishOp(tt.bitwiseXOR, 1)
+  }
+
+  readToken_plus_min (code) { // '+-'
+    let next = this.input.charCodeAt(this.pos + 1)
+    if (next === code) {
+      if (next === 45 && !true && this.input.charCodeAt(this.pos + 2) === 62 &&
+          (this.lastTokEnd === 0 || lineBreak.test(this.input.slice(this.lastTokEnd, this.pos)))) {
+        // A `-->` line comment
+        this.skipLineComment(3)
+        this.skipSpace()
+        return this.nextToken()
+      }
+      return this.finishOp(tt.incDec, 2)
+    }
+    if (next === 61) return this.finishOp(tt.assign, 2)
+    return this.finishOp(tt.plusMin, 1)
+  }
+
+  readToken_lt_gt (code) { // '<>'
+    let next = this.input.charCodeAt(this.pos + 1)
+    let size = 1
+    if (next === code) {
+      size = code === 62 && this.input.charCodeAt(this.pos + 2) === 62 ? 3 : 2
+      if (this.input.charCodeAt(this.pos + size) === 61) return this.finishOp(tt.assign, size + 1)
+      return this.finishOp(tt.bitShift, size)
+    }
+    if (next === 33 && code === 60 && !true && this.input.charCodeAt(this.pos + 2) === 45 &&
+        this.input.charCodeAt(this.pos + 3) === 45) {
+      // `<!--`, an XML-style comment that should be interpreted as a line comment
+      this.skipLineComment(4)
+      this.skipSpace()
+      return this.nextToken()
+    }
+    if (next === 61) size = 2
+    return this.finishOp(tt.relational, size)
+  }
+
+  
+
+  readToken_question() { // '?'
+    const ecmaVersion = this.options.ecmaVersion
+    if (ecmaVersion >= 11) {
+      let next = this.input.charCodeAt(this.pos + 1)
+      if (next === 46) {
+        let next2 = this.input.charCodeAt(this.pos + 2)
+        if (next2 < 48 || next2 > 57) return this.finishOp(tt.questionDot, 2)
+      }
+      if (next === 63) {
+        if (ecmaVersion >= 12) {
+          let next2 = this.input.charCodeAt(this.pos + 2)
+          if (next2 === 61) return this.finishOp(tt.assign, 3)
+        }
+        return this.finishOp(tt.coalesce, 2)
+      }
+    }
+    return this.finishOp(tt.question, 1)
+  }
+
+  readToken_numberSign () { // '#'
+    const ecmaVersion = this.options.ecmaVersion
+    let code = 35 // '#'
+    if (ecmaVersion >= 13) {
+      ++this.pos
+      code = this.fullCharCodeAtPos()
+      if (isIdentifierStart(code, true) || code === 92 /* '\' */) {
+        return this.finishToken(tt.privateId, this.readWord1())
+      }
+    }
+
+    
+  }
+
 
   skipBlockComment() {
     
@@ -443,6 +591,55 @@ this.lineStart = this.pos; ++this.curLine
   
   curContext () {
     return this.context[this.context.length - 1]
+  }
+  
+
+  braceIsBlock(prevType) {
+    let parent = this.curContext()
+    if (parent === tokContexts.f_expr || parent === tokContexts.f_stat)
+      return true
+    if (prevType === tt.colon && (parent === tokContexts.b_stat || parent === tokContexts.b_expr))
+      return !parent.isExpr
+
+    // The check for `tt.name && exprAllowed` detects whether we are
+    // after a `yield` or `of` construct. See the `updateContext` for
+    // `tt.name`.
+    if (prevType === tt._return || prevType === tt.name && this.exprAllowed)
+      return lineBreak.test(this.input.slice(this.lastTokEnd, this.start))
+    if (prevType === tt._else || prevType === tt.semi || prevType === tt.eof || prevType === tt.parenR || prevType === tt.arrow)
+      return true
+    if (prevType === tt.braceL)
+      return parent === types.b_stat
+    if (prevType === tt._var || prevType === tt._const || prevType === tt.name)
+      return false
+    return !this.exprAllowed
+  }
+
+  inGeneratorContext() {
+    for (let i = this.context.length - 1; i >= 1; i--) {
+      let context = this.context[i]
+      if (context.token === "function")
+        return context.generator
+    }
+    return false
+  }
+
+  updateContext (prevType) {
+    let update, type = this.type
+    if (type.keyword && prevType === tt.dot)
+      this.exprAllowed = false
+    else if (update = type.updateContext)
+      update.call(this, prevType)
+    else
+      this.exprAllowed = type.beforeExpr
+  }
+
+  // Used to handle edge cases when token context could not be inferred correctly during tokenization phase
+
+  overrideContext(tokenCtx) {
+    if (this.curContext() !== tokenCtx) {
+      this.context[this.context.length - 1] = tokenCtx
+    }
   }
   skipSpace() {
     loop: while (this.pos < this.input.length) {
@@ -484,129 +681,136 @@ this.lineStart = this.pos; ++this.curLine
     }
   }
 
-  private readContextToken(
-    value: string,
-    start: number,
-    end: number,
-    loc: SourceLocation
-  ): void {
-    console.log('Punctuation', value)
+  readRegexp () {
+    let escaped, inClass, start = this.pos
+    for (;;) {
 
-    return this.finishToken(value, value)
-  }
+      let ch = this.input.charAt(this.pos)
 
-  private readKeywordToken(
-    value: string,
-    start: number,
-    end: number,
-    loc: SourceLocation
-  ): void {
-    let type = keywordTypes.get(value)
-
-
-    return this.finishToken(type, value)
-  }
-
-  private readStringToken(
-    value: string,
-    start: number,
-    end: number,
-    loc: SourceLocation
-  ): void {
+      if (!escaped) {
+        if (ch === "[") inClass = true
+        else if (ch === "]" && inClass) inClass = false
+        else if (ch === "/" && !inClass) break
+        escaped = ch === "\\"
+      } else escaped = false
+      ++this.pos
+    }
+    let pattern = this.input.slice(start, this.pos)
+    ++this.pos
+    let flagsStart = this.pos
+    let flags = this.readWord1()
 
 
-    // ตรวจสอบว่ามีเครื่องหมายคำพูดจริงหรือไม่
-    if (
-      (value.startsWith('"') && value.endsWith('"')) ||
-      (value.startsWith("'") && value.endsWith("'"))
-    ) {
-      // ตัดเครื่องหมายคำพูดออก
-      // value = value.slice(1, -1)
-    } else {
-      throw new Error(`Invalid string format: ${value}`)
+    // Validate pattern
+    const state = this.regexpState || (this.regexpState = new RegExpValidationState(this))
+    state.reset(start, pattern, flags)
+    this.validateRegExpFlags(state)
+    this.validateRegExpPattern(state)
+
+    // Create Literal#value property value.
+    let value = null
+    try {
+      value = new RegExp(pattern, flags)
+    } catch (e) {
+      // ESTree requires null if it failed to instantiate RegExp object.
+      // https://github.com/estree/estree/blob/a27003adf4fd7bfad44de9cef372a2eacd527b1c/es5.md#regexpliteral
     }
 
-    return this.finishToken(types.name, value)
+    return this.finishToken(tt.regexp, {pattern, flags, value})
+  }
+  // Reads template string tokens.
+  tryReadTemplateToken() {
+    this.inTemplateElement = true;
+
+    try {
+      this.readTmplToken();
+    } catch {
+      // หากเกิดข้อผิดพลาด ให้ใช้ readInvalidTemplateToken แทน
+      this.readInvalidTemplateToken();
+    }
+
+    this.inTemplateElement = false;
   }
 
-  private readNumberToken(
-    value: string,
-    start: number,
-    end: number,
-    loc: SourceLocation
-  ): void {
+  readTmplToken() {
+    let out = "", chunkStart = this.pos;
+    for (;;) {
+      if (this.pos >= this.input.length) {
+        // หากถึงจุดสิ้นสุดของ input โดยไม่มีการปิด template
+        return this.finishToken(tt.invalidTemplate, out + this.input.slice(chunkStart));
+      }
 
-    let numValue: number | bigint
+      let ch = this.input.charCodeAt(this.pos);
+      if (ch === 96 || (ch === 36 && this.input.charCodeAt(this.pos + 1) === 123)) { // '`', '${'
+        if (this.pos === this.start && (this.type === tt.template || this.type === tt.invalidTemplate)) {
+          if (ch === 36) {
+            this.pos += 2;
+            return this.finishToken(tt.dollarBraceL);
+          } else {
+            ++this.pos;
+            return this.finishToken(tt.backQuote);
+          }
+        }
+        out += this.input.slice(chunkStart, this.pos);
+        return this.finishToken(tt.template, out);
+      }
+      if (ch === 92) { // '\'
+        out += this.input.slice(chunkStart, this.pos);
+        out += this.readEscapedChar(true);
+        chunkStart = this.pos;
+      } else if (isNewLine(ch)) {
+        out += this.input.slice(chunkStart, this.pos);
+        ++this.pos;
+        switch (ch) {
+          case 13:
+            if (this.input.charCodeAt(this.pos) === 10) ++this.pos;
+          case 10:
+            out += "\n";
+            break;
+          default:
+            out += String.fromCharCode(ch);
+            break;
+        }
 
-    if (value.endsWith('n')) {
-      numValue = BigInt(value.slice(0, -1))
-    } else {
-      numValue = parseFloat(value)
+        ++this.curLine;
+        this.lineStart = this.pos;
+        chunkStart = this.pos;
+      } else {
+        ++this.pos;
+      }
+    }
+  }
 
-      if (isNaN(numValue)) {
-        throw new Error(`Invalid number: ${value}`)
+  // อ่าน template token โดยไม่ตรวจสอบ escape sequences และหลีกเลี่ยง error
+  readInvalidTemplateToken() {
+    let chunkStart = this.start;
+
+    for (; this.pos < this.input.length; this.pos++) {
+      switch (this.input[this.pos]) {
+        case "\\":
+          ++this.pos; // ข้ามตัวถัดไป
+          break;
+
+        case "$":
+          if (this.input[this.pos + 1] !== "{") break;
+          // fall through
+        case "`":
+          return this.finishToken(tt.invalidTemplate, this.input.slice(chunkStart, this.pos));
+
+        case "\r":
+          if (this.input[this.pos + 1] === "\n") ++this.pos;
+          // fall through
+        case "\n": case "\u2028": case "\u2029":
+          ++this.curLine;
+          this.lineStart = this.pos + 1;
+          break;
       }
     }
 
-    return this.finishToken(types.num, numValue)
+    // หากอ่านจนหมด input โดยไม่มีการปิด
+    return this.finishToken(tt.invalidTemplate, this.input.slice(chunkStart));
   }
 
-  private readPrivateIdentifierToken(
-    value: string,
-    start: number,
-    end: number,
-    loc: SourceLocation
-  ): void {
-
-    return this.finishToken(types.privateId, value)
-  }
-
-  private readRegExpToken(
-    value: string,
-    start: number,
-    end: number,
-    loc: SourceLocation
-  ): void {
-    const match = /^\/(.*?)\/([gimsuy]*)$/.exec(value)
-    if (!match) throw new Error(`Invalid RegExp: ${value}`)
-
-    const val = {
-      pattern: match[1],
-      flags: match[2],
-      value: new RegExp(match[1], match[2]),
-    }
-    return this.finishToken(types.regexp, val)
-  }
-
-  private readTemplateToken(
-    value: string,
-    start: number,
-    end: number,
-    loc: SourceLocation
-  ): void {
-
-    return this.finishToken(types.template, value)
-  }
-
-  private readIdentifierToken(
-    value: string,
-    start: number,
-    end: number,
-    loc: SourceLocation
-  ): void {
-
-    return this.finishToken(types.name, value)
-  }
-
-  private readSymbolToken(
-    value: string,
-    start: number,
-    end: number,
-    loc: SourceLocation
-  ): void {
-    const type = new TokenType(value)
-    return this.finishToken(value, value)
-  }
   fullCharCodeAtPos() {
     let code = this.input.charCodeAt(this.pos)
     if (code <= 0xd7ff || code >= 0xdc00) return code
