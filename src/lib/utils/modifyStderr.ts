@@ -36,7 +36,7 @@ const modifyStderr = (stderr: typeof process.stderr) =>
       allowAwaitOutsideFunction: true,
     }
     const combo = new Fusion()
-    const code = `const fn = () => parseError.join('\n')
+    const code = `const fn = () => console.log('neyn')
     const text = \`test\${fn()}\`
     `
     try {
@@ -69,7 +69,7 @@ console.log('true')
     } catch (error) {
       let str = ''
       debug(`Error caught: ${error.message}`)
-     // console.log(error)
+      //console.log(error)
       console.log('error')
       try {
         console.log('start Tokenizer');

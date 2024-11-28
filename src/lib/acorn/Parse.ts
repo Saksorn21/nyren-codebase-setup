@@ -1,7 +1,7 @@
 import kw from './schema-keywordType.js'
 import keywordTypes from './keywordTypes.js'
 import {
-  tokContexts, tokTypes as tt, TokenType, isIdentifierChar,
+  tokContexts as types,TokContext, tokTypes as tt, TokenType, isIdentifierChar,
   isIdentifierStart,
   isNewLine,
   lineBreak,
@@ -50,7 +50,6 @@ class Token {
 }
 
 
-
 const isNewline = (code: string) => lineBreak.test(code)
 export default class Tokenizer {
   private pos: number = 0
@@ -74,7 +73,7 @@ export default class Tokenizer {
     endLoc: new Position(0, 0)
   })
   inTemplateElement: boolean = false
-  context: tokContexts = tokContexts.none
+  context: tokContexts = types.none
   containsEsc: boolean
   options: { ecmaVersion: number }
   lastTokEndLoc: Position | null
@@ -171,7 +170,7 @@ export default class Tokenizer {
         case 96: // '`'
         if (this.options.ecmaVersion < 6) break
         ++this.pos
-        return this.tryReadTemplateToken()
+        return this.finishToken(tt.backQuote)
         case 48: // '0'
         let next = this.input.charCodeAt(this.pos + 1)
         if (next === 120 || next === 88) return this.readRadixNumber(16) // '0x', '0X' - hex number
@@ -293,7 +292,8 @@ export default class Tokenizer {
     if (this.pos >= this.input.length) {
       return this.finishToken(tt.eof)
     }
-     this.readToken(this.fullCharCodeAtPos())
+    if (curContext.override) return curContext.override(this)
+    else this.readToken(this.fullCharCodeAtPos())
   }
 
   public getToken() {
@@ -588,7 +588,7 @@ readToken_pipe_amp (code) { // '|&'
     
   }
   initialContext () {
-    return [tokContexts.b_stat]
+    return [types.b_stat]
   }
   
   curContext () {
@@ -598,9 +598,9 @@ readToken_pipe_amp (code) { // '|&'
 
   braceIsBlock(prevType) {
     let parent = this.curContext()
-    if (parent === tokContexts.f_expr || parent === tokContexts.f_stat)
+    if (parent === types.f_expr || parent === types.f_stat)
       return true
-    if (prevType === tt.colon && (parent === tokContexts.b_stat || parent === tokContexts.b_expr))
+    if (prevType === tt.colon && (parent === types.b_stat || parent === types.b_expr))
       return !parent.isExpr
 
     // The check for `tt.name && exprAllowed` detects whether we are
@@ -862,31 +862,83 @@ function stringToBigInt(str) {
     return BigInt(str.replace(/_/g, ""))
   }
 const pp: any = Tokenizer.prototype
-pp.readPunctuator = function(code: any) {
-  let next = this.input.charCodeAt(this.pos + 1)
-  switch (code) {
-    case 40: return this.finishToken(tt.parenL)
-    case 41: return this.finishToken(tt.parenR)
-    case 59: return this.finishToken(tt.semi)
-    case 44: return this.finishToken(tt.comma)
-    case 91: return this.finishToken(tt.bracketL)
-    case 93: return this.finishToken(tt.bracketR)
-    case 123: return this.finishToken(tt.braceL)
-    case 125: return this.finishToken(tt.braceR)
-    case 58: return this.finishToken(tt.colon)
-    case 46: return this.finishToken(tt.dot)
-    case 61: case 33:
-      if (next === 62) {
-        return this.finishToken(tt.arrow)
-      }
-      else return this.finishToken(tt.eq)
-    default:
-      return
-    // case 34: case 39: // '"', "'"
-    // return this.readStringToken(code)
+
+tt.parenR.updateContext = tt.braceR.updateContext = function() {
+  if (this.context.length === 1) {
+    this.exprAllowed = true
+    return
   }
+  let out = this.context.pop()
+  if (out === types.b_stat && this.curContext().token === "function") {
+    out = this.context.pop()
+  }
+  this.exprAllowed = !out.isExpr
 }
 
+tt.braceL.updateContext = function(prevType) {
+  this.context.push(this.braceIsBlock(prevType) ? types.b_stat : types.b_expr)
+  this.exprAllowed = true
+}
+
+tt.dollarBraceL.updateContext = function() {
+  this.context.push(types.b_tmpl)
+  this.exprAllowed = true
+}
+
+tt.parenL.updateContext = function(prevType) {
+  let statementParens = prevType === tt._if || prevType === tt._for || prevType === tt._with || prevType === tt._while
+  this.context.push(statementParens ? types.p_stat : types.p_expr)
+  this.exprAllowed = true
+}
+
+tt.incDec.updateContext = function() {
+  // tokExprAllowed stays unchanged
+}
+
+tt._function.updateContext = tt._class.updateContext = function(prevType) {
+  if (prevType.beforeExpr && prevType !== tt._else &&
+      !(prevType === tt.semi && this.curContext() !== types.p_stat) &&
+      !(prevType === tt._return && lineBreak.test(this.input.slice(this.lastTokEnd, this.start))) &&
+      !((prevType === tt.colon || prevType === tt.braceL) && this.curContext() === types.b_stat))
+    this.context.push(types.f_expr)
+  else
+    this.context.push(types.f_stat)
+  this.exprAllowed = false
+}
+
+tt.colon.updateContext = function() {
+  if (this.curContext().token === "function") this.context.pop()
+  this.exprAllowed = true
+}
+
+tt.backQuote.updateContext = function() {
+  if (this.curContext() === types.q_tmpl)
+    this.context.pop()
+  else
+    this.context.push(types.q_tmpl)
+  this.exprAllowed = false
+}
+
+tt.star.updateContext = function(prevType) {
+  if (prevType === tt._function) {
+    let index = this.context.length - 1
+    if (this.context[index] === types.f_expr)
+      this.context[index] = types.f_expr_gen
+    else
+      this.context[index] = types.f_gen
+  }
+  this.exprAllowed = true
+}
+
+tt.name.updateContext = function(prevType) {
+  let allowed = false
+  if (this.options.ecmaVersion >= 6 && prevType !== tt.dot) {
+    if (this.value === "of" && !this.exprAllowed ||
+        this.value === "yield" && this.inGeneratorContext())
+      allowed = true
+  }
+  this.exprAllowed = allowed
+}
 
 // pp.toArray = () =>{ return [...this] }
 
