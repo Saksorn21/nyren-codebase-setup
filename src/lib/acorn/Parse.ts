@@ -393,7 +393,7 @@ export default class Tokenizer {
 
   readToken_slash() { // '/'
     let next = this.input.charCodeAt(this.pos + 1)
-    //if (this.exprAllowed) { ++this.pos; return this.readRegexp() }
+  if (this.exprAllowed) { ++this.pos; return this.readRegexp() }
     if (next === 61) return this.finishOp(tt.assign, 2)
     return this.finishOp(tt.slash, 1)
   }
@@ -431,13 +431,6 @@ export default class Tokenizer {
     case 10: // ' \n'
 
       return ""
-    case 56:
-    case 57:
-      if (inTemplate) {
-        const codePos = this.pos - 1
-
-        
-      }
     default:
       if (ch >= 48 && ch <= 55) {
         let octalStr = this.input.substring(this.pos - 1, 3).match(/^[0-7]+/)?.[0]
@@ -683,42 +676,45 @@ readToken_pipe_amp (code) { // '|&'
     }
   }
 
-  readRegexp () {
-    let escaped, inClass, start = this.pos
+  readRegexp() {
+    let escaped, inClass, start = this.pos;
     for (;;) {
-
-      let ch = this.input.charAt(this.pos)
+      let ch = this.input.charAt(this.pos);
 
       if (!escaped) {
-        if (ch === "[") inClass = true
-        else if (ch === "]" && inClass) inClass = false
-        else if (ch === "/" && !inClass) break
-        escaped = ch === "\\"
-      } else escaped = false
-      ++this.pos
-    }
-    let pattern = this.input.slice(start, this.pos)
-    ++this.pos
-    let flagsStart = this.pos
-    let flags = this.readWord1()
-
-
-    // Validate pattern
-    const state = this.regexpState || (this.regexpState = new RegExpValidationState(this))
-    state.reset(start, pattern, flags)
-    this.validateRegExpFlags(state)
-    this.validateRegExpPattern(state)
-
-    // Create Literal#value property value.
-    let value = null
-    try {
-      value = new RegExp(pattern, flags)
-    } catch (e) {
-      // ESTree requires null if it failed to instantiate RegExp object.
-      // https://github.com/estree/estree/blob/a27003adf4fd7bfad44de9cef372a2eacd527b1c/es5.md#regexpliteral
+        if (ch === "[") inClass = true;
+        else if (ch === "]" && inClass) inClass = false;
+        else if (ch === "/" && !inClass) break;
+        escaped = ch === "\\";
+      } else {
+        escaped = false;
+      }
+      ++this.pos;
     }
 
-    return this.finishToken(tt.regexp, {pattern, flags, value})
+    let pattern = this.input.slice(start, this.pos);
+    ++this.pos;
+    let flagsStart = this.pos;
+    let flags = this.readWord1();
+
+    // ตรวจสอบความถูกต้องของ pattern และ flags
+    let isValidPattern = isValidRegexpPattern(pattern);
+    let isValidFlags = isValidRegexpFlags(flags);
+
+    // สร้างค่า `value` หรือกำหนดเป็น `null` หากไม่ผ่านการตรวจสอบ
+    let value = null;
+    if (isValidPattern && isValidFlags) {
+      try {
+        value = new RegExp(pattern, flags); // ตรวจสอบเพิ่มเติมในกรณีที่ซับซ้อน
+      } catch {
+        console.warn(`Invalid regular expression: /${pattern}/${flags}`);
+      }
+    } else {
+      console.warn(`Invalid pattern or flags: /${pattern}/${flags}`);
+    }
+
+    // คืนค่า token พร้อมข้อมูล
+    return this.finishToken(tt.regexp, { pattern, flags, value });
   }
   // Reads template string tokens.
   tryReadTemplateToken() {
@@ -861,6 +857,22 @@ function stringToBigInt(str) {
     // `BigInt(value)` throws syntax error if the string contains numeric separators.
     return BigInt(str.replace(/_/g, ""))
   }
+function isValidRegexpPattern(pattern) {
+  // ตรวจสอบว่ามีอักขระที่ปิดไม่สมบูรณ์ เช่น [ หรือ ( ไม่มีคู่ปิด
+  let unmatchedBrackets = /[\[\](){}]/.test(pattern) &&
+                          (pattern.split("[").length !== pattern.split("]").length ||
+                           pattern.split("(").length !== pattern.split(")").length ||
+                           pattern.split("{").length !== pattern.split("}").length);
+
+  // ตรวจสอบว่ามี escape sequence (\) ที่ผิด
+  let invalidEscape = /\\[^bBdDwWsS0-9]/.test(pattern);
+
+  return !unmatchedBrackets && !invalidEscape;
+}
+function isValidRegexpFlags(flags) {
+  // ตรวจสอบว่า flags ประกอบด้วยอักขระที่อนุญาตเท่านั้น (g, i, m, s, u, y)
+  return /^[gimsuy]*$/.test(flags) && new Set(flags).size === flags.length;
+}
 const pp: any = Tokenizer.prototype
 
 tt.parenR.updateContext = tt.braceR.updateContext = function() {

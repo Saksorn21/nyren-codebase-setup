@@ -36,8 +36,10 @@ const modifyStderr = (stderr: typeof process.stderr) =>
       allowAwaitOutsideFunction: true,
     }
     const combo = new Fusion()
-    const code = `const fn = () => console.log('neyn')
-    const text = \`test\${fn()}\`
+    const code = `constt kat = function () {
+       
+    }
+    \`
     `
     try {
   
