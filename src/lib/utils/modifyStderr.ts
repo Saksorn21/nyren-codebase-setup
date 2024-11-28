@@ -36,7 +36,12 @@ const modifyStderr = (stderr: typeof process.stderr) =>
       allowAwaitOutsideFunction: true,
     }
     const combo = new Fusion()
-    const code = `const sos = "helloworld" `
+    const code = `function nyren(v: string) {
+       if(typeof v !== 'string') throw new TypeError('v must be a string');
+       return v.split('').reverse().join('')
+    }
+    nyren('hello')
+    `
     try {
   
       //modifiedData.join('\n')

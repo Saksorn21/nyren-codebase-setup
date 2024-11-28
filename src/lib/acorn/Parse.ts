@@ -162,11 +162,17 @@ export default class Tokenizer {
       case 123: ++this.pos; return this.finishToken(tt.braceL)
       case 125: ++this.pos; return this.finishToken(tt.braceR)
       case 58: ++this.pos; return this.finishToken(tt.colon)
-
+        case 48: // '0'
+        let next = this.input.charCodeAt(this.pos + 1)
+        if (next === 120 || next === 88) return this.readRadixNumber(16) // '0x', '0X' - hex number
+        if (this.options.ecmaVersion >= 6) {
+          if (next === 111 || next === 79) return this.readRadixNumber(8) // '0o', '0O' - octal number
+          if (next === 98 || next === 66) return this.readRadixNumber(2) // '0b', '0B' - binary number
+        }
         case 34: case 39: // '"', "'"
-        
         return this.readString(code)
-
+        case 49: case 50: case 51: case 52: case 53: case 54: case 55: case 56: case 57: // 1-9
+        return this.readNumber(false)
       case 47: // '/'
         return this.readToken_slash()
       case 61: case 33: // '=!'
@@ -287,6 +293,46 @@ export default class Tokenizer {
     out += this.input.slice(chunkStart, this.pos++)
     return this.finishToken(tt.string, out)
   }
+  readRadixNumber(radix) {
+    let start = this.pos
+    this.pos += 2 // 0x
+    let val = this.readInt(radix)
+    if (this.options.ecmaVersion >= 11 && this.input.charCodeAt(this.pos) === 110) {
+      val = stringToBigInt(this.input.slice(start, this.pos))
+      ++this.pos
+    } 
+    return this.finishToken(tt.num, val)
+  }
+
+  // Read an integer, octal integer, or floating-point number.
+
+  readNumber(startsWithDot) {
+    let start = this.pos
+    if (!startsWithDot && this.readInt(10, undefined) === null) throw new TypeError( "Invalid number")
+    let octal = this.pos - start >= 2 && this.input.charCodeAt(start) === 48
+    
+    let next = this.input.charCodeAt(this.pos)
+    if (!octal && !startsWithDot && this.options.ecmaVersion >= 11 && next === 110) {
+      let val = stringToBigInt(this.input.slice(start, this.pos))
+      ++this.pos
+      return this.finishToken(tt.num, val)
+    }
+    if (octal && /[89]/.test(this.input.slice(start, this.pos))) octal = false
+    if (next === 46 && !octal) { // '.'
+      ++this.pos
+      this.readInt(10)
+      next = this.input.charCodeAt(this.pos)
+    }
+    if ((next === 69 || next === 101) && !octal) { // 'eE'
+      next = this.input.charCodeAt(++this.pos)
+      if (next === 43 || next === 45) ++this.pos // '+-'
+    }
+
+
+    let val = stringToNumber(this.input.slice(start, this.pos), octal)
+    return this.finishToken(tt.num, val)
+  }
+  
   readToken_dot() {
     let next = this.input.charCodeAt(this.pos + 1)
     if (next >= 48 && next <= 57) return //this.readNumber(true)
@@ -583,6 +629,32 @@ function nextLineBreak(code, from, end = code.length) {
   }
   return -1
 }
+function stringToNumber(str, isLegacyOctalNumericLiteral) {
+  if (isLegacyOctalNumericLiteral) {
+    return parseInt(str, 8)
+  }
+
+  // `parseFloat(value)` stops parsing at the first numeric separator then returns a wrong value.
+  return parseFloat(str.replace(/_/g, ""))
+}
+
+  function stringToNumber(str, isLegacyOctalNumericLiteral) {
+    if (isLegacyOctalNumericLiteral) {
+      return parseInt(str, 8)
+    }
+
+    // `parseFloat(value)` stops parsing at the first numeric separator then returns a wrong value.
+    return parseFloat(str.replace(/_/g, ""))
+  }
+
+function stringToBigInt(str) {
+    if (typeof BigInt !== "function") {
+      return null
+    }
+
+    // `BigInt(value)` throws syntax error if the string contains numeric separators.
+    return BigInt(str.replace(/_/g, ""))
+  }
 const pp: any = Tokenizer.prototype
 pp.readPunctuator = function(code: any) {
   let next = this.input.charCodeAt(this.pos + 1)
