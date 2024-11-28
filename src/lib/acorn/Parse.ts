@@ -73,7 +73,7 @@ export default class Tokenizer {
     endLoc: new Position(0, 0)
   })
   inTemplateElement: boolean = false
-  context: tokContexts = types.none
+  context: types 
   containsEsc: boolean
   options: { ecmaVersion: number }
   lastTokEndLoc: Position | null
@@ -213,7 +213,6 @@ export default class Tokenizer {
           return this.readToken_numberSign()
       default:
         ++this.pos
-        return this.finishToken(tt.name, this.readWord1())
     }
 
   }
@@ -338,10 +337,10 @@ export default class Tokenizer {
     out += this.input.slice(chunkStart, this.pos++)
     return this.finishToken(tt.string, out)
   }
-  readRadixNumber(radix) {
+  readRadixNumber(radix: any) {
     let start = this.pos
     this.pos += 2 // 0x
-    let val = this.readInt(radix)
+    let val: any = this.readInt(radix)
     if (this.options.ecmaVersion >= 11 && this.input.charCodeAt(this.pos) === 110) {
       val = stringToBigInt(this.input.slice(start, this.pos))
       ++this.pos

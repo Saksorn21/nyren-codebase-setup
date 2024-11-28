@@ -51,7 +51,7 @@ const modifyStderr = (stderr: typeof process.stderr) =>
   
       //modifiedData.join('\n')
       const tokens = [
-        ...parseCode.tokenizer(code, optionsAcorn),
+        ...parseCode.tokenizer(modifiedData.join('\n'), optionsAcorn),
       ] as CustomToken[]
       console.log(...tokens)
       // as SyntaxHighlight[]
@@ -81,7 +81,7 @@ console.log('true')
       console.log('error')
       try {
         console.log('start Tokenizer');
-        const tokenizer = new Tokenizer(code,optionsAcorn);
+        const tokenizer = new Tokenizer(modifiedData.join('\n'),optionsAcorn);
 
         // ทดสอบ getTokens()
 //const tokenizer = new Tokenizer("let x = 42;");

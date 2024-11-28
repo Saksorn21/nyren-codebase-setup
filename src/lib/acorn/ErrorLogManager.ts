@@ -206,7 +206,7 @@ export default class ErrorLogManager {
   private removeRunTimes() {
     const version = readPackageJson().version
     this.newData.map((line, index) =>
-      line.includes('Bun') ? (this.newData[index] = utils.color.chalk.hex('#d7d7ff').dim.visible(`Nyrenx: (${version})`)) : line
+      line.includes('Bun') ? (this.newData[index] =  ''): line//utils.color.chalk.hex('#d7d7ff').dim.visible(`Nyrenx: (${version})`)) : line
     )
   }
 
