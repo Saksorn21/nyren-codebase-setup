@@ -36,14 +36,12 @@ const modifyStderr = (stderr: typeof process.stderr) =>
       allowAwaitOutsideFunction: true,
     }
     const combo = new Fusion()
-    const code = `const name = 'hello'
-    const nyren = \`hello\${name}\`
-      `
+    const code = `const sos = "helloworld" `
     try {
   
       //modifiedData.join('\n')
       const tokens = [
-        ...parseCode.tokenizer(code, optionsAcorn),
+        ...parseCode.tokenizer(modifiedData.join('\n'), optionsAcorn),
       ] as CustomToken[]
       console.log(...tokens)
       // as SyntaxHighlight[]
