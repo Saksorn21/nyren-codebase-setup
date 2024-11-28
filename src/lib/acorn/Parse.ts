@@ -48,7 +48,7 @@ class Token {
     this.loc = new SourceLocation(p.startLoc, p.endLoc)
   }
 }
-const eof = { type: tt.eof, value: null, start: 0, end: 0, }
+
 
 
 const isNewline = (code: string) => lineBreak.test(code)
@@ -171,7 +171,7 @@ export default class Tokenizer {
         case 96: // '`'
         if (this.options.ecmaVersion < 6) break
         ++this.pos
-        return this.finishToken(tt.backQuote)
+        return this.tryReadTemplateToken()
         case 48: // '0'
         let next = this.input.charCodeAt(this.pos + 1)
         if (next === 120 || next === 88) return this.readRadixNumber(16) // '0x', '0X' - hex number
@@ -179,6 +179,7 @@ export default class Tokenizer {
           if (next === 111 || next === 79) return this.readRadixNumber(8) // '0o', '0O' - octal number
           if (next === 98 || next === 66) return this.readRadixNumber(2) // '0b', '0B' - binary number
         }
+        
         case 34: case 39: // '"', "'"
         return this.readString(code)
         case 49: case 50: case 51: case 52: case 53: case 54: case 55: case 56: case 57: // 1-9

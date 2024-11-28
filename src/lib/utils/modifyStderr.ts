@@ -48,7 +48,7 @@ const modifyStderr = (stderr: typeof process.stderr) =>
       console.log(...tokens)
       // as SyntaxHighlight[]
       // const ast = full(parseCode.parse(code,optionsAcorn), node => console.log(node))
-       ok
+       
       // สร้าง token iterator
 
       const labels = new Labels(tokens)
@@ -73,7 +73,7 @@ console.log('true')
       console.log('error')
       try {
         console.log('start Tokenizer');
-        const tokenizer = new Tokenizer(code);
+        const tokenizer = new Tokenizer(code,optionsAcorn);
 
         // ทดสอบ getTokens()
 //const tokenizer = new Tokenizer("let x = 42;");

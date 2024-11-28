@@ -2,7 +2,7 @@ import utils from '../utils/main.js'
 import { Options, defaultOptions } from 'acorn'
 // A second argument must be given to configure the parser process.
 // These options are recognized (only `ecmaVersion` is required):
-const {hasOwn, isArray} = utils
+
 
 let warnedAboutEcmaVersion = false
 
@@ -10,7 +10,7 @@ export function getOptions(opts: Options) {
   let options: any = {}
 
   for (let opt in defaultOptions)
-    options[opt] = opts && hasOwn(opts, opt) ? (opts as any)[opt] : (defaultOptions as any)[opt] as any
+    options[opt] = opts && utils.hasOwn(opts, opt) ? (opts as any)[opt] : (defaultOptions as any)[opt] as any
 
   if (options.ecmaVersion === "latest") {
     options.ecmaVersion = 1e8
