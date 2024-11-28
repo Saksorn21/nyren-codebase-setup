@@ -6,8 +6,10 @@ import {
   isNewLine,
   lineBreak,
   lineBreakG,
-  nonASCIIwhitespace
+  nonASCIIwhitespace,
+  type Options
 } from 'acorn'
+import {getOptions} from './options.js'
 class Position {
   constructor(
     public line: number,
@@ -48,8 +50,7 @@ class Token {
 }
 const eof = { type: tt.eof, value: null, start: 0, end: 0, }
 
-const lineBreak = /\r\n?|\n|\u2028|\u2029/
-const lineBreakG = new RegExp(lineBreak.source, 'g')
+
 const isNewline = (code: string) => lineBreak.test(code)
 export default class Tokenizer {
   private pos: number = 0
@@ -80,14 +81,14 @@ export default class Tokenizer {
   lastTokStartLoc: Position | null
   lastTokStart: number 
   lastTokEnd: number
-  constructor(private input: string) {
+  constructor(private input: string,opts: Options) {
 
     this.input = String(input)
     this.start = this.end = this.pos
     this.startLoc = this.endLoc = this.curPosition()
     this.context = this.initialContext()
     this.containsEsc = false
-    this.options = { ecmaVersion: 12 }
+    this.options = opts = getOptions(opts)
     this.lastTokEndLoc = this.lastTokStartLoc = null
     this.lastTokStart = this.lastTokEnd = this.pos
   }
