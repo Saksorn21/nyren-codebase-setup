@@ -3,7 +3,7 @@ import type { Position } from 'acorn'
 import ColorizeSyntax, { type KeywordType } from '../ColorizeSyntax.js'
 import kwTypes from '../keywordTypes.js'
 import utils from '../../utils/main.js'
-
+import Parser from '../Parse.js'
 import createDebug from 'debug'
 /**
  *@ interface SyntaxHighlight 
@@ -27,7 +27,7 @@ interface CustomToken extends Token {
 type ContractType = 'data' | 'error'
 export const debug = createDebug(process.env.DEBUG || 'nyren:acorn-labels')
 //const taxi = utils.taxi
-class Labels {
+class Labels extends Parser {
   static formatEscapes(str: String) {
     return str
       .replace(/\\/g, '\\\\')
@@ -49,19 +49,22 @@ class Labels {
 
   public readonly controlCharRe: RegExp = /[\x0A\x0D\x09\x0C\x08]/ // \x0A = \n, \x0D = \r, \x09 = \t, \x0C = \f, \x08 = backspac
   private kwTypes: typeof kwTypes = kwTypes
-  prevToken: CustomToken | null
-  nextToken: CustomToken | null
+  prevTok: CustomToken | null
+  nextTok: CustomToken | null
   result!: CustomToken[]
   private listeners: {
     [key in ContractType]?: ((data: CustomToken[]) => void)[]
   } = {}
 
   private transformer: CompositeTransformer
+  rawToken: CustomToken[]
   readonly debug: typeof debug = debug
-  constructor(private readonly rawToken: CustomToken[]) {
+  constructor(code: string, opts: any) {
+    super(code, opts)
+    this.rawToken = super.toArray()
     this.result = []
-    this.prevToken = null
-    this.nextToken = null
+    this.prevTok = null
+    this.nextTok = null
     this.transformer = new CompositeTransformer()
   }
   build() {
@@ -77,13 +80,13 @@ class Labels {
         keyword: token.type.keyword || null,
         value: token.value || null,
       })
-      this.prevToken = this.rawToken[index - 1] || null
-      this.nextToken = this.rawToken[index + 1] || null
+      this.prevTok = this.rawToken[index - 1] || null
+      this.nextTok = this.rawToken[index + 1] || null
 
       cloneToken = this.transformer.pasesToken(
         cloneToken,
-        this.prevToken,
-        this.nextToken
+        this.prevTok,
+        this.nextTok
       )
 
       this.result.push(cloneToken)
