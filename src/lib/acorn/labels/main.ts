@@ -28,6 +28,11 @@ type ContractType = 'data' | 'error'
 export const debug = createDebug(process.env.DEBUG || 'nyren:acorn-labels')
 //const taxi = utils.taxi
 class Labels extends Parser {
+  static extend(Parser: Parser){
+    return class extends Parser{
+      
+    }
+  }
   static formatEscapes(str: String) {
     return str
       .replace(/\\/g, '\\\\')
@@ -55,21 +60,49 @@ class Labels extends Parser {
 
 
   private transformer: CompositeTransformer
-  rawToken: CustomToken[]
+  rawTokens: CustomToken[]
   readonly debug: typeof debug = debug
   constructor(code: string, opts: any) {
-    super(code, opts)
-    this.rawToken = super.toArray()
     
+    super(code, opts)
+    
+    this.rawTokens = super.toArray()
+    this.validateTokens()
     this.result = []
     this.prevTok = null
     this.nextTok = null
     this.transformer = new CompositeTransformer()
   }
+  toArray(){
+    return this.result
+  }
+  validateInput(code: string, opts: any){
+    if(code === undefined) throw new Error('code is required')
+    if(typeof code !== 'string') throw new TypeError('code must be a string')
+    if(typeof opts !== 'object') throw new TypeError('opts must be an object')
+    if(typeof opts.ecmaVersion !== 'number') throw new TypeError('options.ecmaVersion must be a number')
+    if(typeof opts.sourceType !== 'string') throw new TypeError('options.sourceType must be a string')
+    this.rawTokens = super.toArray()
+    this.options = opts
+  }
+  validateTokens(){
+    if(!utils.isArray(this.rawTokens)) throw new TypeError('rawTokens is not an array')
+    const tokensToCheck = [this.rawTokens[0], this.rawTokens[this.rawTokens.length - 1]];
+
+    for (const token of tokensToCheck) {
+      if (!token?.type) throw new SyntaxError('Token type is not defined');
+      
+      if(!token.type.label) throw new SyntaxError('Token type is not defined');
+      if (!token.type.keyword) throw new SyntaxError('Token keyword is not defined');
+      
+      if(!token.value && !token.start && !token.end && !token.loc) throw new SyntaxError('Token value, start, end, and loc are not defined');
+    }
+    
+  }
   build() {
 
     debug(utils.color.white('<<<===Parses Token===>>>'))
-    this.rawToken.forEach((token: CustomToken, index: number) => {
+    this.rawTokens.forEach((token: CustomToken, index: number) => {
       let cloneToken = utils.clone(token)
       //   cloneToken.value = Labels.replaceCR(cloneToken.value)
       // console.log(cloneToken)
@@ -79,8 +112,8 @@ class Labels extends Parser {
         keyword: token.type.keyword || null,
         value: token.value || null,
       })
-      this.prevTok = this.rawToken[index - 1] || null
-      this.nextTok = this.rawToken[index + 1] || null
+      this.prevTok = this.rawTokens[index - 1] || null
+      this.nextTok = this.rawTokens[index + 1] || null
 
       cloneToken = this.transformer.pasesToken(
         cloneToken,

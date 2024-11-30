@@ -89,6 +89,7 @@ export default class Tokenizer {
      input: string,
     opts: Options
   ) {
+    this.validateInput(input, opts)
     this.input = String(input)
     this.start = this.end = this.pos
     this.startLoc = this.endLoc = this.curPosition()
@@ -99,7 +100,14 @@ export default class Tokenizer {
     this.lastTokEndLoc = this.lastTokStartLoc = null
     this.lastTokStart = this.lastTokEnd = this.pos
   }
-
+  validateInput(code: string, opts: any){
+    if(code === undefined) throw new Error('code is required')
+    if(typeof code !== 'string') throw new TypeError('code must be a string')
+    if(typeof opts !== 'object') throw new TypeError('opts must be an object')
+    if(typeof opts.ecmaVersion !== 'number') throw new TypeError('options.ecmaVersion must be a number')
+    if(typeof opts.sourceType !== 'string') throw new TypeError('options.sourceType must be a string')
+    
+  }
   readWord1(): string {
     this.containsEsc = false
     let word = ''
