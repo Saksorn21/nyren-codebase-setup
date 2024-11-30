@@ -163,6 +163,7 @@ export default class Tokenizer {
     return new Position(this.curLine, this.pos - this.lineStart)
   }
   getTokenFromCode(code: number) {
+    //console.log(code)
     switch (code) {
       case 46: // '.'
         return this.readToken_dot()
@@ -400,10 +401,13 @@ export default class Tokenizer {
   // Read an integer, octal integer, or floating-point number.
 
   readNumber(startsWithDot: boolean) {
-    let start = this.pos, 
-        octal = this.pos - start >= 2 && this.input.charCodeAt(start) === 48, 
+    let start = this.pos
+    if (!startsWithDot && this.readInt(10, undefined) === null) return
+     // throw new TypeError('Invalid number')
+    let octal = this.pos - start >= 2 && this.input.charCodeAt(start) === 48, 
         next = this.input.charCodeAt(this.pos),
         val: any = 0
+    
     if (
       !octal &&
       !startsWithDot &&

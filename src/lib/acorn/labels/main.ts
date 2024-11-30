@@ -52,9 +52,7 @@ class Labels extends Parser {
   prevTok: CustomToken | null
   nextTok: CustomToken | null
   result!: CustomToken[]
-  private listeners: {
-    [key in ContractType]?: ((data: CustomToken[]) => void)[]
-  } = {}
+
 
   private transformer: CompositeTransformer
   rawToken: CustomToken[]
@@ -62,6 +60,7 @@ class Labels extends Parser {
   constructor(code: string, opts: any) {
     super(code, opts)
     this.rawToken = super.toArray()
+    
     this.result = []
     this.prevTok = null
     this.nextTok = null

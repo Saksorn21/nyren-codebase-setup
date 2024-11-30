@@ -18,8 +18,6 @@ const modifyStderr = (stderr: typeof process.stderr) =>
     const errorManager = new ErrorLogManager().process(rawData)
     const parseError = errorManager.results.modifiedData.join('\n')
     // รับผลลัพธ์ที่ประมวลผลแล้ว
-    const { errorPathBlocks,  arrRawData, modifiedData } = errorManager.results
-    
 
     const optionsAcorn: Options = {
       ecmaVersion: 'latest',
@@ -34,11 +32,12 @@ const modifyStderr = (stderr: typeof process.stderr) =>
     const combo = new Fusion()
       try {
 
-        const labels = new Labels(parseError,optionsAcorn)
-          labels.build()
-           labels.debug(color.white('<<<===HighLight Syntax===>>>'))
+        const tokenizer = new Labels(parseError,optionsAcorn)
+            tokenizer.build()
+      
+             tokenizer.debug(color.white('<<<===HighLight Syntax===>>>'))
 
-      const highlight = new HighlightSyntax(labels.result)
+      const highlight = new HighlightSyntax(tokenizer.result)
         highlight.parse()
        
         combo.process(highlight.result.emit() as string, errorManager.processColorize())
