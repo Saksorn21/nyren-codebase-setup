@@ -11,13 +11,48 @@ import ErrorLogManager, { type ErrorAndPath } from '../acorn/ErrorLogManager.js'
 import Fusion from '../acorn/Fusion.js'
 import Tokenizer from '../acorn/Parse.js'
 import clearAnsiCodes from '../utils/clearAnsi.js'
+class ManagerFactory {
+  rawCode!: string
+  codeStr!: string
+  codeArr!: Array<string>
+  opts: Options
+  tokens!: CustomToken[]
+  constructor(options: Options){
+    this.opts = options
+  }
+  parseCode(code: string | Array<string>){
+    if(Array.isArray(code)) { 
+      this.rawCode = this.codeStr = code.join('\n')
+      this.codeArr = code
+       }
+    else {
+      this.rawCode = this.codeStr = code
+      this.codeArr = [code]
+      
+      
+      }
+    return this
+  }
+  parseErrorLog(){
+    const errorManager = new ErrorLogManager().process(this.codeStr)
+    this.codeArr = errorManager.results.modifiedData
+    this.codeStr = errorManager.results.modifiedData.join('\n')
+    return this
+  }
+  buildTokens(){
+    const tokens = new Labels(this.code,this.opts)
+    tokens.build()
+    this.tokens = tokens.result
+    return this
+  }
+}
 const modifyStderr = (stderr: typeof process.stderr) =>
   stderr.on('data', data => {
     const rawData = data.toString()
 
     const errorManager = new ErrorLogManager().process(rawData)
     const parseError = errorManager.results.modifiedData.join('\n')
-    // รับผลลัพธ์ที่ประมวลผลแล้ว
+  
 
     const optionsAcorn: Options = {
       ecmaVersion: 'latest',

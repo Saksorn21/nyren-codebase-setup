@@ -12,6 +12,7 @@ import {
   lineBreak,
   lineBreakG,
   nonASCIIwhitespace,
+  type ecmaVersion,
   type Options,
 } from 'acorn'
 
@@ -104,7 +105,7 @@ export default class Tokenizer {
     if(code === undefined) throw new Error('code is required')
     if(typeof code !== 'string') throw new TypeError('code must be a string')
     if(typeof opts !== 'object') throw new TypeError('opts must be an object')
-    if(typeof opts.ecmaVersion !== 'number') throw new TypeError('options.ecmaVersion must be a number')
+    if(typeof opts.ecmaVersion !== 'number' || typeof opts.ecmaVersion !== 'string') throw error
     if(typeof opts.sourceType !== 'string') throw new TypeError('options.sourceType must be a string')
     
   }
@@ -1000,3 +1001,4 @@ function isValidRegexpFlags(flags: string) {
   return /^[gimsuy]*$/.test(flags) && new Set(flags).size === flags.length
 }
 
+throw new TypeError('options.ecmaVersion must be a number And string',{s: 'type ecmaVersion = 3 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 2015 | 2016 | 2017 | 2018 | 2019 | 2020 | 2021 | 2022 | 2023 | 2024 | 2025 | "latest"'})

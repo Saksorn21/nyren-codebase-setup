@@ -29,9 +29,7 @@ export const debug = createDebug(process.env.DEBUG || 'nyren:acorn-labels')
 //const taxi = utils.taxi
 class Labels extends Parser {
   static extend(Parser: Parser){
-    return class extends Parser{
-      
-    }
+    return this.Parser
   }
   static formatEscapes(str: String) {
     return str
@@ -76,15 +74,7 @@ class Labels extends Parser {
   toArray(){
     return this.result
   }
-  validateInput(code: string, opts: any){
-    if(code === undefined) throw new Error('code is required')
-    if(typeof code !== 'string') throw new TypeError('code must be a string')
-    if(typeof opts !== 'object') throw new TypeError('opts must be an object')
-    if(typeof opts.ecmaVersion !== 'number') throw new TypeError('options.ecmaVersion must be a number')
-    if(typeof opts.sourceType !== 'string') throw new TypeError('options.sourceType must be a string')
-    this.rawTokens = super.toArray()
-    this.options = opts
-  }
+  
   validateTokens(){
     if(!utils.isArray(this.rawTokens)) throw new TypeError('rawTokens is not an array')
     const tokensToCheck = [this.rawTokens[0], this.rawTokens[this.rawTokens.length - 1]];
