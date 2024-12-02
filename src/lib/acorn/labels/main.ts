@@ -28,7 +28,7 @@ type ContractType = 'data' | 'error'
 export const debug = createDebug(process.env.DEBUG || 'nyren:acorn-labels')
 //const taxi = utils.taxi
 class Labels extends Parser {
-  static extend(Parser: Parser){
+  static extend(Parser: Parser) {
     return this.Parser
   }
   static formatEscapes(str: String) {
@@ -56,14 +56,12 @@ class Labels extends Parser {
   nextTok: CustomToken | null
   result!: CustomToken[]
 
-
   private transformer: CompositeTransformer
   rawTokens: CustomToken[]
   readonly debug: typeof debug = debug
   constructor(code: string, opts: any) {
-    
     super(code, opts)
-    
+
     this.rawTokens = super.toArray()
     this.validateTokens()
     this.result = []
@@ -71,26 +69,40 @@ class Labels extends Parser {
     this.nextTok = null
     this.transformer = new CompositeTransformer()
   }
-  toArray(){
-    return this.result
-  }
-  
-  validateTokens(){
-    if(!utils.isArray(this.rawTokens)) throw new TypeError('rawTokens is not an array')
-    const tokensToCheck = [this.rawTokens[0], this.rawTokens[this.rawTokens.length - 1]];
 
+  validateTokens() {
+    if (!utils.isArray(this.rawTokens))
+      throw new TypeError('rawTokens is not an array')
+    const tokensToCheck = [
+      this.rawTokens[0],
+      this.rawTokens[this.rawTokens.length - 1],
+    ]
     for (const token of tokensToCheck) {
-      if (!token?.type) throw new SyntaxError('Token type is not defined');
-      
-      if(!token.type.label) throw new SyntaxError('Token type is not defined');
-      if (!token.type.keyword) throw new SyntaxError('Token keyword is not defined');
-      
-      if(!token.value && !token.start && !token.end && !token.loc) throw new SyntaxError('Token value, start, end, and loc are not defined');
+      // ตรวจสอบว่ามีคีย์ 'type' ใน token หรือไม่
+      if (!('type' in token)) throw new SyntaxError('Token type is not defined')
+
+      const { type } = token
+
+      // ตรวจสอบว่ามีคีย์ 'label' ใน type หรือไม่
+      if (!('label' in type))
+        throw new SyntaxError('Token type.label is not defined')
+      if (!('keyword' in type))
+        throw new SyntaxError('Token type.keyword is not defined')
+
+      if (
+        !(
+          'value' in token &&
+          'start' in token &&
+          'end' in token &&
+          'loc' in token
+        )
+      )
+        throw new SyntaxError(
+          'Token must have at least one of value, start, end, or loc defined'
+        )
     }
-    
   }
   build() {
-
     debug(utils.color.white('<<<===Parses Token===>>>'))
     this.rawTokens.forEach((token: CustomToken, index: number) => {
       let cloneToken = utils.clone(token)
@@ -116,7 +128,7 @@ class Labels extends Parser {
   }
 
   discontinue(token: any) {
-    delete token.type.isLoop 
+    delete token.type.isLoop
     delete token.type.binop
     delete token.type.prefix
     delete token.type.postfix
@@ -154,7 +166,6 @@ class CompositeTransformer {
     nextToken: CustomToken
   ): CustomToken {
     for (const transformer of this.transformers) {
-      
       token = transformer.parse(token, prevToken, nextToken)
     }
 
