@@ -1,3 +1,4 @@
+
 const obj = {
   name: 'John',
   age: 30,
@@ -10,5 +11,6 @@ const obj = {
       }
   }
 }
+
 obj.name
 obj.loc.map('heolo')

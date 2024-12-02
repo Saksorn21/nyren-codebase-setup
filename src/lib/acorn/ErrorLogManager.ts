@@ -2,34 +2,30 @@ import clearAnsiCodes from '../utils/clearAnsi.js'
 import errorTypes from './errorType.js'
 import utils from '../utils/main.js'
 import { readPackageJson } from '../../lib/packageJsonUtils.js'
-export type ErrorAndPath = {
-  block: { line: string; index: number }[]
-}
-type ErrorBlock = ErrorAndPath & {
-  lineId: number
-  keyword: string
-  message: string
-  paths: { line: string; index: number }[]
-}
-export type ResultErrorTypeAndPaths ={
+export type ResultErrorTypeAndPaths = {
   idx: number
   errorType: string
   message: string
   paths: Array<{ idx: number; path: string }>
   mark: { type: string; path: string }
 }
-class BlockError {
-  private readonly regExpErrorType = /(?:^|\s)(error|[a-zA-Z]+)(?=:)/
-  private lineId: number
-  private keyword: string
-  private message: string
-  private paths:Array<{ line: string; index: number }>
-  constructor(e: ErrorBlock){
-    const errorTypeMatch = e.line.match(this.regExpErrorType)
-    this.lineId = parseInt(e.lineId)
-     this.paths = e.paths.forEach(({line, index}): string => line.replace(/\n/g, ''))
-    this.keyword = e.keyword
-    this.message = e.message
+
+
+export type ErrorAndPath = {
+  block: { line: string; index: number }[]
+}
+class TokenErrorBlock {
+  idx: number
+  errorType: string
+  message: string
+  paths: ResultErrorTypeAndPaths['paths']
+  mark: { type: string; path: string }
+  constructor(err: ErrorLogManager) {
+    this.idx = err.idx
+    this.errorType = err.errorType
+    this.message = err.message
+    this.paths = err.paths
+    this.mark = { type: 'markErrorType', path: 'markPath' }
   }
 }
 export default class ErrorLogManager {
@@ -43,6 +39,11 @@ export default class ErrorLogManager {
   public readonly MAKEERRORTYPE = 'markErrorType'
   public readonly MAKEPATH = 'markPath'
   public readonly errorTypes = errorTypes
+  idx!: number
+  errorType!: string
+  message!: string
+  paths!: ResultErrorTypeAndPaths['paths']
+
   constructor() {
     this.errorPathBlocks = []
     this.activeErrorBlock = []
@@ -122,6 +123,7 @@ export default class ErrorLogManager {
       this.errorPathBlocks.push({ block: [...this.activeErrorBlock] })
       this.activeErrorBlock = [] // Reset the active error block
     }
+
     this.isCollectingError = false // Stop collecting errors
   }
 
@@ -137,38 +139,31 @@ export default class ErrorLogManager {
 
   public processColorize() {
     const colorizeResult: ResultErrorTypeAndPaths[] = []
-    let errType = '',
-      path = '',
-      msg = '',
-      isType = false,
+    let isType = false,
       isPath = false,
       resultPaths: ResultErrorTypeAndPaths['paths'] = []
     this.errorPathBlocks.forEach(blockObj => {
       blockObj.block.forEach(({ line, index }) => {
         const type = line.match(this.regExpErrorType)
         if (type && !isType) {
-          errType = type[0]
-          msg = line.replace(type[0], '')
+          this.errorType = type[0]
+          this.message = line.replace(type[0], '')
           isType = true
         } else {
           isType = false
           isPath = true
-          path = this.atPath(line)
-          resultPaths.push({ idx: index, path })
+          resultPaths.push({ idx: index, path: this.atPath(line) })
         }
 
-        if (this.errorTypes.includes(errType) && isType) {
+        if (this.errorTypes.includes(this.errorType) && isType) {
           isType = false
-          errType = utils.color.hex('f44747').visible(errType || '')
-          msg = utils.color.hex('abb2bf').visible(msg || '')
+            this.errorType = utils.color.hex('f44747').visible(this.errorType || '')
+          this.message = utils.color.hex('abb2bf').visible(this.message || '')
+          this.idx = index
+          
+          this.paths = resultPaths
 
-          colorizeResult.push({
-            idx: index,
-            errorType: errType,
-            message: msg,
-            paths: resultPaths,
-            mark: { type: this.MAKEERRORTYPE, path: this.MAKEPATH },
-          })
+          colorizeResult.push(new TokenErrorBlock(this))
         }
       })
       isType = false
@@ -206,8 +201,9 @@ export default class ErrorLogManager {
    */
   private removeRunTimes() {
     const version = readPackageJson().version
-    this.newData.map((line, index) =>
-      line.includes('Bun') ? (this.newData[index] =  ''): line//utils.color.chalk.hex('#d7d7ff').dim.visible(`Nyrenx: (${version})`)) : line
+    this.newData.map(
+      (line, index) =>
+        line.includes('Bun') ?  (this.newData[index] = '') : line
     )
   }
 
