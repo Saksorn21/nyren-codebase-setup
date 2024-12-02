@@ -3,7 +3,7 @@ import type { Position } from 'acorn'
 import ColorizeSyntax, { type KeywordType } from '../ColorizeSyntax.js'
 import kwTypes from '../keywordTypes.js'
 import utils from '../../utils/main.js'
-import Parser from '../Parse.js'
+import Tokenizer from '../Tokenizer.js'
 import createDebug from 'debug'
 /**
  *@ interface SyntaxHighlight 
@@ -27,8 +27,8 @@ interface CustomToken extends Token {
 type ContractType = 'data' | 'error'
 export const debug = createDebug(process.env.DEBUG || 'nyren:acorn-labels')
 //const taxi = utils.taxi
-class Labels extends Parser {
-  static extend(Parser: Parser) {
+class Labels extends Tokenizer {
+  static extend(Parser: Tokenizer) {
     return this.Parser
   }
   static formatEscapes(str: String) {

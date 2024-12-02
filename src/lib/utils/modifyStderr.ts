@@ -1,75 +1,80 @@
 import process from 'node:process'
-import parseCode from '../acorn/main.js'
-import Labels, { debug } from '../acorn/labels/main.js'
+import Labels from '../acorn/labels/main.js'
 import type { Options } from 'acorn'
 import HighlightSyntax from '../acorn/HighlightSyntax.js'
-import color from './color.js'
 
-import type { KeywordType, CustomToken } from '../acorn/labels/abstract.js'
-import types from '../acorn/schema-keywordType.js'
+import type {  CustomToken } from '../acorn/labels/abstract.js'
+
 import ErrorLogManager, {
-  type ErrorAndPath,
   type ResultErrorTypeAndPaths,
 } from '../acorn/ErrorLogManager.js'
 import Fusion from '../acorn/Fusion.js'
-import Tokenizer from '../acorn/Parse.js'
-import clearAnsiCodes from '../utils/clearAnsi.js'
-class ManagerFactory {
-  rawCode!: string
-  codeStr!: string
-  codeArr!: Array<string>
-  opts: Options
-  tokens!: CustomToken[]
-  errorLogAndPatns!: ResultErrorTypeAndPaths[]
-  fusion!: Fusion
+
+class CodeProcessor {
+  originalCode!: string
+  formattedCode!: string
+  codeLines!: Array<string>
+  options: Options
+  parsedTokens!: CustomToken[]
+  errorLogs!: ResultErrorTypeAndPaths[]
+  fusionResult!: Fusion
+
   constructor(options: Options) {
-    this.opts = options
+    this.options = options
   }
-  parseCode(code: string | Array<string>) {
+
+  initializeCode(code: string | Array<string>) {
     if (Array.isArray(code)) {
-      this.rawCode = this.codeStr = code.join('\n')
-      this.codeArr = code
+      this.originalCode = this.formattedCode = code.join('\n')
+      this.codeLines = code
     } else {
-      this.rawCode = this.codeStr = code
-      this.codeArr = [code]
+      this.originalCode = this.formattedCode = code
+      this.codeLines = [code]
     }
     return this
   }
-  parseErrorLog() {
-    const errorManager = new ErrorLogManager().process(this.codeStr)
-    this.codeArr = errorManager.results.modifiedData
-    this.codeStr = errorManager.results.modifiedData.join('\n')
-    this.errorLogAndPatns = errorManager.processColorize()
+
+  processErrorLog() {
+    const errorManager = new ErrorLogManager().process(this.formattedCode)
+    this.codeLines = errorManager.results.modifiedData
+    this.formattedCode = this.codeLines.join('\n')
+    this.errorLogs = errorManager.processColorize()
     return this
   }
-  buildTokens() {
-    const tokens = new Labels(this.codeStr, this.opts)
+
+  generateTokens() {
+    const tokens = new Labels(this.formattedCode, this.options)
     tokens.build()
-    this.tokens = tokens.result
+    this.parsedTokens = tokens.result
     return this
   }
-  highlightSyntax() {
-    const highlight = new HighlightSyntax(this.tokens)
+
+  applySyntaxHighlighting() {
+    const highlight = new HighlightSyntax(this.parsedTokens)
     highlight.parse()
-    this.codeStr = highlight.result.emit() as string
+    this.formattedCode = highlight.result.emit() as string
     return this
   }
-  totalResult() {
-    this.fusion = new Fusion()
-    this.fusion.process(this.codeStr, this.errorLogAndPatns)
+
+  processFinalResult() {
+    this.fusionResult = new Fusion()
+    this.fusionResult.process(this.formattedCode, this.errorLogs)
     return this
   }
-  get lastResult(): string {
-    return this.fusion.toString() ?? this.rawCode
+
+  get finalOutput(): string {
+    return this.fusionResult.toString() ?? this.originalCode
   }
-  writeLog(str: string) {
+
+  outputLog(str: string) {
     process.stderr.write(str)
     console.log()
   }
 }
-const modifyStderr = (stderr: typeof process.stderr) =>
+
+const enhanceErrorLogging = (stderr: typeof process.stderr) =>
   stderr.on('data', data => {
-    const optionsAcorn: Options = {
+    const acornOptions: Options = {
       ecmaVersion: 'latest',
       sourceType: 'module',
       locations: true,
@@ -79,16 +84,16 @@ const modifyStderr = (stderr: typeof process.stderr) =>
       allowReserved: true,
       allowAwaitOutsideFunction: true,
     }
-    const dataWarehouse = new ManagerFactory(optionsAcorn)
-    dataWarehouse
-      .parseCode(data.toString())
-      .parseErrorLog()
-      .buildTokens()
-      .highlightSyntax()
-      .totalResult()
-      .writeLog(dataWarehouse.lastResult)
+    const codeProcessor = new CodeProcessor(acornOptions)
+    codeProcessor
+      .initializeCode(data.toString())
+      .processErrorLog()
+      .generateTokens()
+      .applySyntaxHighlighting()
+      .processFinalResult()
+      .outputLog(codeProcessor.finalOutput)
   })
 
 process.stdout.on('data', data => console.log(data.toString()))
 process.stderr.on('data', data => console.log(data.toString()))
-export default modifyStderr
+export default enhanceErrorLogging
