@@ -11,6 +11,13 @@ type ErrorBlock = ErrorAndPath & {
   message: string
   paths: { line: string; index: number }[]
 }
+export type ResultErrorTypeAndPaths ={
+  idx: number
+  errorType: string
+  message: string
+  paths: Array<{ idx: number; path: string }>
+  mark: { type: string; path: string }
+}
 class BlockError {
   private readonly regExpErrorType = /(?:^|\s)(error|[a-zA-Z]+)(?=:)/
   private lineId: number
@@ -129,19 +136,13 @@ export default class ErrorLogManager {
   }
 
   public processColorize() {
-    const colorizeResult: {
-      idx: number
-      errorType: string
-      message: string
-      paths: Array<{ idx: number; path: string }>
-      mark: { type: string; path: string }
-    }[] = []
+    const colorizeResult: ResultErrorTypeAndPaths[] = []
     let errType = '',
       path = '',
       msg = '',
       isType = false,
       isPath = false,
-      resultPaths: Array<{ idx: number; path: string }> = []
+      resultPaths: ResultErrorTypeAndPaths['paths'] = []
     this.errorPathBlocks.forEach(blockObj => {
       blockObj.block.forEach(({ line, index }) => {
         const type = line.match(this.regExpErrorType)

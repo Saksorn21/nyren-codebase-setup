@@ -1,15 +1,10 @@
 import clearAnsi from '../utils/clearAnsi.js'
-type TokenError = {
-  idx: number
-  errorType: string
-  message: string
-  paths: Array<{ idx: number; path: string }>
-  mark: { type: string; path: string }
-}
+import type { ResultErrorTypeAndPaths } from '../acorn/ErrorLogManager.js'
+
 export default class Fusion {
   result: Array<string> = []
   constructor() {}
-  process(code: string, codeError: TokenError[]) {
+  process(code: string, codeError: ResultErrorTypeAndPaths[]) {
     if(typeof code !== 'string') throw new TypeError('code must be a string')
     const lines = code.split('\n')
     for (const err of codeError) {
