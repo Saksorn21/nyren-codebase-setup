@@ -136,7 +136,7 @@ program.addHelpText('before', 'Advanced: ')
 program.addHelpText('after', '  pro                          🏆 pro')
 program.addHelpText('after', '  ext                          🔌 extensions')
 
-// dotenvx ext
+
 program.helpInformation = function () {
   const originalHelp = Command.prototype.helpInformation.call(this)
   const lines = originalHelp.split('\n')

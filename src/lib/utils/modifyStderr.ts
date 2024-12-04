@@ -92,6 +92,6 @@ const enhanceErrorLogging = (stderr: typeof process.stderr) =>
       .processFinalResult()
       .outputLog(codeProcessor.finalOutput)
   })
-
+console.log('Terminal width:', process.stdout.columns);
 
 export default enhanceErrorLogging
