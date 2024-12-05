@@ -250,23 +250,23 @@ function parseCommand(cmd: string) {
       if (supCommand === 'fast' || supCommand === 'quick') {
         if(commandIndex === -1) process.exit(1)
         parseOptions(opts)
-        log('init', args)
-        return 
+ 
+        return fastCreateProject(args, opts)
       }
       parseOptions(opts)
       log('init ' + parseArg.slice(1), opts)
-      if (hasFlag(parseArg.slice(1, 2).join(' '))) {
-        log('init ' + parseArg.slice(1), parseArg.slice(2).join(' '))
-        break
-      }
+      
       log('false ' + parseArg.slice(1, 2))
-      break
+    const fn =  Object.keys(opts).length !== 0
+      ?  createProjectWithOptions(opts)
+      :  createProject()
+      return fn
     case 'install':
     case 'i':
     case 'add':
       parseOptions(opts)
       log('install' + parseArg)
-      break
+      return installAction.apply(null,{args})
     case 'update':
       log('update' + parseArg)
       break
@@ -448,18 +448,20 @@ ${formattedOptions}
   }
 }
 
-async function run(listener: any) {
-   
+async function run(listener: any,options: Object = {}, args: Array<string> = []) {
+   await listener
+  listener.apply(null, [options, args])
 }
 
 
-function parse(_argv = process.argv) {
+async function parse(_argv = process.argv) {
   const argv = _argv.slice(2)
   const command = argv.shift()
   const base = `commands:${command}`
   console.log(argv, command)
-  parseCommand(command)
+ const fn = parseCommand(command)
+ await run(fn)
   
 }
 
-parse()
+;(async () => await parse())()
