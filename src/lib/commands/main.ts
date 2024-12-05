@@ -241,13 +241,17 @@ const globalOptions = ['--help', '-h', '--version', '-v']
 function parseCommand(cmd: string) {
   const log = console.log
   const opts: any = {}
+  const commandIndex = process.argv.indexOf('--')
+  const args = parseArg.slice(commandIndex - 1, parseArg.length)
   switch (cmd) {
     case 'init':
       const supCommand = parseArg.slice(1).shift()
       console.log('sup', supCommand)
       if (supCommand === 'fast' || supCommand === 'quick') {
-        log('init')
-        return parseOptions(opts)
+        if(commandIndex === -1) process.exit(1)
+        parseOptions(opts)
+        log('init', args)
+        return 
       }
       parseOptions(opts)
       log('init ' + parseArg.slice(1), opts)
@@ -443,6 +447,10 @@ ${formattedOptions}
     console.log(helpAll)
   }
 }
+function action(fn: Function | PromiseLike) {
+   
+}
+
 function parse(_argv = process.argv) {
   const argv = _argv.slice(2)
   const command = argv.shift()
