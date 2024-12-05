@@ -260,6 +260,7 @@ function parseCommand(cmd: string) {
     case 'install':
     case 'i':
     case 'add':
+      parseOptions(opts)
       log('install' + parseArg)
       break
     case 'update':
@@ -287,7 +288,7 @@ function parseOptions(opts, argv = process.argv) {
         opts.module = parseArg[i + 1]
       else if (args === '--directory' || args === '-d')
         opts.directory = parseArg[i + 1]
-      else if (args === '--help' || args === '-h') opts.help = true
+      else if (args === '--help' || args === '-h') return help(argv.slice(2).shift())
       else if (args === '--version' || args === '-v') opts.version = true
       else if (args === '--prefix' || args === '-p')
         opts.prefix = parseArg[i + 1]
@@ -301,12 +302,15 @@ function parseOptions(opts, argv = process.argv) {
   }
   console.log(opts)
 }
+const helpWidth = process.stdout.columns < 60 ? 80 : process.stdout.columns || 80
+const helpIndent = 2
+const itemSeparatorWidth = 2
 function formatHelpMessage(
   command: string,
   description: string,
   width: number,
   indent: number,
-  minColumnWidth: number = 40
+  minColumnWidth: number = 20
 
 ): string {
   const indentSpace = ' '.repeat(indent)
@@ -337,6 +341,7 @@ function wrapText(text: string, maxWidth: number): string[] {
   let currentLine = ''
 
   for (const word of words) {
+    if(word === '\n') return ''
     if ((currentLine + word).length > maxWidth) {
       lines.push(currentLine.trim())
       currentLine = word + ' '
@@ -351,9 +356,7 @@ function wrapText(text: string, maxWidth: number): string[] {
 
   return lines
 }
-const helpWidth = process.stdout.columns || 80
-console.log(helpWidth)
-const helpIndent = 2
+
 // ตัวอย่างการใช้งาน:
 const formattedHelp = [
   formatHelpMessage(
@@ -407,36 +410,46 @@ const formattedOptions = [
     helpWidth,
     helpIndent
   ),
-  formatHelpMessage('-s, --silent', 'Silent mode.', helpWidth, helpIndent),
+  formatHelpMessage('-s, --silent', 
+                    'Silent mode.', helpWidth, helpIndent),
   formatHelpMessage('-w, --watch', 'Watch mode.', helpWidth, helpIndent),
+  formatHelpMessage(
+    '-n, --project-name',
+    'Project name.',
+    helpWidth,
+    helpIndent
+  ),
+  formatHelpMessage('-t, --target', 'Target for the project', helpWidth, helpIndent),
+  formatHelpMessage('-m, --module', 'Module name.', helpWidth, helpIndent),
 ].join('\n')
 
 function help(cmd?: string) {
-  const helpAll = `Usage: ${cmd ? cmd + ' ' : ''}nyrenx [command | script | fileName] [options]
+  console.log('cmd',cmd)
+  const helpAll = `Usage: nyrenx ${cmd ? cmd + ' ' : ''}[command | script | fileName] [options]
   
 Commands:
 ${formattedHelp}
 
 Options:
 ${formattedOptions}
-    -n, --project-name      Project name.
-    -t, --target            Target for the project.
-    -m, --module            Module name.
-    -d, --directory         Directory name.
+    
     `
   if (cmd) {
-    console.log(cmd)
+    if(cmd === 'i') console.log(examples.install)
+    if(cmd === 'init' || cmd === 'fast' || cmd === 'quick') console.log(`Usage: nyrenx ${cmd} [quick | fast] [options] -- [arguments]`,examples.init)
+    if(cmd === 'update') console.log(examples.update)
+    
   } else {
     console.log(helpAll)
   }
 }
-
 function parse(_argv = process.argv) {
   const argv = _argv.slice(2)
   const command = argv.shift()
   const base = `commands:${command}`
   console.log(argv, command)
   parseCommand(command)
+  
 }
 
-console.log(parse())
+parse()
