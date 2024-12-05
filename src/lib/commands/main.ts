@@ -447,9 +447,11 @@ ${formattedOptions}
     console.log(helpAll)
   }
 }
-function action(fn: Function | PromiseLike) {
+
+async function run(listener: any) {
    
 }
+
 
 function parse(_argv = process.argv) {
   const argv = _argv.slice(2)
