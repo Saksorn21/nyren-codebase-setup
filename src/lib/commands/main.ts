@@ -236,7 +236,7 @@ function humanReadableArgName(arg: Argument) {
   return arg.required ? '<' + nameOutput + '>' : '[' + nameOutput + ']'
 }
 
-const parseArg = process.argv.slice(2)
+let parseArg = process.argv.slice(2)
 const globalOptions = ['--help', '-h', '--version', '-v']
 function parseCommand(cmd: string) {
   const log = console.log
@@ -281,9 +281,15 @@ function parseCommand(cmd: string) {
 }
 function parseOptions(opts, argv = process.argv) {
   for (let i = 1; i < parseArg.length; i++) {
-    const args = parseArg[i]
-    console.log(args)
+    let args = parseArg[i]
+    const qe = args.indexOf('=')
+    args = qe !== -1 ? args.split('=')[0] : args
+    parseArg[i] = qe !== -1 ? parseArg[i].split('=')[0] : args
+    parseArg = [...parseArg[i], ...parseArg.slice(i + 1)]
+    console.log('m',args,qe, parseArg[i])
     if (hasFlag(args)) {
+      
+      
       if (args === '--project-name' || args === '-n')
         opts.projectName = parseArg[i + 1]
       else if (args === '--target' || args === '-t')
@@ -449,8 +455,8 @@ ${formattedOptions}
 }
 
 async function run(listener: any,options: Object = {}, args: Array<string> = []) {
-   await listener
-  listener.apply(null, [options, args])
+   //await listener
+  
 }
 
 
@@ -460,7 +466,7 @@ async function parse(_argv = process.argv) {
   const base = `commands:${command}`
   console.log(argv, command)
  const fn = parseCommand(command)
- await run(fn)
+ await run
   
 }
 
