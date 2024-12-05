@@ -284,8 +284,11 @@ function parseOptions(opts, argv = process.argv) {
     let args = parseArg[i]
     const qe = args.indexOf('=')
     args = qe !== -1 ? args.split('=')[0] : args
-    parseArg[i] = qe !== -1 ? parseArg[i].split('=')[0] : args
-    parseArg = [...parseArg[i], ...parseArg.slice(i + 1)]
+    
+const parseValue = (i: number,idx: number = qe, argsValue = parseArg): string => {
+  console.log(idx !== -1 ? argsValue[i].split('=')[1] : argsValue[i + 1])
+  return idx !== -1 ? argsValue[i].split('=')[1] : argsValue[i + 1]
+}
     console.log('m',args,qe, parseArg[i])
     if (hasFlag(args)) {
       
@@ -301,7 +304,7 @@ function parseOptions(opts, argv = process.argv) {
       else if (args === '--help' || args === '-h') return help(argv.slice(2).shift())
       else if (args === '--version' || args === '-v') opts.version = true
       else if (args === '--prefix' || args === '-p')
-        opts.prefix = parseArg[i + 1]
+        opts.prefix = parseValue(i)
       else if (args === '--silent' || args === '-s') opts.silent = true
       else if (args === '--watch' || args === '-w') opts.watch = true
       else {
