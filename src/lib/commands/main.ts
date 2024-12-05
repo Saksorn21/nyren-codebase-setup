@@ -1,5 +1,20 @@
 #!/usr/bin/env node
 import { EventEmitter } from 'node:events'
+
+import { readPackageJson } from '../packageJsonUtils.js'
+import { createProject } from '../../createProject.js'
+import { runAction } from '../../runAction.js'
+import { installAction } from '../../installAction.js'
+import { executeScriptDynamic } from '../../executeScriptDynamic.js'
+import examples from '../../bin/examples.js'
+import {
+  createProjectWithOptions,
+  fastCreateProject,
+  type InitOpts,
+} from '../../createProjectWithOptions.js'
+import { checkForUpdate, chackNodeVersion } from '../checkVersion.js'
+import { updateLatestVersion } from '../../updateVersion.js'
+import cursor from '../cursor.js'
 import process from 'node:process'
 class Option {
   flags: string
@@ -9,8 +24,8 @@ class Option {
   description: string
   defaultValue: string | undefined
   defaultValueDescription: string | undefined
-  short: string
-  long: string
+  short?: string
+  long?: string
   constructor(flags: string, description:string){
     this.flags = flags;
       this.description = description || '';
@@ -51,7 +66,7 @@ function camelcase(str: string) {
 }
 
 function splitOptionFlags(flags: string) {
-  let shortFlag: string, longFlag: string
+  let shortFlag, longFlag
   // Use original very loose parsing to maintain backwards compatibility for now,
   // which allowed for example unintended `-sw, --short-word` [sic].
   const flagParts = flags.split(/[ |,]+/);
@@ -243,10 +258,14 @@ function parseCommand(cmd: string) {
      case 'update':
        log('update' + parseArg)
        break
+     case 'help': case 'h':
+       help()
+       break
       default:
        log('default' + parseArg)
          break;
    }
+  
    
 }
 function parseOptions(opts,argv = process.argv) {
@@ -259,10 +278,45 @@ function parseOptions(opts,argv = process.argv) {
         else if (args === '--target' || args === '-t') opts.target = parseArg[i+1]
         else if (args === '--module' || args === '-m') opts.module = parseArg[i+1]
         else if (args === '--directory' || args === '-d') opts.directory = parseArg[i+1]
+        else if (args === '--help' || args === '-h') opts.help = true
+        else if (args === '--version' || args === '-v') opts.version = true
+        else if (args === '--prefix' || args === '-p') opts.prefix = parseArg[i+1]
+        else if (args === '--silent' || args === '-s') opts.silent = true
+        else if (args === '--watch' || args === '-w') opts.watch = true
+        else {
+          opts.help = true
+          break
+        }
       }
     }
   console.log(opts)
 }
+function help(cmd?: string) {
+  const helpAll = `usage: ${cmd ? cmd + ' ' : ''}nyrenx [command | script | fileName] [options]
+  Commands:
+    init [options]        Create a new project with a template.
+    install [options]         Installation libraries for the project on npm. 
+    update                  Update the project to the latest version.
+    help [command]         Display help for [command]
+
+  Options:
+    -h, --help              Display help for [command]
+    -v, --version           Display version information
+    -p, --prefix            Prefix for the project name.
+    -n, --project-name      Project name.
+    -t, --target            Target for the project.
+    -m, --module            Module name.
+    -d, --directory         Directory name.
+    -s, --silent            Silent mode.
+    -w, --watch             Watch mode.
+    `
+   if (cmd) {
+     console.log(cmd)
+   }else{
+     console.log(helpAll)
+   }
+}
+
 
 function parse(_argv = process.argv) {
    const argv = _argv.slice(2)
