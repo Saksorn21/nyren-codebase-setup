@@ -10,7 +10,6 @@ export type ResultErrorTypeAndPaths = {
   mark: { type: string; path: string }
 }
 
-
 export type ErrorAndPath = {
   block: { line: string; index: number }[]
 }
@@ -157,10 +156,12 @@ export default class ErrorLogManager {
 
         if (this.errorTypes.includes(this.errorType) && isType) {
           isType = false
-            this.errorType = utils.color.hex('f44747').visible(this.errorType || '')
+          this.errorType = utils.color
+            .hex('f44747')
+            .visible(this.errorType || '')
           this.message = utils.color.hex('abb2bf').visible(this.message || '')
           this.idx = index
-          
+
           this.paths = resultPaths
 
           colorizeResult.push(new TokenErrorBlock(this))
@@ -201,9 +202,8 @@ export default class ErrorLogManager {
    */
   private removeRunTimes() {
     const version = readPackageJson().version
-    this.newData.map(
-      (line, index) =>
-        line.includes('Bun') ?  (this.newData[index] = '') : line
+    this.newData.map((line, index) =>
+      line.includes('Bun') ? (this.newData[index] = '') : line
     )
   }
 

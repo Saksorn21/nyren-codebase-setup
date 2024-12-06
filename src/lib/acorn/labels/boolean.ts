@@ -8,7 +8,6 @@ class TFBoolean extends TokenTransformer {
   ): CustomToken {
     if (token.type.label === 'boolean') {
       if (token.value && !token.value) {
-
         this.transform(token, 'boolean')
       }
     }

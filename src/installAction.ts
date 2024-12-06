@@ -119,8 +119,9 @@ async function analyzeLibraries(libraries: string) {
   let deps: string | undefined = undefined
   let devDeps: string | undefined = undefined
   const args = libraries.trim().split(' ')
-
+  console.log('i', args)
   const isDevArgument = (arg: string) =>
+    arg.toLowerCase() === '-d' ||
     arg.toLowerCase() === '--d' ||
     arg.toLowerCase() === '--dev' ||
     arg.toLowerCase() === '--save-dev'

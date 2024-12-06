@@ -242,57 +242,67 @@ function parseCommand(cmd: string) {
   const log = console.log
   const opts: any = {}
   const commandIndex = process.argv.indexOf('--')
-  const args = parseArg.slice(commandIndex - 1, parseArg.length)
+  const args: string[] = parseArg.slice(commandIndex - 1, parseArg.length)
   switch (cmd) {
     case 'init':
       const supCommand = parseArg.slice(1).shift()
       console.log('sup', supCommand)
       if (supCommand === 'fast' || supCommand === 'quick') {
-        if(commandIndex === -1) process.exit(1)
+        if (commandIndex === -1) process.exit(1)
         parseOptions(opts)
- 
+
         return fastCreateProject(args, opts)
       }
       parseOptions(opts)
       log('init ' + parseArg.slice(1), opts)
-      
+
       log('false ' + parseArg.slice(1, 2))
-    const fn =  Object.keys(opts).length !== 0
-      ?  createProjectWithOptions(opts)
-      :  createProject()
+      const fn =
+        Object.keys(opts).length !== 0
+          ? createProjectWithOptions(opts)
+          : createProject()
       return fn
     case 'install':
     case 'i':
     case 'add':
       parseOptions(opts)
-      log('install' + parseArg)
-      return installAction.apply(null,{args})
+      log('install' + parseArg, args)
+      return installAction.apply({ args, opts: () => opts } as any, args)
     case 'update':
       log('update' + parseArg)
-      break
+      return updateLatestVersion()
     case 'help':
     case 'h':
       help()
       break
     default:
-      log('default' + parseArg)
+      log('default', cmd, args)
+      let program = {
+        outputHelp: () => {
+          return help()
+        },
+        opts: () => opts,
+      }
+      return executeScriptDynamic(program as any, cmd, args)
       break
   }
 }
-function parseOptions(opts, argv = process.argv) {
+function parseOptions(opts: any, argv = process.argv) {
   for (let i = 1; i < parseArg.length; i++) {
     let args = parseArg[i]
     const qe = args.indexOf('=')
     args = qe !== -1 ? args.split('=')[0] : args
-    
-const parseValue = (i: number,idx: number = qe, argsValue = parseArg): string => {
-  console.log(idx !== -1 ? argsValue[i].split('=')[1] : argsValue[i + 1])
-  return idx !== -1 ? argsValue[i].split('=')[1] : argsValue[i + 1]
-}
-    console.log('m',args,qe, parseArg[i])
+
+    const parseValue = (
+      i: number,
+      idx: number = qe,
+      argsValue = parseArg
+    ): string => {
+      console.log(idx !== -1 ? argsValue[i].split('=')[1] : argsValue[i + 1])
+      return idx !== -1 ? argsValue[i].split('=')[1] : argsValue[i + 1]
+    }
+    console.log('m', args, qe, parseArg[i])
     if (hasFlag(args)) {
-      
-      
       if (args === '--project-name' || args === '-n')
         opts.projectName = parseArg[i + 1]
       else if (args === '--target' || args === '-t')
@@ -301,10 +311,10 @@ const parseValue = (i: number,idx: number = qe, argsValue = parseArg): string =>
         opts.module = parseArg[i + 1]
       else if (args === '--directory' || args === '-d')
         opts.directory = parseArg[i + 1]
-      else if (args === '--help' || args === '-h') return help(argv.slice(2).shift())
+      else if (args === '--help' || args === '-h')
+        return help(argv.slice(2).shift())
       else if (args === '--version' || args === '-v') opts.version = true
-      else if (args === '--prefix' || args === '-p')
-        opts.prefix = parseValue(i)
+      else if (args === '--prefix' || args === '-p') opts.prefix = parseValue(i)
       else if (args === '--silent' || args === '-s') opts.silent = true
       else if (args === '--watch' || args === '-w') opts.watch = true
       else {
@@ -315,7 +325,8 @@ const parseValue = (i: number,idx: number = qe, argsValue = parseArg): string =>
   }
   console.log(opts)
 }
-const helpWidth = process.stdout.columns < 60 ? 80 : process.stdout.columns || 80
+const helpWidth =
+  process.stdout.columns < 60 ? 80 : process.stdout.columns || 80
 const helpIndent = 2
 const itemSeparatorWidth = 2
 function formatHelpMessage(
@@ -324,7 +335,6 @@ function formatHelpMessage(
   width: number,
   indent: number,
   minColumnWidth: number = 20
-
 ): string {
   const indentSpace = ' '.repeat(indent)
   const columnWidth = Math.max(minColumnWidth, command.length + 2)
@@ -354,7 +364,7 @@ function wrapText(text: string, maxWidth: number): string[] {
   let currentLine = ''
 
   for (const word of words) {
-    if(word === '\n') return ''
+    if (word === '\n') return ''
     if ((currentLine + word).length > maxWidth) {
       lines.push(currentLine.trim())
       currentLine = word + ' '
@@ -423,8 +433,7 @@ const formattedOptions = [
     helpWidth,
     helpIndent
   ),
-  formatHelpMessage('-s, --silent', 
-                    'Silent mode.', helpWidth, helpIndent),
+  formatHelpMessage('-s, --silent', 'Silent mode.', helpWidth, helpIndent),
   formatHelpMessage('-w, --watch', 'Watch mode.', helpWidth, helpIndent),
   formatHelpMessage(
     '-n, --project-name',
@@ -432,12 +441,17 @@ const formattedOptions = [
     helpWidth,
     helpIndent
   ),
-  formatHelpMessage('-t, --target', 'Target for the project', helpWidth, helpIndent),
+  formatHelpMessage(
+    '-t, --target',
+    'Target for the project',
+    helpWidth,
+    helpIndent
+  ),
   formatHelpMessage('-m, --module', 'Module name.', helpWidth, helpIndent),
 ].join('\n')
 
 function help(cmd?: string) {
-  console.log('cmd',cmd)
+  console.log('cmd', cmd)
   const helpAll = `Usage: nyrenx ${cmd ? cmd + ' ' : ''}[command | script | fileName] [options]
   
 Commands:
@@ -448,29 +462,34 @@ ${formattedOptions}
     
     `
   if (cmd) {
-    if(cmd === 'i') console.log(examples.install)
-    if(cmd === 'init' || cmd === 'fast' || cmd === 'quick') console.log(`Usage: nyrenx ${cmd} [quick | fast] [options] -- [arguments]`,examples.init)
-    if(cmd === 'update') console.log(examples.update)
-    
+    if (cmd === 'i' || cmd === 'add' || cmd === 'install')
+      console.log(examples.install)
+    if (cmd === 'init' || cmd === 'fast' || cmd === 'quick')
+      console.log(
+        `Usage: nyrenx ${cmd} [quick | fast] [options] -- [arguments]`,
+        examples.init
+      )
+    if (cmd === 'update') console.log(examples.update)
   } else {
     console.log(helpAll)
   }
 }
 
-async function run(listener: any,options: Object = {}, args: Array<string> = []) {
-   //await listener
-  
+async function run(
+  listener: any,
+  options: Object = {},
+  args: Array<string> = []
+) {
+  await listener
 }
-
 
 async function parse(_argv = process.argv) {
   const argv = _argv.slice(2)
   const command = argv.shift()
   const base = `commands:${command}`
   console.log(argv, command)
- const fn = parseCommand(command)
- await run
-  
+  const fn = parseCommand(command)
+  await run(fn)
 }
 
 ;(async () => await parse())()

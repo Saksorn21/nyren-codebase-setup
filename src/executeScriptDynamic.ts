@@ -69,7 +69,7 @@ export async function executeScriptDynamic(
 ) {
   if (!script) {
     program.outputHelp()
-    program.commands.map(command => (command as any)._name)
+    //program.commands.map(command => (command as any)._name)
     process.exit(1)
   }
 
@@ -77,7 +77,7 @@ export async function executeScriptDynamic(
   // construct the full command line manually including flags
   const commandIndex = rawArgs.indexOf(script)
   const forwardedArgs = rawArgs.slice(commandIndex + 1)
-  if (forwardedArgs.includes('--watch')) {
+  if (forwardedArgs.includes('--watch') || forwardedArgs.includes('-w')) {
     options.watch = true
   }
   const cwd = options.prefix

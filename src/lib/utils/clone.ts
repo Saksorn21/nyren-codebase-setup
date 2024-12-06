@@ -25,13 +25,12 @@ function clone<T>(obj: T): T {
   }
   // Handle Object
   if (obj instanceof Object) {
-     //console.log('reg',obj.constructor.name)
+    //console.log('reg',obj.constructor.name)
     copy = {} as T
-    
+
     for (const attr in obj) {
       //console.log('regexp',attr.constructor.name)
       if (Object.prototype.hasOwnProperty.call(obj, attr)) {
-        
         ;(copy as any)[attr] = clone((obj as any)[attr])
       }
     }

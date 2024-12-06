@@ -2,7 +2,7 @@ import process from 'node:process'
 import Labels from '../acorn/labels/main.js'
 import type { Options } from 'acorn'
 import HighlightSyntax from '../acorn/HighlightSyntax.js'
-import type {  CustomToken } from '../acorn/labels/abstract.js'
+import type { CustomToken } from '../acorn/labels/abstract.js'
 import ErrorLogManager, {
   type ResultErrorTypeAndPaths,
 } from '../acorn/ErrorLogManager.js'
@@ -70,7 +70,6 @@ class CodeProcessor {
   }
 }
 
-
 const enhanceErrorLogging = (stderr: typeof process.stderr) =>
   stderr.on('data', data => {
     const acornOptions: Options = {
@@ -92,6 +91,6 @@ const enhanceErrorLogging = (stderr: typeof process.stderr) =>
       .processFinalResult()
       .outputLog(codeProcessor.finalOutput)
   })
-console.log('Terminal width:', process.stdout.columns);
+console.log('Terminal width:', process.stdout.columns)
 
 export default enhanceErrorLogging

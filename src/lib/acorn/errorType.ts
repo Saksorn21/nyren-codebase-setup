@@ -1,13 +1,13 @@
 const errorTypes: Array<string> = [
-    "error",
-    "TypeError",
-    "SyntaxError",
-    "ReferenceError",
-    "RangeError",
-    "URIError",
-    "EvalError",
-    "AggregateError",
-    "InternalError"
-];
+  'error',
+  'TypeError',
+  'SyntaxError',
+  'ReferenceError',
+  'RangeError',
+  'URIError',
+  'EvalError',
+  'AggregateError',
+  'InternalError',
+]
 
-export default errorTypes;
+export default errorTypes

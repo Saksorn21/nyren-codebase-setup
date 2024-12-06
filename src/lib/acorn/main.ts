@@ -21,18 +21,21 @@ import {
 } from 'acorn'
 import type { ecmaVersion, Options } from 'acorn'
 //ts-no-check
-import { importAttributes, importAssertions,  importAttributesOrAssertions} from 'acorn-import-attributes'
+import {
+  importAttributes,
+  importAssertions,
+  importAttributesOrAssertions,
+} from 'acorn-import-attributes'
 import classFields from 'acorn-class-fields'
 import staticClassFeatures from 'acorn-static-class-features'
 import privateClassElements from 'acorn-private-class-elements'
-import * as aco from "acorn"
+import * as aco from 'acorn'
 import tsPlugin, { tsPlugin as typeTs } from 'acorn-typescript'
 //import * as acorn from 'acorn'
 function plugin(options) {
-   return function (BaseParser: typeof Parser): typeof Parser {
-     return (tsPlugin as any)({dts: true,allowSatisfies: false })(BaseParser)  
-   }
-   
+  return function (BaseParser: typeof Parser): typeof Parser {
+    return (tsPlugin as any)({ dts: true, allowSatisfies: false })(BaseParser)
+  }
 }
 
 const acorn = aco.Parser.extend(tsPlugin({ dts: true }))

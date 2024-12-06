@@ -7,8 +7,6 @@ class TFString extends TokenTransformer {
     nextToken: CustomToken
   ): CustomToken {
     if (token.type.label === 'string') {
-      
-
       this.transform(token, 'string')
     }
     return token

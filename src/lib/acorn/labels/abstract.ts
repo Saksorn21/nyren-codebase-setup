@@ -52,9 +52,8 @@ abstract class TokenTransformer {
   ): CustomToken
   debug = createDebug('nyren:parse')
   transform(token: CustomToken, keyword: string): CustomToken {
-
     const value = this.valueToString(token.value)
-    
+
     const kwType = keywordTypes.emit()[value]
     if (kwType && this.isKeyword(keywordTypes, value)) {
       if (token.type.label === 'class') {
@@ -132,8 +131,8 @@ abstract class TokenTransformer {
   valueToString(value: string | CustomRegExp): string {
     if (typeof value === 'string') return value
     else if (typeof value === 'object') return value.pattern
-      else if (typeof value === 'number') return value
-    else  return ''
+    else if (typeof value === 'number') return value
+    else return ''
   }
 }
 export default TokenTransformer

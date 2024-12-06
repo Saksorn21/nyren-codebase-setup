@@ -157,8 +157,6 @@ async function finalizeOptions(args: string[], opts: InitOpts = {}) {
   opts.target = language || 'typescript'
   opts.module = moduleType || 'module'
   opts.directory = opts.prefix || opts.projectName || 'my-project'
-
-  
 }
 
 const presetSpinnerMatch = async <T>(match: string, callFn: PromiseLike<T>) =>

@@ -86,28 +86,25 @@ export default class Tokenizer {
   lastTokStartLoc: Position | null
   lastTokStart: number
   lastTokEnd: number
-  constructor(
-     input: string,
-    opts: Options
-  ) {
+  constructor(input: string, opts: Options) {
     this.validateInput(input, opts)
     this.input = String(input)
     this.start = this.end = this.pos
     this.startLoc = this.endLoc = this.curPosition()
-    this.inModule = opts.sourceType === "module"
+    this.inModule = opts.sourceType === 'module'
     this.context = this.initialContext()
     this.containsEsc = false
     this.options = opts = getOptions(opts)
     this.lastTokEndLoc = this.lastTokStartLoc = null
     this.lastTokStart = this.lastTokEnd = this.pos
   }
-  validateInput(code: string, opts: any){
-    if(code === undefined) throw new Error('code is required')
-    if(typeof code !== 'string') throw new TypeError('code must be a string')
-    if(typeof opts !== 'object') throw new TypeError('opts must be an object')
-    if(!opts.ecmaVersion) throw new TypeError('opts.ecmaVersion is required')
-    if(typeof opts.sourceType !== 'string') throw new TypeError('options.sourceType must be a string')
-    
+  validateInput(code: string, opts: any) {
+    if (code === undefined) throw new Error('code is required')
+    if (typeof code !== 'string') throw new TypeError('code must be a string')
+    if (typeof opts !== 'object') throw new TypeError('opts must be an object')
+    if (!opts.ecmaVersion) throw new TypeError('opts.ecmaVersion is required')
+    if (typeof opts.sourceType !== 'string')
+      throw new TypeError('options.sourceType must be a string')
   }
   readWord1(): string {
     this.containsEsc = false
@@ -128,13 +125,13 @@ export default class Tokenizer {
 
         if (this.input.charCodeAt(++this.pos) !== 117) {
           // "u"
-          ++this.pos 
+          ++this.pos
           continue
         }
         ++this.pos
         let esc = this.readCodePoint()
         if (!(first ? isIdentifierStart : isIdentifierChar)(esc, astral)) {
-          continue 
+          continue
         }
         word += codePointToString(esc)
         chunkStart = this.pos
@@ -146,20 +143,20 @@ export default class Tokenizer {
 
     return word + this.input.slice(chunkStart, this.pos)
   }
-   readWord() {
+  readWord() {
     let word = this.readWord1()
 
     let type = tt.name
     if (this.keyword.includes(word)) {
       type = keywordTypes.get(word)
     }
-    
+
     return this.finishToken(type, word)
   }
   readToken(code: number) {
     // Identifier or keyword. '\uXXXX' sequences are allowed in
     // identifiers, so '\' also dispatches to that.
-    
+
     if (
       isIdentifierStart(code, this.options.ecmaVersion >= 6) ||
       code === 92 /* '\' */
@@ -272,10 +269,10 @@ export default class Tokenizer {
 
     if (ch === 123) {
       // '{'
-      
+
       code = this.readHexChar(this.input.indexOf('}', this.pos) - this.pos)
       ++this.pos
-      if (code > 0x10ffff) return 0 
+      if (code > 0x10ffff) return 0
     } else {
       code = this.readHexChar(4)
     }
@@ -284,7 +281,7 @@ export default class Tokenizer {
 
   readHexChar(len: number): number {
     let n = this.readInt(16, len)
-    return n ?? 0 
+    return n ?? 0
   }
 
   readInt(radix: number, len?: number): number | null {
@@ -412,18 +409,18 @@ export default class Tokenizer {
   readNumber(startsWithDot: boolean) {
     let start = this.pos
     if (!startsWithDot && this.readInt(10, undefined) === null) return
-     // throw new TypeError('Invalid number')
-    let octal = this.pos - start >= 2 && this.input.charCodeAt(start) === 48, 
-        next = this.input.charCodeAt(this.pos),
-        val: any = 0
-    
+    // throw new TypeError('Invalid number')
+    let octal = this.pos - start >= 2 && this.input.charCodeAt(start) === 48,
+      next = this.input.charCodeAt(this.pos),
+      val: any = 0
+
     if (
       !octal &&
       !startsWithDot &&
       this.options.ecmaVersion >= 11 &&
       next === 110
     ) {
-       val = stringToBigInt(this.input.slice(start, this.pos))
+      val = stringToBigInt(this.input.slice(start, this.pos))
       ++this.pos
       return this.finishToken(tt.num, val)
     }
@@ -440,7 +437,7 @@ export default class Tokenizer {
       if (next === 43 || next === 45) ++this.pos // '+-'
     }
 
-     val = stringToNumber(this.input.slice(start, this.pos), octal)
+    val = stringToNumber(this.input.slice(start, this.pos), octal)
     return this.finishToken(tt.num, val)
   }
 
@@ -520,9 +517,8 @@ export default class Tokenizer {
         return ''
       default:
         if (ch >= 48 && ch <= 55) {
-          let octalStr = this.input
-            .substring(this.pos - 1, 3)
-            .match(/^[0-7]+/)?.[0]?? ''
+          let octalStr =
+            this.input.substring(this.pos - 1, 3).match(/^[0-7]+/)?.[0] ?? ''
           let octal = parseInt(octalStr, 8)
           if (octal > 255) {
             octalStr = octalStr.slice(0, -1)
@@ -560,7 +556,7 @@ export default class Tokenizer {
     return this.finishOp(tokentype, size)
   }
 
-  readToken_pipe_amp(code:number) {
+  readToken_pipe_amp(code: number) {
     // '|&'
     let next = this.input.charCodeAt(this.pos + 1)
     if (next === code) {
@@ -816,11 +812,10 @@ export default class Tokenizer {
     let isValidPattern = isValidRegexpPattern(pattern)
     let isValidFlags = isValidRegexpFlags(flags)
 
-    
     let value = null
     if (isValidPattern && isValidFlags) {
       try {
-        value = new RegExp(pattern, flags) 
+        value = new RegExp(pattern, flags)
       } catch {
         console.warn(`Invalid regular expression: /${pattern}/${flags}`)
       }
@@ -828,7 +823,6 @@ export default class Tokenizer {
       console.warn(`Invalid pattern or flags: /${pattern}/${flags}`)
     }
 
-    
     return this.finishToken(tt.regexp, { pattern, flags, value })
   }
   // Reads template string tokens.
@@ -912,7 +906,7 @@ export default class Tokenizer {
     for (; this.pos < this.input.length; this.pos++) {
       switch (this.input[this.pos]) {
         case '\\':
-          ++this.pos 
+          ++this.pos
           break
 
         case '$':
@@ -955,7 +949,7 @@ export function codePointToString(code) {
   code -= 0x10000
   return String.fromCharCode((code >> 10) + 0xd800, (code & 1023) + 0xdc00)
 }
-function nextLineBreak(code:string, from:number, end = code.length) {
+function nextLineBreak(code: string, from: number, end = code.length) {
   for (let i = from; i < end; i++) {
     let next = code.charCodeAt(i)
     if (isNewLine(next))
@@ -966,7 +960,7 @@ function nextLineBreak(code:string, from:number, end = code.length) {
   return -1
 }
 
-function stringToNumber(str:string, isLegacyOctalNumericLiteral: boolean) {
+function stringToNumber(str: string, isLegacyOctalNumericLiteral: boolean) {
   if (isLegacyOctalNumericLiteral) {
     return parseInt(str, 8)
   }
@@ -1000,4 +994,3 @@ function isValidRegexpFlags(flags: string) {
   // ตรวจสอบว่า flags ประกอบด้วยอักขระที่อนุญาตเท่านั้น (g, i, m, s, u, y)
   return /^[gimsuy]*$/.test(flags) && new Set(flags).size === flags.length
 }
-

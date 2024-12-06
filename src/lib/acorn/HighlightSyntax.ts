@@ -8,15 +8,21 @@ import Themes from './Themes.js'
 import ColorizeSyntax from './ColorizeSyntax.js'
 
 class HighlightSyntax {
-  
-   result!: ColorizeSyntax
-  constructor(private readonly tokens: CustomToken[]) {return this}
+  result!: ColorizeSyntax
+  constructor(private readonly tokens: CustomToken[]) {
+    return this
+  }
   parse() {
     const collectData = new ColorizeSyntax(new Themes(), [])
     const position = { currentLine: 1, currentColumn: 0 }
     this.tokens.forEach((token: CustomToken, index: number): void => {
       const { label, keyword } = token.type
-      const val = typeof token.value === 'string' ? token.value : typeof token.value === 'number' ? token.value : (token.value.value as any)
+      const val =
+        typeof token.value === 'string'
+          ? token.value
+          : typeof token.value === 'number'
+            ? token.value
+            : (token.value.value as any)
       let prev: CustomToken | null = this.tokens[index - 1]
 
       const { line: startLine, column: startColumn } = token.loc
@@ -27,26 +33,23 @@ class HighlightSyntax {
       this.whileLineAndColumn(startLine, startColumn, position, collectData)
       // prev = token
       collectData.isBold = true
-      const collectMap = this.collectMap(collectData,val,prev?.type.label)
+      const collectMap = this.collectMap(collectData, val, prev?.type.label)
 
       if (collectMap.has(label)) {
-        if(val === '^') return collectData.bold.on('error', val);
-        if(val === 'markErrorType' || val === 'markPath') collectData.on('other', val, 'noColor');
-        
-        
-        else collectMap.get(label)?.();
+        if (val === '^') return collectData.bold.on('error', val)
+        if (val === 'markErrorType' || val === 'markPath')
+          collectData.on('other', val, 'noColor')
+        else collectMap.get(label)?.()
       } else {
-        
-        collectData.bold.on('other', val);
+        collectData.bold.on('other', val)
       }
-      
+
       position.currentLine = endLine
       position.currentColumn = endColumn
       prev = token
     })
-    
 
-    this.result = collectData 
+    this.result = collectData
   }
   whileLineAndColumn(
     startLine: number,
@@ -68,28 +71,51 @@ class HighlightSyntax {
       position.currentColumn++
     }
   }
-  collectMap(collectData: ColorizeSyntax,val: string,prevLabel: string): Map<string, ()=> void>{
+  collectMap(
+    collectData: ColorizeSyntax,
+    val: string,
+    prevLabel: string
+  ): Map<string, () => void> {
     const map = new Map([
-        ['keyword', () => collectData.bold.on('keyword', val)],
-        ['TsKeyword', () => collectData.bold.on('keyword', val)],
-        ['class', () => collectData.bold.on('keyword', val)],
-        ['variable', () => prevLabel === 'class' ? collectData.on('types', val) : collectData.on('variable', val)],
-        ['name', () => prevLabel === 'class' ? collectData.on('types', val) : collectData.on('variable', val)],
-        ['method', () => collectData.on('method', val)],
-        ['object', () => collectData.on('object', val)],
-        ['property', () => collectData.on('property', val)],
-        ['number', () => collectData.bold.on('TFnumber', val)], 
-        // Use includes to check for color values. In the purple color section, the keywords “number” and “boolean” affect variable coloring, so the values need to be changed to TFnumber and TFboolean to prevent incorrect coloring.
-        ['boolean', () => collectData.bold.on('TFboolean', val)],
-        ['string', () => collectData.bold.on('string', val.replace(/$/, "'").replace(/^/, "'"))],
-        ['regexp', () => collectData.on('regexp', val)],
-        ['operator', () => collectData.on('operator', val)],
-        ['punctuation', () => collectData.on('punctuation', val)],
-        ['parameter', () => collectData.on('parameter', val)],
-        ['typeAnnotation', () => collectData.on('types', val)],
-        ['types', () => collectData.on('types', val)],
-        ['privateId', () => collectData.on('privateId', val.replace(/^/, "#"))]
-      ]);
+      ['keyword', () => collectData.bold.on('keyword', val)],
+      ['TsKeyword', () => collectData.bold.on('keyword', val)],
+      ['class', () => collectData.bold.on('keyword', val)],
+      [
+        'variable',
+        () =>
+          prevLabel === 'class'
+            ? collectData.on('types', val)
+            : collectData.on('variable', val),
+      ],
+      [
+        'name',
+        () =>
+          prevLabel === 'class'
+            ? collectData.on('types', val)
+            : collectData.on('variable', val),
+      ],
+      ['method', () => collectData.on('method', val)],
+      ['object', () => collectData.on('object', val)],
+      ['property', () => collectData.on('property', val)],
+      ['number', () => collectData.bold.on('TFnumber', val)],
+      // Use includes to check for color values. In the purple color section, the keywords “number” and “boolean” affect variable coloring, so the values need to be changed to TFnumber and TFboolean to prevent incorrect coloring.
+      ['boolean', () => collectData.bold.on('TFboolean', val)],
+      [
+        'string',
+        () =>
+          collectData.bold.on(
+            'string',
+            val.replace(/$/, "'").replace(/^/, "'")
+          ),
+      ],
+      ['regexp', () => collectData.on('regexp', val)],
+      ['operator', () => collectData.on('operator', val)],
+      ['punctuation', () => collectData.on('punctuation', val)],
+      ['parameter', () => collectData.on('parameter', val)],
+      ['typeAnnotation', () => collectData.on('types', val)],
+      ['types', () => collectData.on('types', val)],
+      ['privateId', () => collectData.on('privateId', val.replace(/^/, '#'))],
+    ])
     return map
   }
 }

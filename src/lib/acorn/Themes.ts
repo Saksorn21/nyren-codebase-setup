@@ -2,7 +2,6 @@ import { supportsColorStderr, supportsColor, chalkStderr } from 'chalk'
 
 import { defaultTheme, ThemeSchema, colorType } from './schema-theme.js'
 
-
 class Themes {
   constructor(private schemaTheme?: ThemeSchema) {
     this.validate()

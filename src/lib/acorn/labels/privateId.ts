@@ -6,8 +6,11 @@ class TFPrivateId extends TokenTransformer {
     prevToken: CustomToken,
     nextToken: CustomToken
   ): CustomToken {
-    if (token.type.label === 'privateId' || token.type.label === 'privateIdentifier') {
- token.value = this.valueToString(token.value).replace(/^\./, '#')
+    if (
+      token.type.label === 'privateId' ||
+      token.type.label === 'privateIdentifier'
+    ) {
+      token.value = this.valueToString(token.value).replace(/^\./, '#')
 
       this.transform(token, 'privateId')
     }

@@ -10,55 +10,56 @@ import {
   TSKeywordTypes,
 } from './schema-keywordType.js'
 import matchKeywords, {
-  colorType ,
+  colorType,
   ColorType,
   defaultTheme,
   ThemeSchema,
 } from './schema-theme.js'
 class ColorizeSyntax {
-  
   isBold: boolean = false
   constructor(
     private theme: Themes,
     private result: Array<string>
   ) {}
   get bold() {
-    this.isBold = true;
+    this.isBold = true
     return this
   }
 
   on(keywordType: KeywordType, newResult: string, colorName?: string) {
     if (!keywordType && !newResult) {
-      throw new TypeError('keywordType and message is required');
+      throw new TypeError('keywordType and message is required')
     }
 
-    let msg = '';
+    let msg = ''
     if (colorName) {
-      msg = this.parse(keywordType, colorName)(newResult);
-    } else if (colorName === 'noColor'){
+      msg = this.parse(keywordType, colorName)(newResult)
+    } else if (colorName === 'noColor') {
       msg = newResult
     } else {
-      msg = this.parse(keywordType)(newResult);
+      msg = this.parse(keywordType)(newResult)
     }
 
-    this.result.push(msg);
-    return this;
+    this.result.push(msg)
+    return this
   }
 
   parse(keyword: KeywordType, colorName?: string) {
-    if (colorName || keyword === 'other') return this.theme.white;
+    if (colorName || keyword === 'other') return this.theme.white
 
     for (let [_color, arr] of Object.entries(matchKeywords)) {
-      const color: ColorType = _color as ColorType;
+      const color: ColorType = _color as ColorType
       if (arr.includes(keyword)) {
-        const themeColor = this.isBold ? (this.theme as any)[color + 'B'] : (this.theme as any)[color];
-        if(keyword === 'error') return themeColor.overline
-        this.isBold = false; // Reset `isBold` here after usage in `parse`
-        return themeColor;
+        const themeColor = this.isBold
+          ? (this.theme as any)[color + 'B']
+          : (this.theme as any)[color]
+        if (keyword === 'error') return themeColor.overline
+        this.isBold = false // Reset `isBold` here after usage in `parse`
+        return themeColor
       }
     }
 
-    return this.theme.error;
+    return this.theme.error
   }
   emit(need: 'string' | 'array' = 'string'): string | Array<string> {
     if (need === 'string') {

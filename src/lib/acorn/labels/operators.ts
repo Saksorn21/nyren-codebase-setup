@@ -89,8 +89,12 @@ class TFOperators extends TokenTransformer {
     }
     if (token.value === '${') {
       this.transform(token, 'templateExpressionStart')
-    }else if (token.type.label === '}' && nextToken && nextToken.type.label === 'template') {
-      console.log('dTemp',token)
+    } else if (
+      token.type.label === '}' &&
+      nextToken &&
+      nextToken.type.label === 'template'
+    ) {
+      console.log('dTemp', token)
       this.transform(token, 'templateExpressionEnd')
     }
     if (
@@ -104,7 +108,7 @@ class TFOperators extends TokenTransformer {
     }
     if (operators.includes(token.type.label)) {
       this.transform(token, 'operator')
-    } 
+    }
     if (punctuation.includes(token.type.label)) {
       this.transform(token, 'punctuation')
     }
