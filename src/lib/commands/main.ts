@@ -418,60 +418,71 @@ _optionValues: Record<string, any> | undefined
     return this.options.find(option => option.is(arg))
   }
 }
-const pg = new Command()
-pg.description('s')
-  .name('nyrenx')
-  .version('1.0.0')
-  .option('-m, --module [module]', 'output the version number', 'command')
-console.log(pg)
 let parseArg = process.argv.slice(2)
+function prepareUserArgs(argv: string[] = process.argv) {
+  let rawArgs, scriptPath, userArgs
+   if(argv === undefined) argv = process.argv
+  rawArgs = argv.slice()
+  scriptPath = rawArgs[1]
+  userArgs = argv.slice(2)
+  return { rawArgs, scriptPath, userArgs }
+}
+
 function parseCommand(cmd: string) {
-  const log = console.log
-  const opts: any = {}
-  const commandIndex = process.argv.indexOf('--')
-  const args: string[] = parseArg.slice(commandIndex - 1, parseArg.length)
+  const log = console.log;
+  const opts: Record<string, any> = {};
+
+  // หาตำแหน่ง '--' ใน argv
+  const commandIndex = process.argv.indexOf('--');
+
+  // รวม '--' และค่าหลังจากนั้นทั้งหมด
+  const args: string[] =
+    commandIndex !== -1 ? process.argv.slice(commandIndex) : [];
+
+  parseOptions(opts); // ประมวลผล options ก่อน
+
   switch (cmd) {
-    case 'init':
-      const supCommand = parseArg.slice(1).shift()
-      console.log('sup', supCommand)
-      if (supCommand === 'fast' || supCommand === 'quick') {
-        if (commandIndex === -1) process.exit(1)
-        parseOptions(opts)
+    case 'init': {
+      const subCommand = process.argv[2]; // ตรวจคำสั่งย่อย เช่น fast หรือ quick
+      log(`subCommand: ${subCommand}`);
 
-        return fastCreateProject(args, opts)
+      if (subCommand === 'fast' || subCommand === 'quick') {
+        if (args.length === 0) {
+          log('Error: Missing arguments after `--`');
+          process.exit(1); // ไม่มี args หลัง `--` ให้แสดงข้อผิดพลาด
+        }
+        log('Fast initialization with args:', args);
+        return fastCreateProject(args, opts); // ส่ง args และ opts ไปใช้
       }
-      parseOptions(opts)
-      log('init ' + parseArg.slice(1), opts)
 
-      log('false ' + parseArg.slice(1, 2))
-      const fn =
-        Object.keys(opts).length !== 0
-          ? createProjectWithOptions(opts)
-          : createProject()
-      return fn
+      log('Initialization command');
+      return Object.keys(opts).length > 0
+        ? createProjectWithOptions(opts)
+        : createProject();
+    }
     case 'install':
     case 'i':
-    case 'add':
-      parseOptions(opts)
-      log('install' + parseArg, args)
-      return installAction.apply({ args, opts: () => opts } as any, args)
-    case 'update':
-      log('update' + parseArg)
-      return updateLatestVersion()
+    case 'add': {
+      log('Install command with args:', args, opts);
+      return installAction.apply({ args, opts: () => opts } as any, args);
+    }
+    case 'update': {
+      log('Update command');
+      return updateLatestVersion();
+    }
     case 'help':
-    case 'h':
-      help()
-      break
-    default:
-      log('default', cmd, args)
-      let program = {
-        outputHelp: () => {
-          return help()
-        },
+    case 'h': {
+      log('Displaying help...');
+      return help();
+    }
+    default: {
+      log('Unknown command, delegating to dynamic execution:', cmd, args);
+      const program = {
+        outputHelp: help,
         opts: () => opts,
-      }
-      return executeScriptDynamic(program as any, cmd, args)
-      break
+      };
+      return executeScriptDynamic(program as any, cmd, args);
+    }
   }
 }
 function parseOptions(opts: any, argv = process.argv) {
@@ -703,7 +714,10 @@ async function run(
   await listener
 }
 
+
+
 async function parse(_argv = process.argv) {
+  const { rawArgs, scriptPath, userArgs } = prepareUserArgs()
   const argv = _argv.slice(2)
   const command = argv.shift()
   const base = `commands:${command}`
