@@ -26,6 +26,7 @@ class Option {
   defaultValueDescription: string | undefined
   short?: string
   long?: string
+  negate: boolean
   constructor(flags: string, description: string) {
     this.flags = flags
     this.description = description || ''
@@ -36,9 +37,13 @@ class Option {
     const optionFlags = splitOptionFlags(flags)
     this.short = optionFlags.shortFlag
     this.long = optionFlags.longFlag
+    this.negate = false;
+    if (this.long) {
+      this.negate = this.long.startsWith('--no-');
+    }
     this.defaultValue = this.defaultValueDescription = undefined
   }
-  default(value: any, description: string) {
+  default(value: any, description?: string) {
     this.defaultValue = value
     this.defaultValueDescription = description
     return this
@@ -236,6 +241,62 @@ function humanReadableArgName(arg: Argument) {
   return arg.required ? '<' + nameOutput + '>' : '[' + nameOutput + ']'
 }
 
+class Command extends  EventEmitter {
+  readonly commands: readonly Command[];
+  readonly options: readonly Option[];
+  readonly registeredArguments: readonly Argument[];
+  args: string[];
+  processedArgs: any[];
+  parent: Command | null;
+  _name: string
+  _description: string | undefined
+  _argsDescription: Record<string, string> | undefined 
+  
+  constructor(name?: string){
+    super()
+    this.commands = this.options = this.registeredArguments = this.args = this.processedArgs = []
+    this.parent = null
+    this._name = name || ''
+    this._description = this._argsDescription = undefined
+  }
+  name(): string
+  name(str?: string) {
+    if (str === undefined) return this._name;
+    this._name = str;
+    return this;
+  }
+  version(): string | undefined
+  version(str: string, flags?: string, description?: string): this {
+    if (str === undefined) return this._version;
+    this._version = str;
+    flags = flags || '-V, --version';
+    description = description || 'output the version number';
+    const versionOption = this.createOption(flags, description);
+    this._versionOptionName = versionOption.attributeName();
+    this._registerOption(versionOption);
+
+    this.on('option:' + versionOption.name(), () => {
+      this._outputConfiguration.writeOut(`${str}\n`);
+      this._exit(0, 'commander.version', str);
+    });
+    return this;
+  }
+  description(): string;
+  description(str: string): this;
+  description(str?: string, argsDescription?: Record<string, string>): this {
+    if (str === undefined && argsDescription === undefined)
+      return this._description;
+    this._description = str;
+    if (argsDescription) {
+      this._argsDescription = argsDescription;
+    }
+    return this;
+  }
+  
+  
+}
+const pg = new Command()
+pg.description('s')
 let parseArg = process.argv.slice(2)
 const globalOptions = ['--help', '-h', '--version', '-v']
 function parseCommand(cmd: string) {
@@ -489,7 +550,8 @@ async function parse(_argv = process.argv) {
   const base = `commands:${command}`
   console.log(argv, command)
   const fn = parseCommand(command)
-  await run(fn)
+  //await run(fn)
 }
 
 ;(async () => await parse())()
+console.log(new Option('-t, --target [tarGet]', 'Target for the project'))
