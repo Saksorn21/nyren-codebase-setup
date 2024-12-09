@@ -4,8 +4,11 @@ type CommandFunction = (args: string[], opts: Record<string, any>) => Promise<an
 export default class CommandHandler {
   private commands: Map<string, CommandFunction> = new Map();
   private options: Option[] = [];
+  private optionsValue: Record<string, any> | undefined
 
-  constructor() {}
+  constructor() {
+    this.optionsValue = undefined
+  }
 
   // ลงทะเบียนคำสั่ง
   registerCommand(name: string, fn: CommandFunction): void {
@@ -54,25 +57,51 @@ export default class CommandHandler {
         parsedOptions[option.attributeName()] = option.defaultValue;
       }
     }
-
+    this.optionsValue = parsedOptions;
     return parsedOptions;
   }
 
   // Execute Command
-  async executeCommand(cmd: string, argv: string[]): Promise<void> {
+  executeCommand(cmd: string, argv: string[]): void {
     if (!this.commands.has(cmd)) {
       console.error(`Unknown command: "${cmd}"`);
       return;
     }
 
-    const parsedOptions = this.parseOptions(argv);
     const fn = this.commands.get(cmd);
 
     if (fn) {
-      await fn(argv, parsedOptions);
+      try {
+        const parsedOptions = this.parseOptions(argv);
+        fn(argv, parsedOptions); // เรียกฟังก์ชันแบบ synchronous
+      } catch (err) {
+        console.error('Command execution failed:', err);
+      }
     }
   }
+  async executeCommandAsync(cmd: string, argv: string[]): Promise<void> {
+    if (!this.commands.has(cmd)) {
+      console.error(`Unknown command: "${cmd}"`);
+      return;
+    }
 
+    const fn = this.commands.get(cmd);
+
+    if (fn) {
+      try {
+        const parsedOptions = this.parseOptions(argv);
+        await fn(argv, parsedOptions); // รองรับ async/await
+      } catch (err) {
+        console.error('Command execution failed:', err);
+      }
+    }
+  }
+  opts(){
+    if(this.optionsValue !== undefined){
+      return this.optionsValue
+    }
+    return {}
+  }
   // Show Help
   help(): void {
     console.log("Available Commands:");
