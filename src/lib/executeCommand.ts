@@ -98,6 +98,7 @@ export async function executeCommand(
     process.on('SIGUSR2', () => signalHandler('SIGUSR2', subProcess))
 
     const { exitCode: subProcessExitCode } = await subProcess
+
     exitCode = subProcessExitCode
     // Handle exit code
     if (exitCode !== 0) throw new Error(messages.exitCodeMessage(exitCode))

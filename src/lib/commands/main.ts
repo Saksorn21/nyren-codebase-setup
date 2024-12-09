@@ -16,75 +16,7 @@ import { checkForUpdate, chackNodeVersion } from '../checkVersion.js'
 import { updateLatestVersion } from '../../updateVersion.js'
 import cursor from '../cursor.js'
 import process from 'node:process'
-class Option {
-  flags: string
-  required: boolean
-  optional: boolean
-  variadic: boolean
-  description: string
-  defaultValue: string | undefined
-  defaultValueDescription: string | undefined
-  short?: string
-  long?: string
-  negate: boolean
-  constructor(flags: string, description: string) {
-    this.flags = flags
-    this.description = description || ''
 
-    this.required = flags.includes('<') // A value must be supplied when the option is specified.
-    this.optional = flags.includes('[')
-    this.variadic = /\w\.\.\.[>\]]$/.test(flags)
-    const optionFlags = splitOptionFlags(flags)
-    this.short = optionFlags.shortFlag
-    this.long = optionFlags.longFlag
-    this.negate = false
-    if (this.long) {
-      this.negate = this.long.startsWith('--no-')
-    }
-    this.defaultValue = this.defaultValueDescription = undefined
-  }
-  default(value: any, description?: string) {
-    this.defaultValue = value
-    this.defaultValueDescription = description
-    return this
-  }
-  name() {
-    if (this.long) {
-      return this.long.replace(/^--/, '')
-    }
-    return this.short.replace(/^-/, '')
-  }
-  is(arg: string) {
-    return this.short === arg || this.long === arg
-  }
-  isBoolean() {
-    return !this.required && !this.optional
-  }
-  attributeName() {
-    return camelcase(this.name().replace(/^no-/, ''))
-  }
-}
-function camelcase(str: string) {
-  return str.split('-').reduce((str, word) => {
-    return str + word[0].toUpperCase() + word.slice(1)
-  })
-}
-
-function splitOptionFlags(flags: string) {
-  let shortFlag, longFlag
-  // Use original very loose parsing to maintain backwards compatibility for now,
-  // which allowed for example unintended `-sw, --short-word` [sic].
-  const flagParts = flags.split(/[ |,]+/)
-  if (flagParts.length > 1 && !/^[[<]/.test(flagParts[1]))
-    shortFlag = flagParts.shift()
-  longFlag = flagParts.shift()
-  // Add support for lone short flag without significantly changing parsing!
-  if (!shortFlag && /^-[^-]$/.test(longFlag)) {
-    shortFlag = longFlag
-    longFlag = undefined
-  }
-  return { shortFlag, longFlag }
-}
 function hasFlag(
   flag: string,
   argv: readonly string[] = process.argv
@@ -193,11 +125,7 @@ class Argument {
   choices(values: string[]) {
     this.argChoices = values.slice()
     this.parseArg = (arg, previous) => {
-      if (!this.argChoices.includes(arg)) {
-        throw new InvalidArgumentError(
-          `Allowed choices are ${this.argChoices.join(', ')}.`
-        )
-      }
+
       if (this.variadic) {
         return this._concatValue(arg, previous)
       }
@@ -385,8 +313,9 @@ _optionValues: Record<string, any> | undefined
     this._versionOptionName = versionOption.attributeName()
     this._registerOption(versionOption)
     this.on('option:' + versionOption.name(), () => {
-      this._outputConfiguration.writeOut(`${str}\n`)
-      this._exit(0, 'commander.version', str)
+      process.stdout.write(str + '\n')
+      process.exit(0)
+      
     })
     return this
   }
