@@ -170,183 +170,7 @@ function humanReadableArgName(arg: Argument) {
 }
 const arg = new Argument('[...arg]', 'description')
 console.log(humanReadableArgName(arg))
-class Command extends EventEmitter {
-  readonly commands: readonly Command[]
-  readonly options: readonly Option[]
-  readonly registeredArguments: readonly Argument[]
-  args: string[]
-  processedArgs: any[]
-  parent: Command | null
-  _name: string
-  _version: string | undefined
-  _description: string
-  
-  _argsDescription: Record<string, string> | undefined
-  _storeOptionsAsProperties: boolean
-_optionValues: Record<string, any> | undefined
-  _optionValueSources: Record<string, any> | undefined
-  constructor(name?: string) {
-    super()
-    this.commands = []
-    this.options = []
-    this._optionValues = {}
-    this._optionValueSources = {}
-    this.registeredArguments = this.args = this.processedArgs = []
-    this.parent = null
-    this._name = name || ''
-    this._description = ''
-    this._version = this._argsDescription = undefined
-    this._storeOptionsAsProperties = false
-  }
-  private _registerOption(option: Option) {
-    const matchingOption =
-      (option.short && this._findOption(option.short)) ||
-      (option.long && this._findOption(option.long))
-    if (matchingOption) {
-      const matchingFlag =
-        option.long && this._findOption(option.long)
-          ? option.long
-          : option.short
-      throw new Error(`Cannot add option '${option.flags}'${this._name && ` to command '${this._name}'`} due to conflicting flag '${matchingFlag}'
-  -  already used by option '${matchingOption.flags}'`)
-    }
 
-    this.options.push(option)
-  }
-  createOption(flags: string, description: string) {
-    return new Option(flags, description)
-  }
-  addOption(option: Option) {
-    this._registerOption(option)
-
-    const oname = option.name()
-    const name = option.attributeName()
-
-    // store default value
-    if (option.negate) {
-      // --no-foo is special and defaults foo to true, unless a --foo option is already defined
-      const positiveLongFlag = option.long.replace(/^--no-/, '--')
-      if (!this._findOption(positiveLongFlag)) {
-        this.setOptionValueWithSource(
-          name,
-          option.defaultValue === undefined ? true : option.defaultValue,
-          'default'
-        )
-      }
-    } else if (option.defaultValue !== undefined) {
-      this.setOptionValueWithSource(name, option.defaultValue, 'default')
-    }
-
-    // handler for cli and env supplied values
-    const handleOptionValue = (val, invalidValueMessage, valueSource) => {
-      // val is null for optional option used without an optional-argument.
-      // val is undefined for boolean and negated option.
-      if (val == null && option.presetArg !== undefined) {
-        val = option.presetArg
-      }
-
-      // custom processing
-      const oldValue = this.getOptionValue(name)
-      if (val !== null && option.parseArg) {
-        val = this._callParseArg(option, val, oldValue, invalidValueMessage)
-      } else if (val !== null && option.variadic) {
-        val = option._concatValue(val, oldValue)
-      }
-
-      // Fill-in appropriate missing values. Long winded but easy to follow.
-      if (val == null) {
-        if (option.negate) {
-          val = false
-        } else if (option.isBoolean() || option.optional) {
-          val = true
-        } else {
-          val = '' // not normal, parseArg might have failed or be a mock function for testing
-        }
-      }
-      this.setOptionValueWithSource(name, val, valueSource)
-    }
-
-    this.on('option:' + oname, val => {
-      const invalidValueMessage = `error: option '${option.flags}' argument '${val}' is invalid.`
-      handleOptionValue(val, invalidValueMessage, 'cli')
-    })
-
-    return this
-  }
-  setOptionValueWithSource(key, value, source) {
-    if (this._storeOptionsAsProperties) {
-      this[key] = value;
-    } else {
-      this._optionValues[key] = value;
-    }
-    this._optionValueSources[key] = source;
-    return this;
-  }
-  _optionEx(flags: any, description: string, defaultValue: string) {
-    if (typeof flags === 'object' && flags instanceof Option) {
-      throw new Error(
-        'To add an Option object use addOption() instead of option() or requiredOption()'
-      )
-    }
-    const option = this.createOption(flags, description)
-    option.default(defaultValue)
-
-    return this.addOption(option)
-  }
-  option(flags: string, description: string, defaultValue: string) {
-    return this._optionEx(flags, description, defaultValue)
-  }
-  name(): string
-  name(str?: string) {
-    if (str === undefined) return this._name
-    this._name = str
-    return this
-  }
-  version(): string | undefined
-  version(str: string, flags?: string, description?: string): this
-  version(str?: string, flags?: string, description?: string) {
-    if (str === undefined) return this._version
-    this._version = str
-    flags = flags || '-V, --version'
-    description = description || 'output the version number'
-    const versionOption = this.createOption(flags, description)
-    this._versionOptionName = versionOption.attributeName()
-    this._registerOption(versionOption)
-    this.on('option:' + versionOption.name(), () => {
-      process.stdout.write(str + '\n')
-      process.exit(0)
-      
-    })
-    return this
-  }
-  description(): string
-  description(str: string): this
-  description(
-    str?: string,
-    argsDescription?: Record<string, string>
-  ): string | this {
-    if (str === undefined && argsDescription === undefined) {
-      return this._description
-    }
-    if (str !== undefined) {
-      this._description = str
-    }
-    if (argsDescription) {
-      this._argsDescription = argsDescription
-    }
-    return this
-  }
-
-  _findCommand(name) {
-    if (!name) return undefined
-    return this.commands.find(
-      cmd => cmd._name === name || cmd._aliases.includes(name)
-    )
-  }
-  _findOption(arg) {
-    return this.options.find(option => option.is(arg))
-  }
-}
 let parseArg = process.argv.slice(2)
 function prepareUserArgs(argv: string[] = process.argv) {
   let rawArgs, scriptPath, userArgs
@@ -654,6 +478,19 @@ async function parse(_argv = process.argv) {
   const fn = parseCommand(command)
   //await run(fn)
 }
+import Command from './Command.js'
+const cmds = process.argv.slice(2).shift()
+const args = process.argv.slice(2)
+  const cmd = new Command()
+cmd.name('nyrenx')
+  .description('test')
+  .version('1.0.0')
+  .command('sos','test')
+  .alias('s')
+  .option('-t, --test', 'test')
+  .action(function (this: Command) {
+    if(this.opts().test) console.log(this)
+    else console.log(this,this.opts())
+  })
+.executeCommand('sos',['-t'])
 
-;(async () => await parse())()
-console.log(new Option('-t, --target [tarGet]', 'Target for the project'))

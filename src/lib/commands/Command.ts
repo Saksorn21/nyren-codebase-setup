@@ -1,23 +1,66 @@
 import Option, { splitOptionFlags, camelcase } from './Option.js'
 type CommandFunction = (args: string[], opts: Record<string, any>) => Promise<any> | void;
 
-export default class CommandHandler {
+export default class Command {
   private commands: Map<string, CommandFunction> = new Map();
+  private _name: string
+  private aliases: Map<string, string> = new Map();
+  private _description!: string 
+  private _argsDescription: Record<string, string> | undefined
+  private _version: string | undefined
+  private _versionOptionName: string | undefined
   private options: Option[] = [];
   private optionsValue: Record<string, any> | undefined
-
-  constructor() {
+  private actionHander: CommandFunction | undefined;
+  public args: string[] = []; // เก็บ args ที่ parse แล้ว
+  private optionsData: Record<string, any> = {}; // เก็บ options ที่ parse แล้ว
+  constructor(name?: string) {
     this.optionsValue = undefined
+    this.actionHander = undefined
+    this._versionOptionName = undefined
+    this._name = name || ''
+    this._description = ''
   }
 
   // ลงทะเบียนคำสั่ง
-  registerCommand(name: string, fn: CommandFunction): void {
-    if (this.commands.has(name)) {
+  registerCommand(name: string, fn?: CommandFunction): void {
+    const defaultFn = this.commands.get(name)
+    if (this.commands.has(name) && defaultFn) {
       throw new Error(`Command "${name}" is already registered.`);
     }
     this.commands.set(name, fn);
+    console.log(this.commands)
   }
+  
+  command(name: string, description?: string): Command {
+    const subCommand = this.createCommand(name)
+    if(description) subCommand.description(description);
+    subCommand.registerCommand(name)
+    return subCommand;
+  }
+  createCommand(name?: string): Command{
+    return new Command(name)
+  }
+  action(fn: (...args: any[]) => void | Promise<void>): this {
+  const isArrowFunction = !fn.prototype; // ตรวจสอบว่าเป็นฟังก์ชันลูกศรหรือไม่
 
+  const listener = (...args: any[]) => {
+    const expectedArgsCount = this.options.length;
+    const actionArgs = args.slice(0, expectedArgsCount);
+    actionArgs.push(this.opts());
+
+    // ถ้าเป็นฟังก์ชันลูกศร จะเรียกใช้โดยไม่ผูก `this`
+    if (isArrowFunction) {
+      return fn(...actionArgs);
+    }
+
+    // ถ้าไม่ใช่ฟังก์ชันลูกศร ให้ `this` เป็น Command instance
+    return fn.apply(this, actionArgs);
+  };
+this.registerCommand(this._name, listener);
+  this.actionHander = listener;
+  return this;
+    }
   // ลงทะเบียน options (ใช้คลาส Option)
   option(flags: string, description: string, defautValue?: any){
    const opt =  this.registerOption(flags, description)
@@ -29,20 +72,51 @@ export default class CommandHandler {
     this.options.push(option);
     return option;
   }
-
+  version(): string | undefined
+  version(str: string, flags?: string, description?: string): this
+  version(str?: string, flags?: string, description?: string) {
+    if (str === undefined) return this._version
+    this._version = str
+    flags = flags || '-V, --version'
+    description = description || 'output the version number'
+    const versionOption = this.registerOption(flags, description)
+    this._versionOptionName = versionOption.attributeName()
+    
+    return this
+  }
+  description(): string
+  description(str: string): this
+  description(
+    str?: string,
+    argsDescription?: Record<string, string>
+  ): string | this {
+    if (str === undefined && argsDescription === undefined) {
+      return this._description
+    }
+    if (str !== undefined) {
+      this._description = str
+    }
+    if (argsDescription) {
+      this._argsDescription = argsDescription
+    }
+    return this
+  }
+ private _findOption(arg:string): Option {
+    return this.options.find((option) => option.is(arg));
+  }
   // Parse options
   private parseOptions(argv: string[]): Record<string, any> {
     const parsedOptions: Record<string, any> = {};
     for (let i = 0; i < argv.length; i++) {
       const arg = argv[i];
-      const option = this.options.find((opt) => opt.is(arg));
+      
 
-      if (option) {
-        if (option.isBoolean()) {
-          parsedOptions[option.attributeName()] = !option.negate; // Boolean
-        } else if (option.optional || option.required) {
+      if (this._findOption(arg)) {
+        if (this._findOption(arg).isBoolean()) {
+          parsedOptions[this._findOption(arg).attributeName()] = !this._findOption(arg).negate; // Boolean
+        } else if (this._findOption(arg).optional || this._findOption(arg).required) {
           const value = argv[i + 1];
-          parsedOptions[option.attributeName()] = value;
+          parsedOptions[this._findOption(arg).attributeName()] = value;
           i++; // ข้ามค่าที่ตามมา
         }
       }
@@ -60,61 +134,107 @@ export default class CommandHandler {
     this.optionsValue = parsedOptions;
     return parsedOptions;
   }
+  
+  private parseArgumentsAndOptions(argv: string[]): { args: string[], options: Record<string, any> } {
+    const argsIndex = argv.indexOf("--");
+    const args = argsIndex !== -1 ? argv.slice(argsIndex + 1) : [];
+    const options = this.parseOptions(argsIndex !== -1 ? argv.slice(0, argsIndex) : argv);
+    return { args, options };
+  }
+  
+  alias(aliasName: string): this {
+    let command = this;
+    if(aliasName === command._name) throw new Error("Command alias can't be the same as its name");
+    if (!command._name) {
+      throw new Error("Cannot set an alias without a command name.");
+    }
+    if (command.aliases.has(aliasName)) {
+      throw new Error(`Alias "${aliasName}" is already registered.`);
+    }
+      command.aliases.set(aliasName, command._name);
+    console.log(command.aliases)
+    return this;
+  }
 
-  // Execute Command
-  executeCommand(cmd: string, argv: string[]): void {
-    if (!this.commands.has(cmd)) {
+  private resolveCommand(cmd: string): string {
+    let command = this
+    
+    console.log(command.aliases)
+    return command.aliases.get(cmd) || cmd; // คืนค่าชื่อคำสั่งหลัก หาก cmd เป็น alias
+  }
+  async executeCommand(cmd: string, argv: string[]): Promise<void> {
+    let command = this
+    const resolvedCmd = command.resolveCommand(cmd);
+console.log(command.commands)
+    if (!command.commands.has(resolvedCmd)) {
       console.error(`Unknown command: "${cmd}"`);
       return;
     }
 
-    const fn = this.commands.get(cmd);
-
+    const fn = command.commands.get(resolvedCmd);
     if (fn) {
       try {
-        const parsedOptions = this.parseOptions(argv);
-        fn(argv, parsedOptions); // เรียกฟังก์ชันแบบ synchronous
+        const { args, options } = command.parseArgumentsAndOptions(argv);
+
+        await command._chainOrCall(undefined, () => {
+          const isArrowFunction = fn.prototype === undefined;
+
+          if (isArrowFunction) {
+            // ฟังก์ชันลูกศร: เรียกโดยไม่ผูก this
+            return fn(...args, options);
+          } else {
+            // ฟังก์ชันธรรมดา: ผูก this กับ Command instance
+            return fn.apply(this, [...args, options]);
+          }
+        });
       } catch (err) {
-        console.error('Command execution failed:', err);
+        console.error("Command execution failed:", err);
       }
     }
   }
-  async executeCommandAsync(cmd: string, argv: string[]): Promise<void> {
-    if (!this.commands.has(cmd)) {
-      console.error(`Unknown command: "${cmd}"`);
-      return;
-    }
-
-    const fn = this.commands.get(cmd);
-
-    if (fn) {
-      try {
-        const parsedOptions = this.parseOptions(argv);
-        await fn(argv, parsedOptions); // รองรับ async/await
-      } catch (err) {
-        console.error('Command execution failed:', err);
-      }
-    }
+  opts(): Record<string, any> {
+    const options = this.options.map((opt) => opt.attributeName());
+    return options.reduce((acc, curr) => {
+      acc[curr] = undefined; // ค่า default เป็น undefined
+      return acc;
+    }, {} as Record<string, any>);
   }
-  opts(){
-    if(this.optionsValue !== undefined){
-      return this.optionsValue
+  name(): string
+  name(str?: string): this | string {
+    if (str === undefined) return this._name;
+    this._name = str;
+    return this;
+  }
+  private async _chainOrCall(promise: Promise<any> | undefined, fn: Function): Promise<any> {
+    if (promise) {
+      await promise; // รอ promise สำเร็จก่อน
     }
-    return {}
+    return fn(); // เรียก callback
   }
   // Show Help
   help(): void {
-    console.log("Available Commands:");
-    for (const [cmd] of this.commands) {
-      console.log(`  - ${cmd}`);
+    console.log(`Usage: ${this._name} [options] [arguments]`);
+    if (this._description) {
+      console.log(`\n${this._description}`);
     }
-    console.log("\nAvailable Options:");
-    for (const option of this.options) {
-      console.log(
-        `  ${option.flags}: ${option.description}${
-          option.defaultValue ? ` (default: ${option.defaultValue})` : ""
-        }`
-      );
+
+    if (this.options.length > 0) {
+      console.log("\nOptions:");
+      for (const option of this.options) {
+        console.log(
+          `  ${option.flags}: ${option.description}${
+            option.defaultValue ? ` (default: ${option.defaultValue})` : ""
+          }`
+        );
+      }
+    }
+
+    if (this.commands.size > 0) {
+      console.log("\nCommands:");
+      for (const [cmd, _] of this.commands) {
+        console.log(`  ${cmd}`);
+      }
     }
   }
+  
 }
