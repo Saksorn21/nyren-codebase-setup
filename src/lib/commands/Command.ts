@@ -3,6 +3,7 @@ type CommandFunction = (args: string[], opts: Record<string, any>) => Promise<an
 
 export default class Command {
   private commands: Map<string, CommandFunction> = new Map();
+  parent: Command | undefined;
   private _name: string
   private aliases: Map<string, string> = new Map();
   private _description!: string 
@@ -16,9 +17,10 @@ export default class Command {
   private optionsData: Record<string, any> = {}; // เก็บ options ที่ parse แล้ว
   constructor(name?: string) {
     this.optionsValue = undefined
-    this.actionHander = undefined
+   this.parent = this.actionHander = undefined
     this._versionOptionName = undefined
     this._name = name || ''
+    
     this._description = ''
   }
 
@@ -35,7 +37,11 @@ export default class Command {
   command(name: string, description?: string): Command {
     const subCommand = this.createCommand(name)
     if(description) subCommand.description(description);
-    subCommand.registerCommand(name)
+    this.registerCommand(name);
+      subCommand.parent = this
+    subCommand.registerParent(this)
+  //  subCommand.parent = this
+    
     return subCommand;
   }
   createCommand(name?: string): Command{
@@ -63,7 +69,7 @@ this.registerCommand(this._name, listener);
     }
   // ลงทะเบียน options (ใช้คลาส Option)
   option(flags: string, description: string, defautValue?: any){
-   const opt =  this.registerOption(flags, description)
+   const opt =  this.registerOption(flags, description) 
     opt.default(defautValue)
     return this
   }
@@ -101,6 +107,7 @@ this.registerCommand(this._name, listener);
     }
     return this
   }
+  
  private _findOption(arg:string): Option {
     return this.options.find((option) => option.is(arg));
   }
@@ -143,40 +150,49 @@ this.registerCommand(this._name, listener);
   }
   
   alias(aliasName: string): this {
-    let command = this;
-    if(aliasName === command._name) throw new Error("Command alias can't be the same as its name");
-    if (!command._name) {
-      throw new Error("Cannot set an alias without a command name.");
-    }
-    if (command.aliases.has(aliasName)) {
-      throw new Error(`Alias "${aliasName}" is already registered.`);
-    }
-      command.aliases.set(aliasName, command._name);
-    console.log(command.aliases)
-    return this;
+      if (aliasName === this._name) {
+          throw new Error("Command alias can't be the same as its name");
+      }
+
+      if (!this._name) {
+          throw new Error("Cannot set an alias without a command name.");
+      }
+
+      if (this.aliases.has(aliasName)) {
+          throw new Error(`Alias "${aliasName}" is already registered.`);
+      }
+
+      this.aliases.set(aliasName, this._name);
+console.log('alias', this.aliases)
+      // ถ้ามี parent ให้เพิ่ม alias ใน parent ด้วย
+      if (this.parent) {
+          this.parent.aliases.set(aliasName, this._name);
+      }
+
+      return this;
   }
 
   private resolveCommand(cmd: string): string {
     let command = this
     
-    console.log(command.aliases)
-    return command.aliases.get(cmd) || cmd; // คืนค่าชื่อคำสั่งหลัก หาก cmd เป็น alias
+    console.log('resolveCmd',this.aliases)
+    return this.aliases.get(cmd) || cmd; // คืนค่าชื่อคำสั่งหลัก หาก cmd เป็น alias
   }
   async executeCommand(cmd: string, argv: string[]): Promise<void> {
-    let command = this
-    const resolvedCmd = command.resolveCommand(cmd);
-console.log(command.commands)
-    if (!command.commands.has(resolvedCmd)) {
+    
+    const resolvedCmd = this.resolveCommand(cmd);
+console.log('cmd',this.commands)
+    if (!this.commands.has(resolvedCmd)) {
       console.error(`Unknown command: "${cmd}"`);
       return;
     }
 
-    const fn = command.commands.get(resolvedCmd);
+    const fn = this.commands.get(resolvedCmd);
     if (fn) {
       try {
-        const { args, options } = command.parseArgumentsAndOptions(argv);
+        const { args, options } = this.parseArgumentsAndOptions(argv);
 
-        await command._chainOrCall(undefined, () => {
+        await this._chainOrCall(undefined, () => {
           const isArrowFunction = fn.prototype === undefined;
 
           if (isArrowFunction) {
@@ -200,6 +216,7 @@ console.log(command.commands)
     }, {} as Record<string, any>);
   }
   name(): string
+  name(str: string): string
   name(str?: string): this | string {
     if (str === undefined) return this._name;
     this._name = str;
@@ -210,6 +227,15 @@ console.log(command.commands)
       await promise; // รอ promise สำเร็จก่อน
     }
     return fn(); // เรียก callback
+  }
+  registerParent(parent: Command): void {
+      // รวม aliases และคำสั่งทั้งหมดกลับไปยัง parent
+      for (const [aliasName, commandName] of this.aliases) {
+          parent.aliases.set(aliasName, commandName);
+      }
+      for (const [commandName, commandFn] of this.commands) {
+          parent.commands.set(commandName, commandFn);
+      }
   }
   // Show Help
   help(): void {
