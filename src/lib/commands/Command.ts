@@ -1,6 +1,9 @@
 import Option, { splitOptionFlags, camelcase } from './Option.js'
+import { Option as Opts, Argument } from 'commander'
 type CommandFunction = (args: string[], opts: Record<string, any>) => Promise<any> | void;
-
+export interface ParseOptions {
+  from: 'node' | 'electron' | 'user' | 'eval'
+}
 export default class Command {
   private commands: Map<string, CommandFunction> = new Map();
   parent: Command | undefined;
@@ -14,6 +17,7 @@ export default class Command {
   private optionsValue: Record<string, any> | undefined
   private actionHander: CommandFunction | undefined;
   public args: string[] = []; // เก็บ args ที่ parse แล้ว
+  private rawArgs: string[] = [];
   private optionsData: Record<string, any> = {}; // เก็บ options ที่ parse แล้ว
   constructor(name?: string) {
     this.optionsValue = undefined
@@ -63,7 +67,7 @@ export default class Command {
     // ถ้าไม่ใช่ฟังก์ชันลูกศร ให้ `this` เป็น Command instance
     return fn.apply(this, actionArgs);
   };
-this.registerCommand(this._name, listener);
+this.parent?.registerCommand(this._name, listener);
   this.actionHander = listener;
   return this;
     }
@@ -75,7 +79,8 @@ this.registerCommand(this._name, listener);
   }
   private registerOption(flags: string, description: string): Option {
     const option = new Option(flags, description);
-    this.options.push(option);
+    //this.parent = this
+    this.parent?.options.push(option);
     return option;
   }
   version(): string | undefined
@@ -109,18 +114,21 @@ this.registerCommand(this._name, listener);
   }
   
  private _findOption(arg:string): Option {
+   
     return this.options.find((option) => option.is(arg));
   }
   // Parse options
   private parseOptions(argv: string[]): Record<string, any> {
+    
     const parsedOptions: Record<string, any> = {};
     for (let i = 0; i < argv.length; i++) {
       const arg = argv[i];
       
-
+      
       if (this._findOption(arg)) {
         if (this._findOption(arg).isBoolean()) {
           parsedOptions[this._findOption(arg).attributeName()] = !this._findOption(arg).negate; // Boolean
+          console.log(parsedOptions)
         } else if (this._findOption(arg).optional || this._findOption(arg).required) {
           const value = argv[i + 1];
           parsedOptions[this._findOption(arg).attributeName()] = value;
@@ -139,6 +147,7 @@ this.registerCommand(this._name, listener);
       }
     }
     this.optionsValue = parsedOptions;
+    
     return parsedOptions;
   }
   
@@ -171,7 +180,47 @@ console.log('alias', this.aliases)
 
       return this;
   }
+  private prepareUserArgs (argv?: readonly string[], parseOptions?: ParseOptions ){
+    if (argv !== undefined && !Array.isArray(argv)) {
+      throw new Error('first parameter to parse must be array or undefined');
+    }
+    
+        parseOptions = parseOptions || {} as ParseOptions
 
+    // auto-detect argument conventions if nothing supplied
+    if (argv === undefined && parseOptions.from === undefined) if (process.versions?.electron) {
+            parseOptions.from = 'electron';
+      }
+    if (argv === undefined) argv = process.argv; 
+    this.rawArgs = argv.slice()
+    let userArgs
+    switch (parseOptions.from) {
+       case undefined : case 'node' :
+    this._scriptPath = argv[1];
+        userArgs = argv.slice(2);
+        break;
+      case 'electron':
+        // @ts-ignore: because defaultApp is an unknown property
+        if (process.defaultApp) {
+          this._scriptPath = argv[1];
+          userArgs = argv.slice(2);
+        } else {
+          userArgs = argv.slice(1);
+        }
+        break;
+      case 'user':
+        userArgs = argv.slice(0);
+        break;
+      case 'eval':
+        userArgs = argv.slice(1);
+        break;
+      default:
+        throw new Error(
+          `unexpected parse option { from: '${parseOptions.from}' }`,
+        );
+    }
+    
+}
   private resolveCommand(cmd: string): string {
     let command = this
     
@@ -191,13 +240,13 @@ console.log('cmd',this.commands)
     if (fn) {
       try {
         const { args, options } = this.parseArgumentsAndOptions(argv);
-
+console.log('raw',args,options)
         await this._chainOrCall(undefined, () => {
           const isArrowFunction = fn.prototype === undefined;
 
           if (isArrowFunction) {
             // ฟังก์ชันลูกศร: เรียกโดยไม่ผูก this
-            return fn(...args, options);
+            return fn.apply(null,[...args, options]);
           } else {
             // ฟังก์ชันธรรมดา: ผูก this กับ Command instance
             return fn.apply(this, [...args, options]);
@@ -214,6 +263,7 @@ console.log('cmd',this.commands)
       acc[curr] = undefined; // ค่า default เป็น undefined
       return acc;
     }, {} as Record<string, any>);
+    
   }
   name(): string
   name(str: string): string

@@ -479,8 +479,10 @@ async function parse(_argv = process.argv) {
   //await run(fn)
 }
 import Command from './Command.js'
-const cmds = process.argv.slice(2).shift()
+const cmdsp = process.argv.slice(2).shift()
 const args = process.argv.slice(2)
+const cmds = args.shift()
+console.log('rawArgv',process.argv, cmds, args)
 const cmd = new Command();
 cmd
     .name('nyrenx')
@@ -491,15 +493,17 @@ cmd
     .command('sos', 'test')
     .alias('s')
     .option('-t, --test', 'test')
-    .action(function (this: Command) {
-        if (this.opts().test) console.log('Sos command executed with options:', this.opts());
-        else console.log('Sos command executed without options.');
+    .option('-b, --boat', 'test')
+    .action(function (this, options, args) {
+      console.log(this.opts(),'opts',options, 'args',args);
+        if (options.test) console.log('Sos command executed with options:', options);
+        else console.log('Sos command executed without');
     });
 
 cmd
-    .command('test', 'test')
-    .alias('t')
-    .option('-t, --test', 'test')
-    .action(() => console.log('Test command executed'));
-
-cmd.executeCommand('s', ['-t']); // Sos command executed with options: { test: true }
+    .command('ls', 'test')
+    .alias('l')
+    .option('-o, --ooo', 'test')
+    .action(() => console.log('Test command executed'))
+  cmd.executeCommand(cmds, args); // Sos command executed with options: { test: true }
+//console.log(cmd)

@@ -20,6 +20,7 @@ class Option {
     const optionFlags = splitOptionFlags(flags);
     this.short = optionFlags.shortFlag;
     this.long = optionFlags.longFlag;
+    
     this.negate = false;
     if (this.long) {
       this.negate = this.long.startsWith('--no-');
